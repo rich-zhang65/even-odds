@@ -1,1 +1,20 @@
-{"name":"@even-odds/server","version":"0.0.0","private":true,"scripts":{"dev":"tsx src/index.ts"}}
+{
+  "name": "@even-odds/server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@even-odds/game-sdk": "*",
+    "@even-odds/yahtzee": "*",
+    "nanoid": "^5.1.16",
+    "socket.io": "^4.8.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "socket.io-client": "^4.8.3",
+    "tsx": "^4.23.12"
+  }
+}
