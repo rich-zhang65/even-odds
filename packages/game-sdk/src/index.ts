@@ -9,6 +9,7 @@ export type {
   GameDefinition,
 } from "./types";
 
+export { resolveSprite } from "./assets";
 export { createRandom } from "./random";
 export { createEngine } from "./engine";
 export type { Engine } from "./engine";

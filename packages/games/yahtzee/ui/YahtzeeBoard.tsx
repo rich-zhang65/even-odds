@@ -1,9 +1,12 @@
 "use client";
 
 import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
+import { GameAsset } from "@even-odds/game-sdk/ui";
 import type { Category, YahtzeeAction, YahtzeeState } from "../src/types";
+import { assets } from "../src/assets";
 import { legalScoringCategories, previewScore } from "../src/logic";
 import {
+  ALL_CATEGORIES,
   CATEGORY_INFO,
   LOWER_CATEGORIES,
   UPPER_CATEGORIES,
@@ -27,6 +30,17 @@ const PIPS: Record<number, number[]> = {
   6: [0, 2, 3, 5, 6, 8],
 };
 
+const Pips = (props: { value: number }) => (
+  <span className="grid h-8 w-8 grid-cols-3 grid-rows-3 gap-0.5">
+    {Array.from({ length: 9 }, (_, cell) => (
+      <span
+        key={cell}
+        className={PIPS[props.value]?.includes(cell) ? "rounded-full bg-eo-ink" : ""}
+      />
+    ))}
+  </span>
+);
+
 const Die = (props: {
   value: number;
   held: boolean;
@@ -39,20 +53,19 @@ const Die = (props: {
     onClick={props.onToggle}
     aria-label={`Die showing ${props.value}${props.held ? ", held" : ""}`}
     aria-pressed={props.held}
-    className={`rounded-xl p-3 transition-all duration-150 disabled:cursor-not-allowed ${
+    className={`rounded-xl p-3 transition-all duration-150 disabled:cursor-not-allowed max-md:p-2 ${
       props.held
         ? "bg-eo-gold ring-2 ring-eo-gold shadow-lg -translate-y-1"
         : "bg-eo-text hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
     }`}
   >
-    <span className="grid h-8 w-8 grid-cols-3 grid-rows-3 gap-0.5">
-      {Array.from({ length: 9 }, (_, cell) => (
-        <span
-          key={cell}
-          className={PIPS[props.value]?.includes(cell) ? "rounded-full bg-eo-ink" : ""}
-        />
-      ))}
-    </span>
+    <GameAsset
+      manifest={assets}
+      slot={`die-${props.value}`}
+      alt={`Die showing ${props.value}`}
+      className="h-8 w-8"
+      fallback={<Pips value={props.value} />}
+    />
   </button>
 );
 
@@ -66,6 +79,7 @@ const Scorecard = (props: {
   const scores = props.state.scores[props.player];
   const upper = upperSectionTotal(scores);
   const bonus = props.state.yahtzeeBonus[props.player];
+  const filled = ALL_CATEGORIES.filter(category => scores[category] !== undefined).length;
 
   const row = (category: Category) => {
     const recorded = scores[category];
@@ -100,8 +114,8 @@ const Scorecard = (props: {
   };
 
   return (
-    <section className="rounded-xl border border-eo-raised bg-eo-surface p-4">
-      <header className="mb-3 flex items-baseline justify-between border-b border-eo-raised pb-2">
+    <section className="rounded-xl border border-eo-raised bg-eo-surface p-4 max-md:p-3">
+      <header className="mb-3 flex items-baseline justify-between border-b border-eo-raised pb-2 max-lg:mb-0 max-lg:border-b-0 max-md:mb-3 max-md:border-b">
         <h2 className={`font-display font-bold ${SEAT_TEXT[props.player]}`}>
           {SEAT_NAME[props.player]}
           {props.isViewer && <span className="ml-2 text-xs text-eo-muted">you</span>}
@@ -111,25 +125,33 @@ const Scorecard = (props: {
         </span>
       </header>
 
-      <div className="space-y-0.5">{UPPER_CATEGORIES.map(row)}</div>
+      {/* 768–1023px: the card collapses to this one-line bar */}
+      <p className="hidden items-baseline justify-between text-xs text-eo-muted max-lg:flex max-md:hidden">
+        <span>Upper {upper}/63</span>
+        <span>{filled}/11 filled</span>
+      </p>
 
-      <div className="my-2 flex items-baseline justify-between border-y border-eo-raised px-3 py-1.5 text-xs">
-        <span className="text-eo-muted">Upper bonus {upper >= 63 ? "" : `(${upper}/63)`}</span>
-        <span
-          className={`font-display tabular-nums ${upper >= 63 ? "text-eo-gold" : "text-eo-muted"}`}
-        >
-          {upper >= 63 ? "+35" : "—"}
-        </span>
-      </div>
+      <div className="max-lg:hidden max-md:block max-md:max-h-72 max-md:overflow-y-auto">
+        <div className="space-y-0.5">{UPPER_CATEGORIES.map(row)}</div>
 
-      <div className="space-y-0.5">{LOWER_CATEGORIES.map(row)}</div>
-
-      {bonus > 0 && (
-        <div className="mt-2 flex items-baseline justify-between rounded-md bg-eo-violet/20 px-3 py-1.5 text-xs">
-          <span className="text-eo-violet">Yahtzee bonus</span>
-          <span className="font-display tabular-nums text-eo-violet">+{bonus}</span>
+        <div className="my-2 flex items-baseline justify-between border-y border-eo-raised px-3 py-1.5 text-xs">
+          <span className="text-eo-muted">Upper bonus {upper >= 63 ? "" : `(${upper}/63)`}</span>
+          <span
+            className={`font-display tabular-nums ${upper >= 63 ? "text-eo-gold" : "text-eo-muted"}`}
+          >
+            {upper >= 63 ? "+35" : "—"}
+          </span>
         </div>
-      )}
+
+        <div className="space-y-0.5">{LOWER_CATEGORIES.map(row)}</div>
+
+        {bonus > 0 && (
+          <div className="mt-2 flex items-baseline justify-between rounded-md bg-eo-violet/20 px-3 py-1.5 text-xs">
+            <span className="text-eo-violet">Yahtzee bonus</span>
+            <span className="font-display tabular-nums text-eo-violet">+{bonus}</span>
+          </div>
+        )}
+      </div>
     </section>
   );
 };
@@ -147,7 +169,7 @@ export const YahtzeeBoard = (props: {
     myTurn && rolled && props.seat !== null ? legalScoringCategories(state, props.seat) : [];
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-6 max-lg:grid-cols-1 max-lg:gap-4">
       <Scorecard
         player="p0"
         state={state}
@@ -156,7 +178,7 @@ export const YahtzeeBoard = (props: {
         onScore={(category) => props.onAction({ type: "SCORE", category })}
       />
 
-      <section className="flex w-80 flex-col items-center gap-6 rounded-xl border border-eo-raised bg-eo-surface p-6">
+      <section className="flex w-80 flex-col items-center gap-6 rounded-xl border border-eo-raised bg-eo-surface p-6 max-lg:w-full max-md:gap-4 max-md:p-4">
         <p className="text-center text-sm">
           {props.snapshot.result ? (
             <span className="font-display text-eo-gold">Final</span>
@@ -170,7 +192,7 @@ export const YahtzeeBoard = (props: {
           <span className="ml-2 text-eo-muted">round {Math.min(state.round, 11)}/11</span>
         </p>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 max-md:gap-1.5">
           {state.dice.map((value, index) => (
             <Die
               key={index}
