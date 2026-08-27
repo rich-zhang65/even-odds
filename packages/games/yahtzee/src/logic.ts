@@ -15,7 +15,7 @@ const FACE_TO_UPPER: Record<number, Category> = {
 const isJokerSituation = (state: YahtzeeState, by: PlayerId): boolean =>
   state.dice.every(d => d === state.dice[0]) && state.scores[by]["yahtzee"] === 50;
 
-const legalScoringCategories = (state: YahtzeeState, by: PlayerId): Category[] => {
+export const legalScoringCategories = (state: YahtzeeState, by: PlayerId): Category[] => {
   const playerScores = state.scores[by];
 
   if (isJokerSituation(state, by)) {
@@ -30,6 +30,9 @@ const legalScoringCategories = (state: YahtzeeState, by: PlayerId): Category[] =
 
   return ALL_CATEGORIES.filter(c => playerScores[c] === undefined);
 };
+
+export const previewScore = (state: YahtzeeState, by: PlayerId, category: Category): number =>
+  scoreCategory(category, state.dice, isJokerSituation(state, by));
 
 export const Yahtzee: GameDefinition<YahtzeeState, YahtzeeAction> = {
   meta: {

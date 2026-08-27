@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createEngine } from "@even-odds/game-sdk";
-import { Yahtzee } from "./logic";
+import { Yahtzee, legalScoringCategories, previewScore } from "./logic";
 import { ALL_CATEGORIES } from "./scoring";
-import type { YahtzeeAction, Category } from "./types";
+import type { YahtzeeAction, Category, YahtzeeState } from "./types";
 
 const newGame = (seed = 1) =>
   createEngine(Yahtzee, { matchId: "test", seed });
@@ -102,6 +102,56 @@ describe("Yahtzee — terminal detection", () => {
     expect(result).toMatchObject(
       expect.objectContaining({ winner: expect.stringMatching(/^p[01]$/) })
     );
+  });
+});
+
+describe("Yahtzee — UI helpers", () => {
+  const stateWith = (overrides: Partial<YahtzeeState>): YahtzeeState => ({
+    dice: [1, 2, 3, 4, 5],
+    held: [false, false, false, false, false],
+    rollsLeft: 2,
+    turn: "p0",
+    round: 1,
+    scores: { p0: {}, p1: {} },
+    yahtzeeBonus: { p0: 0, p1: 0 },
+    ...overrides,
+  });
+
+  it("offers every category on an empty scorecard", () => {
+    expect(legalScoringCategories(stateWith({}), "p0")).toEqual(ALL_CATEGORIES);
+  });
+
+  it("drops categories the player already filled", () => {
+    const state = stateWith({ scores: { p0: { ones: 3, fullHouse: 0 }, p1: {} } });
+    const legal = legalScoringCategories(state, "p0");
+
+    expect(legal).not.toContain("ones");
+    expect(legal).not.toContain("fullHouse");
+    expect(legal).toHaveLength(ALL_CATEGORIES.length - 2);
+  });
+
+  it("forces the matching upper category in a joker situation", () => {
+    const state = stateWith({
+      dice: [4, 4, 4, 4, 4],
+      scores: { p0: { yahtzee: 50 }, p1: {} },
+    });
+    expect(legalScoringCategories(state, "p0")).toEqual(["fours"]);
+  });
+
+  it("previews what a category would score", () => {
+    const state = stateWith({ dice: [3, 3, 3, 2, 1] });
+    expect(previewScore(state, "p0", "threes")).toBe(9);
+    expect(previewScore(state, "p0", "threeOfAKind")).toBe(12);
+    expect(previewScore(state, "p0", "fullHouse")).toBe(0);
+  });
+
+  it("previews joker scoring the way the reducer will score it", () => {
+    const state = stateWith({
+      dice: [4, 4, 4, 4, 4],
+      scores: { p0: { yahtzee: 50, fours: 20 }, p1: {} },
+    });
+    expect(previewScore(state, "p0", "fullHouse")).toBe(25);
+    expect(previewScore(state, "p0", "straight")).toBe(40);
   });
 });
 

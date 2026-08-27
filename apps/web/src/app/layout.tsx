@@ -17,10 +17,10 @@ export const metadata: Metadata = {
   description: "Settle the score online, at even odds",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} h-full`}>
-      <body className="h-full antialiased">{children}</body>
-    </html>
-  );
-}
+const RootLayout = ({ children }: LayoutProps<"/">) => (
+  <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} h-full`}>
+    <body className="h-full antialiased">{children}</body>
+  </html>
+);
+
+export default RootLayout;
