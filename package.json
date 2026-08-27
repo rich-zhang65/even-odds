@@ -1,0 +1,17 @@
+{
+  "name": "even-odds",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/games/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace apps/web",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.4"
+  }
+}
