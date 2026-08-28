@@ -1,0 +1,215 @@
+/* Even Odds design tokens, expressed as a Tailwind theme so every token also
+   generates a utility. Import once from the app's entry stylesheet. */
+@theme {
+  /* ---- Player red ---- */
+  --color-eo-red-50: #fff0ed;
+  --color-eo-red-100: #ffdbd5;
+  --color-eo-red-200: #ffb4a8;
+  --color-eo-red-300: #ff8776;
+  --color-eo-red-400: #ff4d3d;
+  --color-eo-red-500: #f03526;
+  --color-eo-red-600: #d02417;
+  --color-eo-red-700: #a11a10;
+  --color-eo-red-800: #6b120b;
+
+  /* ---- Player blue ---- */
+  --color-eo-blue-50: #eef3ff;
+  --color-eo-blue-100: #d7e2ff;
+  --color-eo-blue-200: #aec5ff;
+  --color-eo-blue-300: #7ba0fa;
+  --color-eo-blue-400: #4a7bf0;
+  --color-eo-blue-500: #2563eb;
+  --color-eo-blue-600: #1746b8;
+  --color-eo-blue-700: #123689;
+  --color-eo-blue-800: #0c2358;
+
+  /* ---- Neutrals: ink on paper ---- */
+  --color-eo-ink-900: #12141c;
+  --color-eo-ink-800: #1c1f2a;
+  --color-eo-ink-700: #2c3040;
+  --color-eo-ink-600: #474c61;
+  --color-eo-ink-500: #6c7288;
+  --color-eo-ink-400: #9aa0b4;
+  --color-eo-ink-300: #c6cad8;
+  --color-eo-ink-200: #e2e5ed;
+  --color-eo-ink-100: #f0f2f7;
+  --color-eo-ink-50: #f7f8fc;
+  --color-eo-paper: #ffffff;
+
+  /* ---- Semantic surfaces ---- */
+  --color-eo-page: var(--color-eo-ink-50);
+  --color-eo-card: var(--color-eo-paper);
+  --color-eo-sunken: var(--color-eo-ink-100);
+  --color-eo-inverse: var(--color-eo-ink-900);
+
+  /* ---- Semantic text ---- */
+  --color-eo-strong: var(--color-eo-ink-900);
+  --color-eo-body: var(--color-eo-ink-700);
+  --color-eo-muted: var(--color-eo-ink-500);
+  --color-eo-faint: var(--color-eo-ink-400);
+  --color-eo-on-color: #ffffff;
+
+  /* ---- Borders ---- */
+  --color-eo-hairline: var(--color-eo-ink-200);
+
+  /* ---- Match state ---- */
+  --color-eo-win: var(--color-eo-blue-500);
+  --color-eo-lose: var(--color-eo-red-500);
+  --color-eo-draw: var(--color-eo-ink-500);
+  --color-eo-live: #17b26a;
+  --color-eo-waiting: #f2a63b;
+  --color-eo-offline: var(--color-eo-ink-300);
+  --color-eo-focus: var(--color-eo-blue-500);
+
+  /* ---- Type families ---- */
+  --font-eo-display: "Fredoka", "Baloo 2", system-ui, sans-serif;
+  --font-eo-body: "Nunito", system-ui, sans-serif;
+  --font-eo-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ---- Display scale, Fredoka, always semibold or heavier ---- */
+  --text-eo-display-xl: 64px;
+  --text-eo-display-xl--line-height: 1.02;
+  --text-eo-display-xl--font-weight: 700;
+  --text-eo-display-l: 48px;
+  --text-eo-display-l--line-height: 1.05;
+  --text-eo-display-l--font-weight: 700;
+  --text-eo-display-m: 36px;
+  --text-eo-display-m--line-height: 1.08;
+  --text-eo-display-m--font-weight: 600;
+  --text-eo-display-s: 28px;
+  --text-eo-display-s--line-height: 1.15;
+  --text-eo-display-s--font-weight: 600;
+
+  /* ---- Headings and UI labels ---- */
+  --text-eo-title: 20px;
+  --text-eo-title--line-height: 1.25;
+  --text-eo-title--font-weight: 600;
+  --text-eo-label: 14px;
+  --text-eo-label--line-height: 1.2;
+  --text-eo-label--font-weight: 600;
+  --text-eo-button: 16px;
+  --text-eo-button--line-height: 1;
+  --text-eo-button--font-weight: 600;
+
+  /* ---- Body, Nunito ---- */
+  --text-eo-body-l: 18px;
+  --text-eo-body-l--line-height: 1.6;
+  --text-eo-body-l--font-weight: 400;
+  --text-eo-body-m: 16px;
+  --text-eo-body-m--line-height: 1.6;
+  --text-eo-body-m--font-weight: 400;
+  --text-eo-body-s: 14px;
+  --text-eo-body-s--line-height: 1.5;
+  --text-eo-body-s--font-weight: 400;
+  --text-eo-caption: 12px;
+  --text-eo-caption--line-height: 1.35;
+  --text-eo-caption--font-weight: 600;
+
+  /* ---- Numerals: scores, timers, odds ---- */
+  --text-eo-score: 40px;
+  --text-eo-score--line-height: 1;
+  --text-eo-score--font-weight: 800;
+  --text-eo-stat: 20px;
+  --text-eo-stat--line-height: 1;
+  --text-eo-stat--font-weight: 800;
+
+  --tracking-eo-tight: -0.02em;
+  --tracking-eo-caps: 0.08em;
+
+  /* ---- Radii ---- */
+  --radius-eo-xs: 6px;
+  --radius-eo-sm: 10px;
+  --radius-eo-md: 14px;
+  --radius-eo-lg: 20px;
+  --radius-eo-xl: 28px;
+  --radius-eo-pill: 999px;
+
+  /* ---- Elevation. Cards float barely. ---- */
+  --shadow-eo-sm: 0 1px 2px rgb(18 20 28 / 0.06);
+  --shadow-eo-md: 0 2px 6px rgb(18 20 28 / 0.08);
+  --shadow-eo-lg: 0 10px 24px -8px rgb(18 20 28 / 0.18);
+
+  /* ---- The pressable bottom edge. Never a blur. ---- */
+  --shadow-eo-edge-ink: 0 3px 0 var(--color-eo-ink-900);
+  --shadow-eo-edge-ink-soft: 0 3px 0 var(--color-eo-ink-700);
+  --shadow-eo-edge-red: 0 3px 0 var(--color-eo-red-600);
+  --shadow-eo-edge-blue: 0 3px 0 var(--color-eo-blue-700);
+  --shadow-eo-edge-hairline: 0 2px 0 var(--color-eo-ink-200);
+  --shadow-eo-focus: 0 0 0 3px rgb(37 99 235 / 0.35);
+
+  /* ---- Motion ---- */
+  --ease-eo-out: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --ease-eo-in-out: cubic-bezier(0.5, 0, 0.3, 1);
+  --ease-eo-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-eo-spin: eo-spin 0.7s linear infinite;
+  --animate-eo-fade: eo-fade var(--eo-duration-base) var(--ease-eo-out);
+  --animate-eo-pop: eo-pop var(--eo-duration-base) var(--ease-eo-bounce);
+  --animate-eo-rise: eo-rise var(--eo-duration-base) var(--ease-eo-out);
+  --animate-eo-pulse: eo-pulse 1.6s var(--ease-eo-in-out) infinite;
+
+  @keyframes eo-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes eo-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes eo-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.94) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes eo-rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes eo-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  /* ---- Raw values with no utility namespace. Reach for them with
+         arbitrary values, e.g. h-(--eo-control-md). ---- */
+  --eo-duration-instant: 80ms;
+  --eo-duration-fast: 140ms;
+  --eo-duration-base: 220ms;
+  --eo-duration-slow: 380ms;
+
+  --eo-control-sm: 36px;
+  --eo-control-md: 44px;
+  --eo-control-lg: 56px;
+  --eo-tap-min: 44px;
+  --eo-page-max: 1200px;
+
+  --eo-scrim: rgb(18 20 28 / 0.55);
+  --eo-blur-panel: saturate(140%) blur(12px);
+
+  /* Split field: red half against blue half, the core brand background. */
+  --eo-versus: linear-gradient(100deg, var(--color-eo-red-400) 0 49.5%, var(--color-eo-blue-500) 50.5% 100%);
+  --eo-red-wash: linear-gradient(180deg, var(--color-eo-red-50), var(--color-eo-paper));
+  --eo-blue-wash: linear-gradient(180deg, var(--color-eo-blue-50), var(--color-eo-paper));
+  --eo-checker: repeating-conic-gradient(var(--color-eo-ink-100) 0 25%, transparent 0 50%) 0 0 / 24px 24px;
+}
