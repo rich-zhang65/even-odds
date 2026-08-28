@@ -14,8 +14,8 @@ const MESSAGES: Record<string, string> = {
   notfound: "That match no longer exists.",
 };
 
-const MatchPage = (props: PageProps<"/play/yahtzee/[matchId]">) => {
-  const { matchId } = use(props.params);
+const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
+  const { matchId } = use(params);
   const { snapshot, seat, seats, error, send } = useMatch(matchId);
   const [copied, setCopied] = useState(false);
 
