@@ -1,10 +1,18 @@
 @import "tailwindcss";
-@import "../styles/tokens.css";
+@import "@even-odds/design-system/styles.css";
 
-/* Game UI lives outside apps/web, so Tailwind has to be told to scan it —
-   without these, every class the board does not share with a page is dropped. */
+/* Game and design-system UI live outside apps/web, so Tailwind has to be told to
+   scan them — without these, every class they do not share with a page is dropped. */
 @source "../../../../packages/game-sdk/ui";
 @source "../../../../packages/games";
+@source "../../../../packages/design-system/ui";
+
+/* next/font generates its own family names, so the theme has to point at the
+   variables layout.tsx binds rather than at "Fredoka" and "Nunito" literally. */
+@theme inline {
+  --font-eo-display: var(--font-fredoka), "Fredoka", system-ui, sans-serif;
+  --font-eo-body: var(--font-nunito), "Nunito", system-ui, sans-serif;
+}
 
 *,
 *::before,
@@ -18,7 +26,7 @@ body {
 }
 
 body {
-  background-color: var(--color-eo-ink);
-  color: var(--color-eo-text);
-  font-family: var(--font-body);
+  background-color: var(--color-eo-page);
+  color: var(--color-eo-body);
+  font-family: var(--font-eo-body);
 }

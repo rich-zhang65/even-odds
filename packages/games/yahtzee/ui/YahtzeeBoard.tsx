@@ -2,6 +2,7 @@
 
 import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
 import { GameAsset } from "@even-odds/game-sdk/ui";
+import { Button, Card, cx } from "@even-odds/design-system/ui";
 import type { Category, YahtzeeAction, YahtzeeState } from "../src/types";
 import { assets } from "../src/assets";
 import { legalScoringCategories, previewScore } from "../src/logic";
@@ -15,8 +16,8 @@ import {
 } from "../src/scoring";
 
 const SEAT_TEXT: Record<PlayerId, string> = {
-  p0: "text-eo-red",
-  p1: "text-eo-blue",
+  p0: "text-eo-red-600",
+  p1: "text-eo-blue-600",
 };
 
 const SEAT_NAME: Record<PlayerId, string> = { p0: "Red", p1: "Blue" };
@@ -33,7 +34,7 @@ const PIPS: Record<number, number[]> = {
 const Pips = ({ value }: { value: number }) => (
   <span className="grid h-8 w-8 grid-cols-3 grid-rows-3 gap-0.5">
     {Array.from({ length: 9 }, (_, cell) => (
-      <span key={cell} className={PIPS[value]?.includes(cell) ? "rounded-full bg-eo-ink" : ""} />
+      <span key={cell} className={PIPS[value]?.includes(cell) ? "rounded-full bg-eo-ink-900" : ""} />
     ))}
   </span>
 );
@@ -55,11 +56,12 @@ const Die = ({
     onClick={onToggle}
     aria-label={`Die showing ${value}${held ? ", held" : ""}`}
     aria-pressed={held}
-    className={`rounded-xl p-3 transition-all duration-150 disabled:cursor-not-allowed max-md:p-2 ${
+    className={cx(
+      "cursor-pointer rounded-eo-md border-2 bg-eo-card p-3 transition-[transform,box-shadow] duration-(--eo-duration-fast) ease-eo-out disabled:cursor-not-allowed max-md:p-2",
       held
-        ? "bg-eo-gold ring-2 ring-eo-gold shadow-lg -translate-y-1"
-        : "bg-eo-text hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
-    }`}
+        ? "-translate-y-1 border-eo-ink-900 shadow-eo-edge-ink"
+        : "border-eo-hairline hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0",
+    )}
   >
     <GameAsset
       manifest={assets}
@@ -101,19 +103,19 @@ const Scorecard = ({
         disabled={!open}
         onClick={() => onScore(category)}
         title={CATEGORY_INFO[category].description}
-        className={`flex w-full items-baseline justify-between rounded-md px-3 py-1.5 text-left text-sm transition-colors duration-100 ${
-          open
-            ? "cursor-pointer bg-eo-raised hover:bg-eo-gold hover:text-eo-ink"
-            : "cursor-default"
-        }`}
+        className={cx(
+          "flex w-full items-baseline justify-between rounded-eo-sm px-3 py-1.5 text-left font-eo-body text-eo-body-s transition-colors duration-(--eo-duration-fast) ease-eo-out",
+          open ? "cursor-pointer bg-eo-sunken hover:bg-eo-ink-900 hover:text-eo-on-color" : "cursor-default",
+        )}
       >
-        <span className={recorded === undefined ? "text-eo-muted" : "text-eo-text"}>
+        <span className={recorded === undefined ? "text-eo-muted" : "text-eo-strong"}>
           {CATEGORY_INFO[category].label}
         </span>
         <span
-          className={`font-display tabular-nums ${
-            recorded !== undefined ? "text-eo-text" : open ? "font-semibold" : "text-eo-muted/40"
-          }`}
+          className={cx(
+            "font-eo-body tabular-nums",
+            recorded !== undefined ? "text-eo-strong" : open ? "font-semibold" : "text-eo-faint",
+          )}
         >
           {recorded ?? (preview === null ? "—" : `+${preview}`)}
         </span>
@@ -122,19 +124,19 @@ const Scorecard = ({
   };
 
   return (
-    <section className="rounded-xl border border-eo-raised bg-eo-surface p-4 max-md:p-3">
-      <header className="mb-3 flex items-baseline justify-between border-b border-eo-raised pb-2 max-lg:mb-0 max-lg:border-b-0 max-md:mb-3 max-md:border-b">
-        <h2 className={`font-display font-bold ${SEAT_TEXT[player]}`}>
+    <Card className="p-4 max-md:p-3">
+      <header className="mb-3 flex items-baseline justify-between border-b border-eo-hairline pb-2 max-lg:mb-0 max-lg:border-b-0 max-md:mb-3 max-md:border-b">
+        <h2 className={cx("font-eo-display text-eo-title", SEAT_TEXT[player])}>
           {SEAT_NAME[player]}
-          {isViewer && <span className="ml-2 text-xs text-eo-muted">you</span>}
+          {isViewer && <span className="ml-2 font-eo-body text-eo-caption text-eo-muted">you</span>}
         </h2>
-        <span className="font-display text-xl font-bold tabular-nums text-eo-text">
+        <span className="font-eo-body text-eo-stat tabular-nums text-eo-strong">
           {totalScore(scores, bonus)}
         </span>
       </header>
 
       {/* 768–1023px: the card collapses to this one-line bar */}
-      <p className="hidden items-baseline justify-between text-xs text-eo-muted max-lg:flex max-md:hidden">
+      <p className="hidden items-baseline justify-between font-eo-body text-eo-caption text-eo-muted max-lg:flex max-md:hidden">
         <span>Upper {upper}/63</span>
         <span>{filled}/11 filled</span>
       </p>
@@ -142,10 +144,10 @@ const Scorecard = ({
       <div className="max-lg:hidden max-md:block max-md:max-h-72 max-md:overflow-y-auto">
         <div className="space-y-0.5">{UPPER_CATEGORIES.map(row)}</div>
 
-        <div className="my-2 flex items-baseline justify-between border-y border-eo-raised px-3 py-1.5 text-xs">
+        <div className="my-2 flex items-baseline justify-between border-y border-eo-hairline px-3 py-1.5 font-eo-body text-eo-caption">
           <span className="text-eo-muted">Upper bonus {upper >= 63 ? "" : `(${upper}/63)`}</span>
           <span
-            className={`font-display tabular-nums ${upper >= 63 ? "text-eo-gold" : "text-eo-muted"}`}
+            className={cx("font-eo-body tabular-nums", upper >= 63 ? "text-eo-strong" : "text-eo-muted")}
           >
             {upper >= 63 ? "+35" : "—"}
           </span>
@@ -154,13 +156,13 @@ const Scorecard = ({
         <div className="space-y-0.5">{LOWER_CATEGORIES.map(row)}</div>
 
         {bonus > 0 && (
-          <div className="mt-2 flex items-baseline justify-between rounded-md bg-eo-violet/20 px-3 py-1.5 text-xs">
-            <span className="text-eo-violet">Yahtzee bonus</span>
-            <span className="font-display tabular-nums text-eo-violet">+{bonus}</span>
+          <div className="mt-2 flex items-baseline justify-between rounded-eo-sm bg-eo-sunken px-3 py-1.5 font-eo-body text-eo-caption">
+            <span className="text-eo-body">Yahtzee bonus</span>
+            <span className="tabular-nums text-eo-strong">+{bonus}</span>
           </div>
         )}
       </div>
-    </section>
+    </Card>
   );
 };
 
@@ -189,12 +191,12 @@ export const YahtzeeBoard = ({
         onScore={(category) => onAction({ type: "SCORE", category })}
       />
 
-      <section className="flex w-80 flex-col items-center gap-6 rounded-xl border border-eo-raised bg-eo-surface p-6 max-lg:w-full max-md:gap-4 max-md:p-4">
-        <p className="text-center text-sm">
+      <Card className="flex w-80 flex-col items-center gap-6 max-lg:w-full max-md:gap-4 max-md:p-4">
+        <p className="text-center font-eo-body text-eo-body-s">
           {snapshot.result ? (
-            <span className="font-display text-eo-gold">Final</span>
+            <span className="font-eo-display font-semibold text-eo-strong">Final</span>
           ) : myTurn ? (
-            <span className="font-display font-semibold text-eo-text">Your turn</span>
+            <span className="font-eo-display font-semibold text-eo-strong">Your turn</span>
           ) : (
             <span className="text-eo-muted">
               {SEAT_NAME[snapshot.currentPlayer]} is playing
@@ -215,19 +217,20 @@ export const YahtzeeBoard = ({
           ))}
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="red"
+          size="lg"
+          fullWidth
           disabled={!myTurn || state.rollsLeft === 0}
           onClick={() => onAction({ type: "ROLL" })}
-          className="w-full rounded-lg bg-eo-red px-6 py-3 font-display font-bold text-eo-text transition-colors duration-150 hover:brightness-110 disabled:bg-eo-raised disabled:text-eo-muted"
         >
           {state.rollsLeft === 0 ? "Pick a category" : `Roll · ${state.rollsLeft} left`}
-        </button>
+        </Button>
 
-        <p className="text-center text-xs text-eo-muted">
+        <p className="text-center font-eo-body text-eo-caption text-eo-muted">
           {rolled ? "Click dice to hold them" : "Roll to start your turn"}
         </p>
-      </section>
+      </Card>
 
       <Scorecard
         player="p1"

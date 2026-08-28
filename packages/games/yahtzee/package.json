@@ -9,6 +9,7 @@
     "./ui": "./ui/index.ts"
   },
   "dependencies": {
+    "@even-odds/design-system": "*",
     "@even-odds/game-sdk": "*"
   },
   "peerDependencies": {

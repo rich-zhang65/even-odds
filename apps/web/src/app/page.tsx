@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { GameCard, Toast } from "@even-odds/design-system/ui";
+import { Wordmark } from "@/components/Wordmark";
 import { getSocket, tokenKey } from "@/lib/socket";
 
 const GAMES = [
@@ -33,44 +35,43 @@ const Home = () => {
   };
 
   return (
-    <main className="min-h-full flex flex-col">
-      <header className="border-b border-eo-raised px-8 py-5 flex items-center justify-between max-md:px-4">
-        <div>
-          <span className="font-display text-xl font-bold tracking-tight text-eo-text">
-            Even Odds
-          </span>
-          <span className="ml-2 text-sm text-eo-muted">settle the score online</span>
-        </div>
+    <main className="flex min-h-full flex-col">
+      <header className="flex items-center justify-between border-b border-eo-hairline px-8 py-5 max-md:px-4">
+        <Wordmark />
+        <span className="font-eo-body text-eo-body-s text-eo-muted max-md:hidden">
+          Settle the score online
+        </span>
       </header>
 
-      <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full max-md:px-4 max-md:py-8">
-        <h1 className="font-display text-3xl font-bold text-eo-text mb-2 max-md:text-2xl">Choose a game</h1>
-        <p className="text-eo-muted mb-10">Pick a game, share a link, play.</p>
+      <div className="mx-auto w-full max-w-5xl flex-1 px-8 py-12 max-md:px-4 max-md:py-8">
+        <h1 className="font-eo-display text-eo-display-l tracking-eo-tight text-eo-strong max-md:text-eo-display-m">
+          Choose a game
+        </h1>
+        <p className="mt-2 mb-10 font-eo-body text-eo-body-m text-eo-muted">
+          Pick a game, share a link, play.
+        </p>
 
-        {error && (
-          <p className="mb-6 rounded-lg border border-eo-red bg-eo-red/10 px-4 py-3 text-sm text-eo-red">
-            Could not start a match ({error}). Is the server running on port 4000?
-          </p>
-        )}
-
-        <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
+        <div className="grid grid-cols-3 gap-5 max-lg:grid-cols-2 max-md:grid-cols-1">
           {GAMES.map((game) => (
-            <button
+            <GameCard
               key={game.id}
+              name={game.name}
+              players={pending === game.id ? "Starting…" : `~${game.estimatedMinutes} min`}
               onClick={() => start(game.id)}
-              disabled={pending !== null}
-              className="group text-left bg-eo-surface hover:bg-eo-raised border border-eo-raised hover:border-eo-muted rounded-xl p-6 transition-colors duration-150 disabled:opacity-60"
-            >
-              <div className="w-12 h-12 rounded-lg bg-eo-raised group-hover:bg-eo-ink mb-4 transition-colors duration-150" />
-              <h2 className="font-display font-semibold text-eo-text mb-1">{game.name}</h2>
-              <p className="text-sm text-eo-muted mb-3">{game.tagline}</p>
-              <span className="text-xs text-eo-muted">
-                {pending === game.id ? "Starting…" : `~${game.estimatedMinutes} min`}
-              </span>
-            </button>
+            />
           ))}
         </div>
       </div>
+
+      {error !== null && (
+        <div className="fixed inset-x-0 bottom-8 grid place-items-center px-4">
+          <Toast
+            tone="alert"
+            message={`Could not start a match (${error}). Is the server running on port 4000?`}
+            onDismiss={() => setError(null)}
+          />
+        </div>
+      )}
     </main>
   );
 };
