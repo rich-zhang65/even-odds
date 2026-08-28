@@ -5,7 +5,7 @@ import type { Match, Seat } from "./matches";
 import { gameActionSchema, matchCreateSchema, matchJoinSchema } from "./protocol";
 import type { ClientToServerEvents, MatchStatePayload, ServerToClientEvents } from "./protocol";
 
-export type SocketServer = Server<ClientToServerEvents, ServerToClientEvents>;
+export type SocketServer = Server<ClientToServerEvents, ServerToClientEvents<unknown>>;
 
 export const attachSocketServer = (
   http: HttpServer,

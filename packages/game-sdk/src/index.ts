@@ -13,6 +13,16 @@ export { createRandom } from "./random";
 export { createEngine } from "./engine";
 export type { Engine } from "./engine";
 
+export type {
+  SeatFlags,
+  MatchStatePayload,
+  CreateAck,
+  JoinAck,
+  ActionAck,
+  ServerToClientEvents,
+  ClientToServerEvents,
+} from "./protocol";
+
 export { createSession, createTurnBasedSession } from "./session";
 export type {
   ActionResult,

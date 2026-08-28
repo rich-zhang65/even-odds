@@ -95,6 +95,13 @@ export const createRegistry = (
       const match = matches.get(matchId);
       if (!match) return { ok: false, error: "notfound" };
 
+      // A socket that already holds a seat re-joins into it, never into the other
+      // one — otherwise a creator whose token is missing takes both seats.
+      const held = seatOf(match, socketId);
+      if (held) {
+        return { ok: true, matchId, you: held.player, token: held.token, reconnected: true };
+      }
+
       if (token) {
         for (const player of SEATS) {
           const seat = match.seats[player];

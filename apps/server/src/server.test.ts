@@ -105,6 +105,19 @@ describe("server — match lifecycle", () => {
     expect(await seated).toMatchObject({ seats: { p0: true, p1: true } });
   });
 
+  it("re-seats a socket into the seat it already holds, even with no token", async () => {
+    const url = await startServer();
+    const a = await connect(url);
+    const created = await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+
+    const rejoined = await ask<JoinOk>(a, "match:join", { matchId: created.matchId });
+    expect(rejoined).toMatchObject({ you: "p0", reconnected: true });
+
+    const b = await connect(url);
+    const joined = await ask<JoinOk>(b, "match:join", { matchId: created.matchId });
+    expect(joined.you).toBe("p1");
+  });
+
   it("refuses a third player gracefully", async () => {
     const url = await startServer();
     const { created } = await openMatch(url);
