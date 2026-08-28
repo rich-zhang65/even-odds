@@ -30,6 +30,35 @@ default, so `p-4` is the 16px step.
 Tokens with no Tailwind namespace (durations, control heights, gradients) stay raw and
 are used as arbitrary values, e.g. `h-(--eo-control-md)` or `bg-(image:--eo-versus)`.
 
+## Components
+
+```ts
+import { Button, GameCard, ScoreBoard } from "@even-odds/design-system/ui";
+```
+
+| Group      | Components                                          |
+| ---------- | --------------------------------------------------- |
+| Core       | `Button` `Card` `Badge` `Tag` `Icon` `IconButton`     |
+| Forms      | `Input` `Checkbox` `Radio` `Select` `Switch`          |
+| Feedback   | `Dialog` `Toast` `Tooltip`                            |
+| Game       | `GameCard` `PlayerChip` `ScoreBoard` `VersusBanner`   |
+| Navigation | `Tabs`                                                |
+
+None of them hold state: hover, press and focus are CSS variants, so every
+component is driven entirely by its props. Only the ones taking event handlers
+carry `"use client"`; the rest render as server components.
+
+Components that show a glyph take it as a rendered node, not a component type
+(`icon={<Icon icon={Swords} />}`), because a component cannot be passed across a
+server/client boundary.
+
+The app must register this directory with Tailwind, alongside the game UI it
+already scans:
+
+```css
+@source "../../../../packages/design-system/ui";
+```
+
 ## Fonts
 
 The theme names **Fredoka** for display and **Nunito** for body. Loading them is the
