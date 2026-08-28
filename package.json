@@ -8,9 +8,11 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace apps/web",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsgo"
   },
   "devDependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "typescript": "^5.9.0",
     "vitest": "^3.2.4"
   }
