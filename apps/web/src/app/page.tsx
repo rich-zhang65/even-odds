@@ -34,7 +34,7 @@ const Home = () => {
 
   return (
     <main className="min-h-full flex flex-col">
-      <header className="border-b border-eo-raised px-8 py-5 flex items-center justify-between">
+      <header className="border-b border-eo-raised px-8 py-5 flex items-center justify-between max-md:px-4">
         <div>
           <span className="font-display text-xl font-bold tracking-tight text-eo-text">
             Even Odds
@@ -43,8 +43,8 @@ const Home = () => {
         </div>
       </header>
 
-      <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full">
-        <h1 className="font-display text-3xl font-bold text-eo-text mb-2">Choose a game</h1>
+      <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full max-md:px-4 max-md:py-8">
+        <h1 className="font-display text-3xl font-bold text-eo-text mb-2 max-md:text-2xl">Choose a game</h1>
         <p className="text-eo-muted mb-10">Pick a game, share a link, play.</p>
 
         {error && (
@@ -53,7 +53,7 @@ const Home = () => {
           </p>
         )}
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
           {GAMES.map((game) => (
             <button
               key={game.id}

@@ -35,7 +35,7 @@ const MatchPage = (props: PageProps<"/play/yahtzee/[matchId]">) => {
 
   return (
     <main className="min-h-full flex flex-col">
-      <header className="flex items-center justify-between border-b border-eo-raised px-8 py-5">
+      <header className="flex items-center justify-between border-b border-eo-raised px-8 py-5 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-4">
         <Link href="/" className="font-display text-xl font-bold tracking-tight text-eo-text">
           Even Odds
         </Link>
@@ -56,7 +56,7 @@ const MatchPage = (props: PageProps<"/play/yahtzee/[matchId]">) => {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
+      <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8 max-md:px-4 max-md:py-5">
         {error !== null && (
           <p className="mb-6 rounded-lg border border-eo-red bg-eo-red/10 px-4 py-3 text-sm text-eo-red">
             {MESSAGES[error] ?? error}

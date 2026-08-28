@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
+/* Game UI lives outside apps/web, so Tailwind has to be told to scan it —
+   without these, every class the board does not share with a page is dropped. */
+@source "../../../../packages/game-sdk/ui";
+@source "../../../../packages/games";
+
 *,
 *::before,
 *::after {
