@@ -1,7 +1,12 @@
 export { Badge, type BadgeTone } from "./Badge";
 export { Button } from "./Button";
 export { Card, type CardTone } from "./Card";
+export { Checkbox } from "./Checkbox";
 export { Icon } from "./Icon";
 export { IconButton } from "./IconButton";
+export { Input } from "./Input";
+export { Radio } from "./Radio";
+export { Select, type SelectOption } from "./Select";
+export { Switch } from "./Switch";
 export { Tag } from "./Tag";
 export { type ControlSize, type ControlVariant } from "./tokens";
