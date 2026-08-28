@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./styles.css": "./styles/theme.css"
+    "./styles.css": "./styles/theme.css",
+    "./ui": "./ui/index.ts"
   },
   "peerDependencies": {
     "react": "^19"
@@ -11,5 +12,8 @@
   "devDependencies": {
     "@types/react": "^19.2.18",
     "react": "^19.2.8"
+  },
+  "dependencies": {
+    "lucide-react": "^1.35.0"
   }
 }
