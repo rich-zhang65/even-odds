@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-body",
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-display",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: LayoutProps<"/">) => (
-  <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} h-full`}>
+  <html lang="en" className={`${fredoka.variable} ${nunito.variable} h-full`}>
     <body className="h-full antialiased">{children}</body>
   </html>
 );

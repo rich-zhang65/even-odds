@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import type { PlayerId } from "@even-odds/game-sdk";
+import { Button, Card, PlayerChip, Toast } from "@even-odds/design-system/ui";
 import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
+import { Wordmark } from "@/components/Wordmark";
 import { useMatch } from "@/lib/useMatch";
 
 const SEAT_NAME: Record<PlayerId, string> = { p0: "Red", p1: "Blue" };
-const SEAT_TEXT: Record<PlayerId, string> = { p0: "text-eo-red", p1: "text-eo-blue" };
+const SEAT_SIDE: Record<PlayerId, "red" | "blue"> = { p0: "red", p1: "blue" };
+const SEAT_TEXT: Record<PlayerId, string> = { p0: "text-eo-red-600", p1: "text-eo-blue-600" };
 
 const MESSAGES: Record<string, string> = {
   full: "This match already has two players.",
@@ -26,84 +29,79 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
   };
 
   const result = snapshot?.result ?? null;
-  const outcome =
-    result === null
-      ? null
-      : "draw" in result
-        ? "Dead even"
-        : `${SEAT_NAME[result.winner]} wins${result.reason ? ` — ${result.reason}` : ""}`;
 
   return (
-    <main className="min-h-full flex flex-col">
-      <header className="flex items-center justify-between border-b border-eo-raised px-8 py-5 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-4">
-        <Link href="/" className="font-display text-xl font-bold tracking-tight text-eo-text">
-          Even Odds
+    <main className="flex min-h-full flex-col">
+      <header className="flex items-center justify-between border-b border-eo-hairline px-8 py-5 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-4">
+        <Link href="/">
+          <Wordmark />
         </Link>
 
         <div className="flex items-center gap-4">
-          {seat && (
-            <span className="text-sm text-eo-muted">
-              You are <span className={`font-semibold ${SEAT_TEXT[seat]}`}>{SEAT_NAME[seat]}</span>
-            </span>
+          {seat !== null && (
+            <PlayerChip name={SEAT_NAME[seat]} side={SEAT_SIDE[seat]} record="you" size="sm" />
           )}
-          <button
-            type="button"
-            onClick={copyLink}
-            className="rounded-lg border border-eo-raised bg-eo-surface px-4 py-2 text-sm text-eo-text transition-colors duration-150 hover:border-eo-muted"
-          >
+          <Button variant="outline" size="sm" onClick={copyLink}>
             {copied ? "Copied" : "Copy link"}
-          </button>
+          </Button>
         </div>
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8 max-md:px-4 max-md:py-5">
-        {error !== null && (
-          <p className="mb-6 rounded-lg border border-eo-red bg-eo-red/10 px-4 py-3 text-sm text-eo-red">
-            {MESSAGES[error] ?? error}
-          </p>
-        )}
-
-        {outcome !== null && (
-          <p className="mb-6 rounded-lg border border-eo-gold bg-eo-gold/10 px-4 py-3 text-center font-display font-bold text-eo-gold">
-            {outcome}
-          </p>
+        {result !== null && (
+          <Card tone="outlined" className="mb-6 text-center">
+            <p className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
+              {"draw" in result ? (
+                "Dead even"
+              ) : (
+                <>
+                  <span className={SEAT_TEXT[result.winner]}>{SEAT_NAME[result.winner]}</span> wins
+                </>
+              )}
+            </p>
+            {!("draw" in result) && result.reason !== undefined && (
+              <p className="mt-1 font-eo-body text-eo-body-s text-eo-muted">{result.reason}</p>
+            )}
+          </Card>
         )}
 
         {snapshot?.phase === "paused" && (
-          <p className="mb-6 rounded-lg border border-eo-raised bg-eo-surface px-4 py-3 text-center text-sm text-eo-muted">
+          <Card className="mb-6 text-center font-eo-body text-eo-body-s text-eo-muted">
             Opponent disconnected — waiting for them to come back.
-          </p>
+          </Card>
         )}
 
         {snapshot === null && error === null && (
-          <p className="py-24 text-center text-eo-muted">Connecting…</p>
+          <p className="py-24 text-center font-eo-body text-eo-body-m text-eo-muted">Connecting…</p>
         )}
 
         {snapshot?.phase === "waiting" && (
-          <section className="mx-auto max-w-md rounded-xl border border-eo-raised bg-eo-surface p-8 text-center">
-            <h1 className="mb-2 font-display text-2xl font-bold text-eo-text">
+          <Card tone="outlined" className="mx-auto max-w-md text-center">
+            <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
               Waiting for an opponent
             </h1>
-            <p className="mb-6 text-sm text-eo-muted">
+            <p className="mt-2 mb-6 font-eo-body text-eo-body-s text-eo-muted">
               Send this link to whoever you want to play against.
             </p>
-            <button
-              type="button"
-              onClick={copyLink}
-              className="w-full rounded-lg bg-eo-red px-6 py-3 font-display font-bold text-eo-text transition-colors duration-150 hover:brightness-110"
-            >
+            <Button fullWidth onClick={copyLink}>
               {copied ? "Copied to clipboard" : "Copy match link"}
-            </button>
-            <p className="mt-4 text-xs text-eo-muted">
+            </Button>
+            <p className="mt-4 font-eo-body text-eo-caption text-eo-muted">
               Seats · Red {seats.p0 ? "ready" : "—"} · Blue {seats.p1 ? "ready" : "—"}
             </p>
-          </section>
+          </Card>
         )}
 
         {snapshot !== null && snapshot.phase !== "waiting" && (
           <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={send} />
         )}
       </div>
+
+      {error !== null && (
+        <div className="fixed inset-x-0 bottom-8 grid place-items-center px-4">
+          <Toast tone="alert" message={MESSAGES[error] ?? error} />
+        </div>
+      )}
     </main>
   );
 };

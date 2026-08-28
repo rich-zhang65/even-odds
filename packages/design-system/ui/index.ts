@@ -1,6 +1,7 @@
 export { Badge, type BadgeTone } from "./Badge";
 export { Button } from "./Button";
 export { Card, type CardTone } from "./Card";
+export { cx } from "./cx";
 export { Checkbox } from "./Checkbox";
 export { Dialog } from "./Dialog";
 export { GameCard, type GameCardSize } from "./GameCard";
