@@ -30,18 +30,20 @@ const PIPS: Record<number, number[]> = {
   6: [0, 2, 3, 5, 6, 8],
 };
 
-const Pips = (props: { value: number }) => (
+const Pips = ({ value }: { value: number }) => (
   <span className="grid h-8 w-8 grid-cols-3 grid-rows-3 gap-0.5">
     {Array.from({ length: 9 }, (_, cell) => (
-      <span
-        key={cell}
-        className={PIPS[props.value]?.includes(cell) ? "rounded-full bg-eo-ink" : ""}
-      />
+      <span key={cell} className={PIPS[value]?.includes(cell) ? "rounded-full bg-eo-ink" : ""} />
     ))}
   </span>
 );
 
-const Die = (props: {
+const Die = ({
+  value,
+  held,
+  disabled,
+  onToggle,
+}: {
   value: number;
   held: boolean;
   disabled: boolean;
@@ -49,49 +51,55 @@ const Die = (props: {
 }) => (
   <button
     type="button"
-    disabled={props.disabled}
-    onClick={props.onToggle}
-    aria-label={`Die showing ${props.value}${props.held ? ", held" : ""}`}
-    aria-pressed={props.held}
+    disabled={disabled}
+    onClick={onToggle}
+    aria-label={`Die showing ${value}${held ? ", held" : ""}`}
+    aria-pressed={held}
     className={`rounded-xl p-3 transition-all duration-150 disabled:cursor-not-allowed max-md:p-2 ${
-      props.held
+      held
         ? "bg-eo-gold ring-2 ring-eo-gold shadow-lg -translate-y-1"
         : "bg-eo-text hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
     }`}
   >
     <GameAsset
       manifest={assets}
-      slot={`die-${props.value}`}
-      alt={`Die showing ${props.value}`}
+      slot={`die-${value}`}
+      alt={`Die showing ${value}`}
       className="h-8 w-8"
-      fallback={<Pips value={props.value} />}
+      fallback={<Pips value={value} />}
     />
   </button>
 );
 
-const Scorecard = (props: {
+const Scorecard = ({
+  player,
+  state,
+  isViewer,
+  selectable,
+  onScore,
+}: {
   player: PlayerId;
   state: YahtzeeState;
   isViewer: boolean;
   selectable: Category[];
   onScore: (category: Category) => void;
 }) => {
-  const scores = props.state.scores[props.player];
+  const scores = state.scores[player];
   const upper = upperSectionTotal(scores);
-  const bonus = props.state.yahtzeeBonus[props.player];
+  const bonus = state.yahtzeeBonus[player];
   const filled = ALL_CATEGORIES.filter(category => scores[category] !== undefined).length;
 
   const row = (category: Category) => {
     const recorded = scores[category];
-    const open = props.selectable.includes(category);
-    const preview = open ? previewScore(props.state, props.player, category) : null;
+    const open = selectable.includes(category);
+    const preview = open ? previewScore(state, player, category) : null;
 
     return (
       <button
         key={category}
         type="button"
         disabled={!open}
-        onClick={() => props.onScore(category)}
+        onClick={() => onScore(category)}
         title={CATEGORY_INFO[category].description}
         className={`flex w-full items-baseline justify-between rounded-md px-3 py-1.5 text-left text-sm transition-colors duration-100 ${
           open
@@ -116,9 +124,9 @@ const Scorecard = (props: {
   return (
     <section className="rounded-xl border border-eo-raised bg-eo-surface p-4 max-md:p-3">
       <header className="mb-3 flex items-baseline justify-between border-b border-eo-raised pb-2 max-lg:mb-0 max-lg:border-b-0 max-md:mb-3 max-md:border-b">
-        <h2 className={`font-display font-bold ${SEAT_TEXT[props.player]}`}>
-          {SEAT_NAME[props.player]}
-          {props.isViewer && <span className="ml-2 text-xs text-eo-muted">you</span>}
+        <h2 className={`font-display font-bold ${SEAT_TEXT[player]}`}>
+          {SEAT_NAME[player]}
+          {isViewer && <span className="ml-2 text-xs text-eo-muted">you</span>}
         </h2>
         <span className="font-display text-xl font-bold tabular-nums text-eo-text">
           {totalScore(scores, bonus)}
@@ -156,37 +164,40 @@ const Scorecard = (props: {
   );
 };
 
-export const YahtzeeBoard = (props: {
+export const YahtzeeBoard = ({
+  snapshot,
+  seat,
+  onAction,
+}: {
   snapshot: Snapshot<YahtzeeState>;
   seat: PlayerId | null;
   onAction: (action: YahtzeeAction) => void;
 }) => {
-  const state = props.snapshot.state;
-  const live = props.snapshot.phase === "playing";
-  const myTurn = live && props.seat !== null && props.snapshot.currentPlayer === props.seat;
+  const state = snapshot.state;
+  const live = snapshot.phase === "playing";
+  const myTurn = live && seat !== null && snapshot.currentPlayer === seat;
   const rolled = state.rollsLeft < 3;
-  const selectable =
-    myTurn && rolled && props.seat !== null ? legalScoringCategories(state, props.seat) : [];
+  const selectable = myTurn && rolled && seat !== null ? legalScoringCategories(state, seat) : [];
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-6 max-lg:grid-cols-1 max-lg:gap-4">
       <Scorecard
         player="p0"
         state={state}
-        isViewer={props.seat === "p0"}
-        selectable={props.seat === "p0" ? selectable : []}
-        onScore={(category) => props.onAction({ type: "SCORE", category })}
+        isViewer={seat === "p0"}
+        selectable={seat === "p0" ? selectable : []}
+        onScore={(category) => onAction({ type: "SCORE", category })}
       />
 
       <section className="flex w-80 flex-col items-center gap-6 rounded-xl border border-eo-raised bg-eo-surface p-6 max-lg:w-full max-md:gap-4 max-md:p-4">
         <p className="text-center text-sm">
-          {props.snapshot.result ? (
+          {snapshot.result ? (
             <span className="font-display text-eo-gold">Final</span>
           ) : myTurn ? (
             <span className="font-display font-semibold text-eo-text">Your turn</span>
           ) : (
             <span className="text-eo-muted">
-              {SEAT_NAME[props.snapshot.currentPlayer]} is playing
+              {SEAT_NAME[snapshot.currentPlayer]} is playing
             </span>
           )}
           <span className="ml-2 text-eo-muted">round {Math.min(state.round, 11)}/11</span>
@@ -199,7 +210,7 @@ export const YahtzeeBoard = (props: {
               value={value}
               held={state.held[index] === true}
               disabled={!myTurn || !rolled}
-              onToggle={() => props.onAction({ type: "TOGGLE_HOLD", index })}
+              onToggle={() => onAction({ type: "TOGGLE_HOLD", index })}
             />
           ))}
         </div>
@@ -207,7 +218,7 @@ export const YahtzeeBoard = (props: {
         <button
           type="button"
           disabled={!myTurn || state.rollsLeft === 0}
-          onClick={() => props.onAction({ type: "ROLL" })}
+          onClick={() => onAction({ type: "ROLL" })}
           className="w-full rounded-lg bg-eo-red px-6 py-3 font-display font-bold text-eo-text transition-colors duration-150 hover:brightness-110 disabled:bg-eo-raised disabled:text-eo-muted"
         >
           {state.rollsLeft === 0 ? "Pick a category" : `Roll · ${state.rollsLeft} left`}
@@ -221,9 +232,9 @@ export const YahtzeeBoard = (props: {
       <Scorecard
         player="p1"
         state={state}
-        isViewer={props.seat === "p1"}
-        selectable={props.seat === "p1" ? selectable : []}
-        onScore={(category) => props.onAction({ type: "SCORE", category })}
+        isViewer={seat === "p1"}
+        selectable={seat === "p1" ? selectable : []}
+        onScore={(category) => onAction({ type: "SCORE", category })}
       />
     </div>
   );
