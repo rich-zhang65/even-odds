@@ -1,8 +1,8 @@
 import { createServer } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { attachSocketServer } from "../../../server/src/server";
-import type { MatchStore } from "./matchStore";
-import type { MatchSocket } from "./socket";
+import { attachSocketServer } from "../../../../server/src/server";
+import type { MatchStore } from "../matchStore";
+import type { MatchSocket } from "../socket";
 
 const cells = new Map<string, string>();
 
@@ -29,8 +29,8 @@ beforeAll(async () => {
 
   // socket.ts reads the URL at module scope, so the env has to be set before import.
   process.env.NEXT_PUBLIC_SERVER_URL = `http://127.0.0.1:${address.port}`;
-  ({ getMatchStore } = await import("./matchStore"));
-  ({ getSocket } = await import("./socket"));
+  ({ getMatchStore } = await import("../matchStore"));
+  ({ getSocket } = await import("../socket"));
 });
 
 afterAll(async () => {

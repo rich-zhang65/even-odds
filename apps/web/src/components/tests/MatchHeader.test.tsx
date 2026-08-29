@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { GameResult, PlayerId } from "@even-odds/game-sdk";
-import { MatchHeader } from "./MatchHeader";
+import { MatchHeader } from "../MatchHeader";
 
 const render = (
   seat: PlayerId | null,

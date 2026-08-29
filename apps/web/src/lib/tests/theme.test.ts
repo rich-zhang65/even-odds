@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { THEME_BOOT_SCRIPT, resolveTheme, toggleTheme } from "./theme";
+import { THEME_BOOT_SCRIPT, resolveTheme, toggleTheme } from "../theme";
 
 const stored: Record<string, string> = {};
 

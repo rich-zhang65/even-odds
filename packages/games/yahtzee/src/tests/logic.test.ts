@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createEngine } from "@even-odds/game-sdk";
 import type { EngineContext } from "@even-odds/game-sdk";
-import { Yahtzee, legalScoringCategories, previewScore } from "./logic";
-import { ALL_CATEGORIES, totalScore } from "./scoring";
-import type { YahtzeeAction, Category, YahtzeeState } from "./types";
+import { Yahtzee, legalScoringCategories, previewScore } from "../logic";
+import { ALL_CATEGORIES, totalScore } from "../scoring";
+import type { YahtzeeAction, Category, YahtzeeState } from "../types";
 
 const newGame = (seed = 1) =>
   createEngine(Yahtzee, { matchId: "test", seed });

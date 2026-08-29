@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createSession } from "@even-odds/game-sdk";
 import type { PlayerId, SessionEvent } from "@even-odds/game-sdk";
-import { Yahtzee } from "./logic";
-import { ALL_CATEGORIES, totalScore } from "./scoring";
-import type { YahtzeeAction, YahtzeeState } from "./types";
+import { Yahtzee } from "../logic";
+import { ALL_CATEGORIES, totalScore } from "../scoring";
+import type { YahtzeeAction, YahtzeeState } from "../types";
 
 type Emitted = { to: PlayerId; event: SessionEvent<YahtzeeState> };
 
