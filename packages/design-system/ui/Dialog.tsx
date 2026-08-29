@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
-import { Icon } from "./Icon";
-import { IconButton } from "./IconButton";
+import type { ReactNode } from "react";
 
 export const Dialog = ({
   open = false,
@@ -22,46 +19,35 @@ export const Dialog = ({
   width?: number;
   children?: ReactNode;
 }) => {
-  const ref = useRef<HTMLDialogElement>(null);
-
-  // The native modal is imperative: <dialog open> alone renders inline, without
-  // the top layer, focus trap or Escape handling that showModal() brings.
-  useEffect(() => {
-    const dialog = ref.current;
-    if (dialog === null) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
+  if (!open) return null;
 
   return (
     <dialog
-      ref={ref}
-      onClose={onClose}
-      onClick={(event) => {
-        if (event.target === ref.current) onClose?.();
+      // showModal() is the only way to get the top layer, ::backdrop, focus trap
+      // and Escape; the open attribute alone renders inline and non-modal.
+      // Calling it from the ref, on a dialog that exists only while open, is
+      // what lets this component hold no state and run no effect.
+      //
+      // No cleanup on purpose. close() fires the close event, which is routed
+      // straight back to onClose -- so a detach told the caller to close, and
+      // StrictMode's simulated remount did that the instant it opened. Removing
+      // the node from the DOM already takes it out of the top layer. The open
+      // guard is for the reattach that follows that same simulated detach.
+      ref={(node) => {
+        if (node !== null && !node.open) node.showModal();
       }}
+      onClose={onClose}
       style={{ maxWidth: width }}
-      className="w-full rounded-eo-xl bg-eo-card p-8 shadow-eo-lg backdrop:bg-(--eo-scrim) backdrop:backdrop-blur-[3px] open:animate-eo-pop"
+      className="m-auto w-full rounded-eo-xl bg-eo-card p-8 shadow-eo-lg backdrop:bg-(--eo-scrim) backdrop:backdrop-blur-[3px] open:animate-eo-pop"
     >
-      <div className="mb-4 flex items-start gap-4">
-        <div className="flex-1">
-          {title !== undefined && (
-            <h2 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
-              {title}
-            </h2>
-          )}
-          {description !== undefined && (
-            <p className="mt-2 font-eo-body text-eo-body-m text-eo-muted">{description}</p>
-          )}
-        </div>
-        {onClose !== undefined && (
-          <IconButton
-            icon={<Icon icon={X} />}
-            label="Close"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-          />
+      <div className="mb-4">
+        {title !== undefined && (
+          <h2 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
+            {title}
+          </h2>
+        )}
+        {description !== undefined && (
+          <p className="mt-2 font-eo-body text-eo-body-m text-eo-muted">{description}</p>
         )}
       </div>
       {children}
