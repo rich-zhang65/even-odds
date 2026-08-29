@@ -48,7 +48,7 @@ export const Button = ({
     disabled={disabled || loading}
     onClick={onClick}
     className={cx(
-      "inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-eo-md font-eo-display",
+      "inline-flex items-center justify-center whitespace-nowrap rounded-eo-md font-eo-display enabled:cursor-pointer",
       CONTROL_VARIANTS[variant],
       CONTROL_HEIGHTS[size],
       PADDING[size],
