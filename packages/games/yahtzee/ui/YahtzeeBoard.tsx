@@ -160,7 +160,7 @@ const DiceRow = ({
   large: boolean;
   onAction: (action: YahtzeeAction) => void;
 }) => (
-  <div className={cx("flex flex-wrap justify-center", large ? "gap-3" : "gap-2")}>
+  <Flex wrap="wrap" justify="center" gap={large ? "12px" : "8px"}>
     {state.dice.map((value, index) => (
       <Die
         key={index}
@@ -173,7 +173,7 @@ const DiceRow = ({
         onToggle={() => onAction({ type: "TOGGLE_HOLD", index })}
       />
     ))}
-  </div>
+  </Flex>
 );
 
 const RollPips = ({ used, spentText }: { used: number; spentText: string }) => (
@@ -344,14 +344,22 @@ export const YahtzeeBoard = ({
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-center gap-3">
+      <Flex wrap="wrap" align="center" gap="12px" className="mb-5">
         <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
           Yahtzee
         </h1>
         <span className="flex-1 max-[680px]:hidden" />
 
-        <div className="flex flex-none justify-center max-[680px]:order-10 max-[680px]:w-full">
-          <div className="flex items-center gap-3 rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 py-2 shadow-eo-sm">
+        <Flex
+          justify="center"
+          shrink={0}
+          className="max-[680px]:order-10 max-[680px]:w-full"
+        >
+          <Flex
+            align="center"
+            gap="12px"
+            className="rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 py-2 shadow-eo-sm"
+          >
             <span className={cx("font-eo-display text-[15px] font-semibold", SEATS.p0.nameText)}>
               Red
             </span>
@@ -365,8 +373,8 @@ export const YahtzeeBoard = ({
             <span className={cx("font-eo-display text-[15px] font-semibold", SEATS.p1.nameText)}>
               Blue
             </span>
-          </div>
-        </div>
+          </Flex>
+        </Flex>
 
         <span className="flex-1 max-[680px]:hidden" />
 
@@ -379,7 +387,7 @@ export const YahtzeeBoard = ({
         >
           Exit
         </Button>
-      </div>
+      </Flex>
 
       {result !== null && (
         <div
@@ -401,7 +409,7 @@ export const YahtzeeBoard = ({
         </div>
       )}
 
-      <div className="flex flex-wrap items-start gap-6">
+      <Flex wrap="wrap" align="start" gap="24px">
         <div className="min-w-0 flex-[1_1_440px]">
           <Scorecard
             state={state}
@@ -427,7 +435,7 @@ export const YahtzeeBoard = ({
             {rollButton("lg")}
           </Card>
         </div>
-      </div>
+      </Flex>
 
       <div className="h-39 min-[800px]:hidden" />
 
