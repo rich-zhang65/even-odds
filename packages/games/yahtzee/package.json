@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@even-odds/design-system": "*",
-    "@even-odds/game-sdk": "*"
+    "@even-odds/game-sdk": "*",
+    "lucide-react": "^1.35.0"
   },
   "peerDependencies": {
     "react": "^19"

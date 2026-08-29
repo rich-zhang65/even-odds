@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scoreCategory, upperSectionTotal, totalScore, ALL_CATEGORIES } from "./scoring";
+import { scoreCategory, totalScore, ALL_CATEGORIES } from "./scoring";
 import type { Category } from "./types";
 
 describe("scoreCategory — upper section", () => {
@@ -55,40 +55,24 @@ describe("scoreCategory — joker rules", () => {
   });
 });
 
-describe("upper bonus", () => {
-  it("no bonus below 63", () => {
-    const scores: Partial<Record<Category, number>> = {
-      ones: 2, twos: 6, threes: 9, fours: 12, fives: 15, sixes: 18,
-    };
-    expect(upperSectionTotal(scores)).toBe(62);
-  });
-
-  it("bonus at exactly 63", () => {
-    const scores: Partial<Record<Category, number>> = {
-      ones: 3, twos: 6, threes: 9, fours: 12, fives: 15, sixes: 18,
-    };
-    expect(upperSectionTotal(scores)).toBe(63);
-    expect(totalScore(scores, 0)).toBe(63 + 35);
-  });
-
-  it("bonus above 63", () => {
-    const scores: Partial<Record<Category, number>> = {
-      ones: 5, twos: 10, threes: 9, fours: 12, fives: 15, sixes: 18,
-    };
-    expect(upperSectionTotal(scores)).toBe(69);
-    expect(totalScore(scores, 0)).toBe(69 + 35);
-  });
-});
-
 describe("totalScore", () => {
-  it("includes yahtzee bonus", () => {
-    const scores: Partial<Record<Category, number>> = { threeOfAKind: 20 };
-    expect(totalScore(scores, 100)).toBe(120);
-  });
-
-  it("all categories filled, no bonus", () => {
+  it("is the plain sum of the categories", () => {
     const scores = Object.fromEntries(ALL_CATEGORIES.map(c => [c, 0])) as Record<Category, number>;
     scores.threeOfAKind = 30;
-    expect(totalScore(scores, 0)).toBe(30);
+    expect(totalScore(scores)).toBe(30);
+  });
+
+  // The upper-section bonus was removed from the ruleset: a strong upper half is
+  // worth exactly what its cells say and nothing more.
+  it("adds nothing extra for a strong upper section", () => {
+    const under: Partial<Record<Category, number>> = {
+      ones: 2, twos: 6, threes: 9, fours: 12, fives: 15, sixes: 18,
+    };
+    const over: Partial<Record<Category, number>> = {
+      ones: 5, twos: 10, threes: 9, fours: 12, fives: 15, sixes: 18,
+    };
+
+    expect(totalScore(under)).toBe(62);
+    expect(totalScore(over)).toBe(69);
   });
 });
