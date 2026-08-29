@@ -78,7 +78,7 @@ import { Button, GameCard, ScoreBoard } from "@even-odds/design-system/ui";
 | Feedback   | `Dialog` `Toast` `Tooltip`                            |
 | Game       | `GameCard` `PlayerChip` `ScoreBoard` `VersusBanner`   |
 | Navigation | `Tabs`                                                |
-| Layout     | `Flex`                                                |
+| Layout     | `Flex` `Typography`                                   |
 
 `Flex` is the layout primitive: it maps its props to Tailwind utilities and
 appends `className` last, so callers keep responsive overrides.
@@ -90,6 +90,20 @@ appends `className` last, so callers keep responsive overrides.
 `gap` and `basis` take any CSS length. They render as inline styles rather than
 utilities, since Tailwind only generates classes it can find in the source, so a
 `gap-*` or `basis-*` utility in `className` will not override them.
+
+`Typography` is the type primitive: `variant` picks a step of the type scale and
+brings its family, tracking and numerals with it. It renders a `div` — a step of the
+scale says nothing about what the markup means — so pass `element` wherever it does:
+
+```tsx
+<Typography className="max-md:text-eo-display-m" variant="display-l" colorVariant="strong" element="h1">
+```
+
+`colorVariant` names a semantic text token — `strong` `body` `muted` `faint` `red`
+`blue` `live` `waiting` `link` `on-color` `on-inverse` — and is left off by default so
+the type inherits, which is what an inverse card or the versus banner needs. `bold`
+overrides the weight the scale carries; on `score` and `stat`, whose tokens are heavier
+than bold, it makes them lighter.
 
 None of them hold state: hover, press and focus are CSS variants, so every
 component is driven entirely by its props. Only the ones taking event handlers
