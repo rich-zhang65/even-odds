@@ -5,9 +5,9 @@ export type PlayerSide = "red" | "blue" | "neutral";
 export type PlayerStatus = "online" | "waiting" | "offline";
 
 const SIDES: Record<PlayerSide, { avatar: string; soft: string }> = {
-  red: { avatar: "border-eo-red-600 bg-eo-red-400", soft: "bg-eo-red-50" },
-  blue: { avatar: "border-eo-blue-700 bg-eo-blue-500", soft: "bg-eo-blue-50" },
-  neutral: { avatar: "border-eo-ink-700 bg-eo-ink-500", soft: "bg-eo-ink-100" },
+  red: { avatar: "border-eo-red-line bg-eo-red-solid", soft: "bg-eo-red-soft" },
+  blue: { avatar: "border-eo-blue-line bg-eo-blue-solid", soft: "bg-eo-blue-soft" },
+  neutral: { avatar: "border-eo-ink-600 bg-eo-ink-500", soft: "bg-eo-sunken" },
 };
 
 const STATUS_DOTS: Record<PlayerStatus, string> = {
@@ -63,7 +63,7 @@ export const PlayerChip = ({
       {status !== undefined && (
         <span
           className={cx(
-            "absolute -right-px -bottom-px rounded-full border-2 border-eo-paper",
+            "absolute -right-px -bottom-px rounded-full border-2 border-eo-card",
             STATUS_DOTS[status],
             DOTS[size],
           )}

@@ -23,10 +23,10 @@ export const Tag = ({
     className={cx(
       "inline-flex h-8.5 items-center gap-2 rounded-eo-pill border px-4 font-eo-display text-eo-label transition-colors duration-(--eo-duration-fast) ease-eo-out",
       selected
-        ? "border-eo-ink-900 bg-eo-ink-900 text-eo-on-color"
+        ? "border-eo-strong bg-eo-inverse text-eo-on-inverse"
         : "border-eo-hairline bg-eo-card text-eo-body",
       onClick === undefined ? "cursor-default" : "cursor-pointer",
-      onClick !== undefined && !selected && "hover:bg-eo-ink-100",
+      onClick !== undefined && !selected && "hover:bg-eo-sunken",
       className,
     )}
   >

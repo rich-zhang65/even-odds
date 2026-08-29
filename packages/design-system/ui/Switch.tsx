@@ -35,7 +35,7 @@ export const Switch = ({
     <span
       className={cx(
         "h-7 w-12 shrink-0 rounded-eo-pill p-[3px] transition-colors duration-(--eo-duration-base) ease-eo-out peer-focus-visible:shadow-eo-focus",
-        checked ? "bg-eo-blue-500" : "bg-eo-ink-300",
+        checked ? "bg-eo-blue-solid" : "bg-eo-control-line",
       )}
     >
       <span

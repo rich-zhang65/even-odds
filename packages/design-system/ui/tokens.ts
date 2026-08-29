@@ -7,11 +7,11 @@ export const CONTROL_MOTION =
 export const CONTROL_DISABLED = "disabled:cursor-not-allowed disabled:opacity-45";
 
 export const CONTROL_VARIANTS: Record<ControlVariant, string> = {
-  primary: "bg-eo-blue-500 text-eo-on-color shadow-eo-edge-blue hover:bg-eo-blue-400",
-  red: "bg-eo-red-400 text-eo-on-color shadow-eo-edge-red hover:bg-eo-red-300",
-  ink: "bg-eo-ink-900 text-eo-on-color shadow-eo-edge-ink-soft hover:bg-eo-ink-800",
-  outline: "border-2 border-eo-ink-900 bg-eo-card text-eo-strong shadow-eo-edge-ink hover:bg-eo-ink-50",
-  ghost: "bg-transparent text-eo-body hover:bg-eo-ink-100",
+  primary: "bg-eo-blue-solid text-eo-on-color shadow-eo-edge-blue hover:bg-eo-blue-solid-hover",
+  red: "bg-eo-red-solid text-eo-on-color shadow-eo-edge-red hover:bg-eo-red-solid-hover",
+  ink: "bg-eo-inverse text-eo-on-inverse shadow-eo-edge-ink-soft hover:bg-eo-inverse-hover",
+  outline: "border-2 border-eo-strong bg-eo-card text-eo-strong shadow-eo-edge-ink hover:bg-eo-sunken",
+  ghost: "bg-transparent text-eo-body hover:bg-eo-sunken",
 };
 
 export const CONTROL_HEIGHTS: Record<ControlSize, string> = {

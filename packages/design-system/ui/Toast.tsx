@@ -8,7 +8,7 @@ import { Icon } from "./Icon";
 export type ToastTone = "neutral" | "win" | "alert";
 
 const TONES: Record<ToastTone, { className: string; icon: LucideIcon }> = {
-  neutral: { className: "bg-eo-ink-900", icon: Info },
+  neutral: { className: "bg-eo-inverse text-eo-on-inverse", icon: Info },
   win: { className: "bg-eo-blue-600", icon: Trophy },
   alert: { className: "bg-eo-red-500", icon: TriangleAlert },
 };

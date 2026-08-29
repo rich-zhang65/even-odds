@@ -13,7 +13,7 @@ describe("Button", () => {
     const html = renderToStaticMarkup(<Button>Play</Button>);
 
     expect(html).toContain('type="button"');
-    expect(html).toContain("bg-eo-blue-500");
+    expect(html).toContain("bg-eo-blue-solid");
     expect(html).not.toContain('disabled=""');
   });
 

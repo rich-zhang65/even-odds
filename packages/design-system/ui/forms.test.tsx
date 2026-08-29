@@ -24,7 +24,7 @@ describe("Input", () => {
     const html = renderToStaticMarkup(<Input error="No such room" />);
 
     expect(html).toContain('aria-invalid="true"');
-    expect(html).toContain("border-eo-red-500");
+    expect(html).toContain("border-eo-red-line");
     expect(html).not.toContain("focus-within:border-eo-focus");
   });
 });
@@ -48,7 +48,7 @@ describe("Radio", () => {
     const html = renderToStaticMarkup(<Radio name="seat" value="p0" checked onChange={() => {}} label="Red" />);
 
     expect(html).toContain('name="seat"');
-    expect(html).toContain("bg-eo-blue-500");
+    expect(html).toContain("bg-eo-blue-solid");
   });
 });
 

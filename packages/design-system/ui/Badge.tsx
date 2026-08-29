@@ -4,12 +4,12 @@ import { cx } from "./cx";
 export type BadgeTone = "neutral" | "red" | "blue" | "live" | "waiting" | "ink";
 
 const TONES: Record<BadgeTone, string> = {
-  neutral: "bg-eo-ink-100 text-eo-body",
-  red: "bg-eo-red-100 text-eo-red-700",
-  blue: "bg-eo-blue-100 text-eo-blue-700",
-  live: "bg-[#dcf5e8] text-[#0b6b41]",
-  waiting: "bg-[#fdefd9] text-[#8a5510]",
-  ink: "bg-eo-ink-900 text-eo-on-color",
+  neutral: "bg-eo-sunken text-eo-body",
+  red: "bg-eo-red-soft text-eo-red-ink",
+  blue: "bg-eo-blue-soft text-eo-blue-ink",
+  live: "bg-eo-live-soft text-eo-live-ink",
+  waiting: "bg-eo-waiting-soft text-eo-waiting-ink",
+  ink: "bg-eo-inverse text-eo-on-inverse",
 };
 
 export const Badge = ({

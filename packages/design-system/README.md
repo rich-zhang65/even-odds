@@ -30,6 +30,41 @@ default, so `p-4` is the 16px step.
 Tokens with no Tailwind namespace (durations, control heights, gradients) stay raw and
 are used as arbitrary values, e.g. `h-(--eo-control-md)` or `bg-(image:--eo-versus)`.
 
+## Dark mode
+
+Set `data-theme="dark"` on `<html>`. Only the semantic aliases repoint; the raw ramps
+are identical in both themes, so **a component that reaches past a semantic token into
+a ramp step will not flip**. Reach for the semantic every time:
+
+| Instead of              | Use                    |
+| ----------------------- | ---------------------- |
+| `bg-eo-paper`           | `bg-eo-card`           |
+| `bg-eo-ink-100`         | `bg-eo-sunken`         |
+| `border-eo-ink-900`     | `border-eo-strong`     |
+| `border-eo-ink-300`     | `border-eo-control-line` |
+| `bg-eo-red-50`          | `bg-eo-red-soft`       |
+| `bg-eo-red-400`         | `bg-eo-red-solid`      |
+| `text-eo-red-600`       | `text-eo-red-ink`      |
+| `border-eo-red-500`     | `border-eo-red-line`   |
+| `border-eo-red-200`     | `border-eo-red-hairline` |
+
+Each player colour carries the same five slots: `solid` and `soft` for fills, `ink` for
+text, `line` and `hairline` for the strong and soft edge. A filled surface keeps
+`text-eo-on-color` (it is white in both themes); an inverted surface pairs
+`bg-eo-inverse` with `text-eo-on-inverse`, since both ends swap.
+
+Tailwind inlines a `--shadow-*` value into the utility, so those tokens cannot be
+repointed by theme. Every colour inside one is a var (`--eo-shadow-md`,
+`--eo-edge-inverse`, `--eo-focus-ring`) and the theme repoints those instead.
+
+`dark:` is rebound to the attribute, so `dark:` utilities follow the switcher rather
+than the OS. After the sweep above almost nothing needs it.
+
+Setting the attribute is the app's job, since it owns storage and the pre-paint boot
+script: see `apps/web/src/lib/theme.ts` and the `ThemeToggle` beside it. The toggle
+holds no state — it reads and flips the attribute, and swaps its own glyph with
+`dark:`, so nothing has to be hydrated.
+
 ## Components
 
 ```ts

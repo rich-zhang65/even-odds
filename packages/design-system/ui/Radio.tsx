@@ -40,10 +40,10 @@ export const Radio = ({
     <span
       className={cx(
         "grid size-6 shrink-0 place-items-center rounded-full border-2 bg-eo-card peer-focus-visible:shadow-eo-focus",
-        checked ? "border-eo-blue-600" : "border-eo-ink-300",
+        checked ? "border-eo-blue-line" : "border-eo-control-line",
       )}
     >
-      {checked && <span className="size-3 rounded-full bg-eo-blue-500" />}
+      {checked && <span className="size-3 rounded-full bg-eo-blue-solid" />}
     </span>
     <span className="font-eo-body text-eo-body-m text-eo-strong">{label}</span>
   </label>
