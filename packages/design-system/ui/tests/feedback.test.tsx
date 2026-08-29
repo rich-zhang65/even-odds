@@ -12,13 +12,22 @@ describe("Dialog", () => {
     expect(html).toContain("Rematch?");
   });
 
-  it("offers a close affordance only when it can be closed", () => {
-    expect(renderToStaticMarkup(<Dialog open title="Rematch?" />)).not.toContain(
-      'aria-label="Close"'
-    );
-    expect(renderToStaticMarkup(<Dialog open title="Rematch?" onClose={() => {}} />)).toContain(
-      'aria-label="Close"'
-    );
+  // Mounting only while open is what replaced the showModal() effect, so the
+  // closed case rendering nothing is the behaviour holding that up.
+  it("renders nothing at all while closed", () => {
+    expect(renderToStaticMarkup(<Dialog title="Rematch?" />)).toBe("");
+  });
+
+  // A modal <dialog> is centred by the UA rule dialog { margin: auto }, which
+  // preflight's universal margin:0 overrides. Without m-auto it sits top-left.
+  it("centres itself against the preflight margin reset", () => {
+    expect(renderToStaticMarkup(<Dialog open title="Rematch?" />)).toContain("m-auto");
+  });
+
+  it("carries no close button, leaving Escape, the backdrop and the footer", () => {
+    const html = renderToStaticMarkup(<Dialog open title="Rematch?" onClose={() => {}} />);
+
+    expect(html).not.toContain('aria-label="Close"');
   });
 });
 
