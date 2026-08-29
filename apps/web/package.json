@@ -8,8 +8,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@even-odds/design-system": "^0.0.0",
     "@even-odds/game-sdk": "^0.0.0",
     "@even-odds/yahtzee": "^0.0.0",
+    "lucide-react": "^1.35.0",
     "next": "16.3.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
