@@ -43,6 +43,18 @@ import { Button, GameCard, ScoreBoard } from "@even-odds/design-system/ui";
 | Feedback   | `Dialog` `Toast` `Tooltip`                            |
 | Game       | `GameCard` `PlayerChip` `ScoreBoard` `VersusBanner`   |
 | Navigation | `Tabs`                                                |
+| Layout     | `Flex`                                                |
+
+`Flex` is the layout primitive: it maps its props to Tailwind utilities and
+appends `className` last, so callers keep responsive overrides.
+
+```tsx
+<Flex align="center" justify="space-between" gap="16px" className="max-md:flex-col">
+```
+
+`gap` and `basis` take any CSS length. They render as inline styles rather than
+utilities, since Tailwind only generates classes it can find in the source, so a
+`gap-*` or `basis-*` utility in `className` will not override them.
 
 None of them hold state: hover, press and focus are CSS variants, so every
 component is driven entirely by its props. Only the ones taking event handlers

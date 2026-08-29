@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import type { PlayerId } from "@even-odds/game-sdk";
-import { Button, Card, PlayerChip, Toast } from "@even-odds/design-system/ui";
+import { Button, Card, Flex, PlayerChip, Toast } from "@even-odds/design-system/ui";
 import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
 import { Wordmark } from "@/components/Wordmark";
 import { useMatch } from "@/lib/useMatch";
@@ -32,20 +32,24 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between border-b border-eo-hairline px-8 py-5 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-4">
+      <Flex
+        align="center"
+        justify="space-between"
+        className="border-b border-eo-hairline px-8 py-5 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-4"
+      >
         <Link href="/">
           <Wordmark />
         </Link>
 
-        <div className="flex items-center gap-4">
+        <Flex align="center" gap="16px">
           {seat !== null && (
             <PlayerChip name={SEAT_NAME[seat]} side={SEAT_SIDE[seat]} record="you" size="sm" />
           )}
           <Button variant="outline" size="sm" onClick={copyLink}>
             {copied ? "Copied" : "Copy link"}
           </Button>
-        </div>
-      </header>
+        </Flex>
+      </Flex>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8 max-md:px-4 max-md:py-5">
         {result !== null && (
