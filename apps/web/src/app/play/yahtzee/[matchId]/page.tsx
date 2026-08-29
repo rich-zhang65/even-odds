@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useState } from "react";
-import type { PlayerId } from "@even-odds/game-sdk";
-import { Button, Card, Flex, PlayerChip, Toast } from "@even-odds/design-system/ui";
+import { Button, Card, Dialog, Flex, Toast } from "@even-odds/design-system/ui";
 import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Wordmark } from "@/components/Wordmark";
 import { useMatch } from "@/lib/useMatch";
-
-const SEAT_NAME: Record<PlayerId, string> = { p0: "Red", p1: "Blue" };
-const SEAT_SIDE: Record<PlayerId, "red" | "blue"> = { p0: "red", p1: "blue" };
-const SEAT_TEXT: Record<PlayerId, string> = { p0: "text-eo-red-ink", p1: "text-eo-blue-ink" };
 
 const MESSAGES: Record<string, string> = {
   full: "This match already has two players.",
@@ -20,8 +16,10 @@ const MESSAGES: Record<string, string> = {
 
 const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
   const { matchId } = use(params);
+  const router = useRouter();
   const { snapshot, seat, seats, error, send } = useMatch(matchId);
   const [copied, setCopied] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const copyLink = () => {
     void navigator.clipboard.writeText(window.location.href);
@@ -29,23 +27,18 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const result = snapshot?.result ?? null;
-
   return (
     <main className="flex min-h-full flex-col">
       <Flex
         align="center"
         justify="space-between"
-        className="border-b border-eo-hairline px-8 py-5 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-4"
+        className="border-b border-eo-hairline bg-eo-card px-8 py-4 max-md:px-4"
       >
         <Link href="/">
           <Wordmark />
         </Link>
 
-        <Flex align="center" gap="16px">
-          {seat !== null && (
-            <PlayerChip name={SEAT_NAME[seat]} side={SEAT_SIDE[seat]} record="you" size="sm" />
-          )}
+        <Flex align="center" gap="12px">
           <Button variant="outline" size="sm" onClick={copyLink}>
             {copied ? "Copied" : "Copy link"}
           </Button>
@@ -53,24 +46,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
         </Flex>
       </Flex>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8 max-md:px-4 max-md:py-5">
-        {result !== null && (
-          <Card tone="outlined" className="mb-6 text-center">
-            <p className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
-              {"draw" in result ? (
-                "Dead even"
-              ) : (
-                <>
-                  <span className={SEAT_TEXT[result.winner]}>{SEAT_NAME[result.winner]}</span> wins
-                </>
-              )}
-            </p>
-            {!("draw" in result) && result.reason !== undefined && (
-              <p className="mt-1 font-eo-body text-eo-body-s text-eo-muted">{result.reason}</p>
-            )}
-          </Card>
-        )}
-
+      <div className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-8 max-md:px-3 max-md:py-4">
         {snapshot?.phase === "paused" && (
           <Card className="mb-6 text-center font-eo-body text-eo-body-s text-eo-muted">
             Opponent disconnected — waiting for them to come back.
@@ -99,9 +75,31 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
         )}
 
         {snapshot !== null && snapshot.phase !== "waiting" && (
-          <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={send} />
+          <YahtzeeBoard
+            snapshot={snapshot}
+            seat={seat}
+            onAction={send}
+            onExit={() => setLeaving(true)}
+          />
         )}
       </div>
+
+      <Dialog
+        open={leaving}
+        title="Leave the match?"
+        description="You will drop out of the game. If you are not back within a minute, the win goes to your opponent."
+        onClose={() => setLeaving(false)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setLeaving(false)}>
+              Keep playing
+            </Button>
+            <Button variant="red" onClick={() => router.push("/")}>
+              Leave match
+            </Button>
+          </>
+        }
+      />
 
       {error !== null && (
         <div className="fixed inset-x-0 bottom-8 grid place-items-center px-4">

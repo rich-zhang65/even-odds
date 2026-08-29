@@ -2,6 +2,7 @@ import type { GameDefinition, PlayerId } from "@even-odds/game-sdk";
 import type { YahtzeeState, YahtzeeAction, Category } from "./types";
 import {
   scoreCategory,
+  totalScore,
   ALL_CATEGORIES,
   UPPER_CATEGORIES,
   LOWER_CATEGORIES,
@@ -51,7 +52,6 @@ export const Yahtzee: GameDefinition<YahtzeeState, YahtzeeAction> = {
     turn: ctx.players[0],
     round: 1,
     scores: { p0: {}, p1: {} },
-    yahtzeeBonus: { p0: 0, p1: 0 },
   }),
 
   currentPlayer: (state) => state.turn,
@@ -89,9 +89,6 @@ export const Yahtzee: GameDefinition<YahtzeeState, YahtzeeAction> = {
       case "SCORE": {
         const joker = isJokerSituation(state, by);
         const points = scoreCategory(action.category, state.dice, joker);
-        const rolledAnotherYahtzee = state.dice.every(d => d === state.dice[0]);
-        const bonusPoints =
-          rolledAnotherYahtzee && state.scores[by]["yahtzee"] === 50 ? 100 : 0;
 
         const nextTurn: PlayerId = by === "p0" ? "p1" : "p0";
         const nextRound = by === "p1" ? state.round + 1 : state.round;
@@ -104,7 +101,6 @@ export const Yahtzee: GameDefinition<YahtzeeState, YahtzeeAction> = {
           turn: nextTurn,
           round: nextRound,
           scores: { ...state.scores, [by]: { ...state.scores[by], [action.category]: points } },
-          yahtzeeBonus: { ...state.yahtzeeBonus, [by]: state.yahtzeeBonus[by] + bonusPoints },
         };
       }
     }
@@ -116,12 +112,8 @@ export const Yahtzee: GameDefinition<YahtzeeState, YahtzeeAction> = {
 
     if (!allFilled(state.scores.p0) || !allFilled(state.scores.p1)) return null;
 
-    const s0 = ALL_CATEGORIES.reduce((acc, c) => acc + (state.scores.p0[c] ?? 0), 0) +
-      (UPPER_CATEGORIES.reduce((a, c) => a + (state.scores.p0[c] ?? 0), 0) >= 63 ? 35 : 0) +
-      state.yahtzeeBonus.p0;
-    const s1 = ALL_CATEGORIES.reduce((acc, c) => acc + (state.scores.p1[c] ?? 0), 0) +
-      (UPPER_CATEGORIES.reduce((a, c) => a + (state.scores.p1[c] ?? 0), 0) >= 63 ? 35 : 0) +
-      state.yahtzeeBonus.p1;
+    const s0 = totalScore(state.scores.p0);
+    const s1 = totalScore(state.scores.p1);
 
     if (s0 > s1) return { winner: "p0" };
     if (s1 > s0) return { winner: "p1" };

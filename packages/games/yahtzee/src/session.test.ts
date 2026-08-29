@@ -54,8 +54,8 @@ describe("Yahtzee over a TurnBasedSession", () => {
     const { session } = playFullMatch();
     const { state, result } = session.snapshotFor("p0");
 
-    const p0 = totalScore(state.scores.p0, state.yahtzeeBonus.p0);
-    const p1 = totalScore(state.scores.p1, state.yahtzeeBonus.p1);
+    const p0 = totalScore(state.scores.p0);
+    const p1 = totalScore(state.scores.p1);
     const expected = p0 === p1 ? { draw: true } : { winner: p0 > p1 ? "p0" : "p1" };
 
     expect(result).toEqual(expected);

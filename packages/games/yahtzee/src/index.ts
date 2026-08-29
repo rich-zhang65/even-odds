@@ -6,7 +6,6 @@ export {
   UPPER_CATEGORIES,
   LOWER_CATEGORIES,
   scoreCategory,
-  upperSectionTotal,
   totalScore,
 } from "./scoring";
 export type { CategoryInfo } from "./scoring";

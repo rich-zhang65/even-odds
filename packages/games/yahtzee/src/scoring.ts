@@ -76,13 +76,5 @@ export const LOWER_CATEGORIES: Category[] = [
 
 export const ALL_CATEGORIES: Category[] = [...UPPER_CATEGORIES, ...LOWER_CATEGORIES];
 
-export const upperSectionTotal = (scores: Partial<Record<Category, number>>): number =>
-  UPPER_CATEGORIES.reduce((acc, cat) => acc + (scores[cat] ?? 0), 0);
-
-export const totalScore = (
-  scores: Partial<Record<Category, number>>,
-  yahtzeeBonus: number,
-): number =>
-  ALL_CATEGORIES.reduce((acc, cat) => acc + (scores[cat] ?? 0), 0) +
-  (upperSectionTotal(scores) >= 63 ? 35 : 0) +
-  yahtzeeBonus;
+export const totalScore = (scores: Partial<Record<Category, number>>): number =>
+  ALL_CATEGORIES.reduce((acc, cat) => acc + (scores[cat] ?? 0), 0);

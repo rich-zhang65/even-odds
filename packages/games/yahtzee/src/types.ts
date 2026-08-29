@@ -11,7 +11,6 @@ export type YahtzeeState = {
   turn: PlayerId;
   round: number;
   scores: Record<PlayerId, Partial<Record<Category, number>>>;
-  yahtzeeBonus: Record<PlayerId, number>;
 };
 
 export type YahtzeeAction =
