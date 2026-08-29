@@ -41,6 +41,16 @@
   --color-eo-card: var(--color-eo-paper);
   --color-eo-sunken: var(--color-eo-ink-100);
   --color-eo-inverse: var(--color-eo-ink-900);
+  --color-eo-on-inverse: var(--color-eo-ink-50);
+  --color-eo-red-solid: var(--color-eo-red-400);
+  --color-eo-red-soft: var(--color-eo-red-50);
+  --color-eo-blue-solid: var(--color-eo-blue-500);
+  --color-eo-blue-soft: var(--color-eo-blue-50);
+  --color-eo-red-solid-hover: var(--color-eo-red-300);
+  --color-eo-blue-solid-hover: var(--color-eo-blue-400);
+  --color-eo-inverse-hover: var(--color-eo-ink-800);
+  --color-eo-live-soft: #dcf5e8;
+  --color-eo-waiting-soft: #fdefd9;
 
   /* ---- Semantic text ---- */
   --color-eo-strong: var(--color-eo-ink-900);
@@ -48,9 +58,21 @@
   --color-eo-muted: var(--color-eo-ink-500);
   --color-eo-faint: var(--color-eo-ink-400);
   --color-eo-on-color: #ffffff;
+  --color-eo-red-ink: var(--color-eo-red-600);
+  --color-eo-blue-ink: var(--color-eo-blue-600);
+  --color-eo-live-ink: #0b6b41;
+  --color-eo-waiting-ink: #8a5510;
+  --color-eo-link: var(--color-eo-blue-500);
+  --color-eo-link-hover: var(--color-eo-blue-600);
 
-  /* ---- Borders ---- */
+  /* ---- Borders. --border-strong rides on --color-eo-strong: same ink, and the
+         --color-* namespace is shared across bg, text and border alike. ---- */
   --color-eo-hairline: var(--color-eo-ink-200);
+  --color-eo-control-line: var(--color-eo-ink-300);
+  --color-eo-red-line: var(--color-eo-red-500);
+  --color-eo-blue-line: var(--color-eo-blue-600);
+  --color-eo-red-hairline: var(--color-eo-red-200);
+  --color-eo-blue-hairline: var(--color-eo-blue-200);
 
   /* ---- Match state ---- */
   --color-eo-win: var(--color-eo-blue-500);
@@ -124,18 +146,20 @@
   --radius-eo-xl: 28px;
   --radius-eo-pill: 999px;
 
-  /* ---- Elevation. Cards float barely. ---- */
-  --shadow-eo-sm: 0 1px 2px rgb(18 20 28 / 0.06);
-  --shadow-eo-md: 0 2px 6px rgb(18 20 28 / 0.08);
-  --shadow-eo-lg: 0 10px 24px -8px rgb(18 20 28 / 0.18);
+  /* ---- Elevation. Cards float barely. Tailwind inlines a --shadow-* value into
+         the utility, so a theme can only repoint the colours it names, never the
+         token itself. Every one of them is therefore a var. ---- */
+  --shadow-eo-sm: 0 1px 2px var(--eo-shadow-sm);
+  --shadow-eo-md: 0 2px 6px var(--eo-shadow-md);
+  --shadow-eo-lg: 0 10px 24px -8px var(--eo-shadow-lg);
 
   /* ---- The pressable bottom edge. Never a blur. ---- */
-  --shadow-eo-edge-ink: 0 3px 0 var(--color-eo-ink-900);
-  --shadow-eo-edge-ink-soft: 0 3px 0 var(--color-eo-ink-700);
+  --shadow-eo-edge-ink: 0 3px 0 var(--color-eo-strong);
+  --shadow-eo-edge-ink-soft: 0 3px 0 var(--eo-edge-inverse);
   --shadow-eo-edge-red: 0 3px 0 var(--color-eo-red-600);
   --shadow-eo-edge-blue: 0 3px 0 var(--color-eo-blue-700);
-  --shadow-eo-edge-hairline: 0 2px 0 var(--color-eo-ink-200);
-  --shadow-eo-focus: 0 0 0 3px rgb(37 99 235 / 0.35);
+  --shadow-eo-edge-hairline: 0 2px 0 var(--color-eo-hairline);
+  --shadow-eo-focus: 0 0 0 3px var(--eo-focus-ring);
 
   /* ---- Motion ---- */
   --ease-eo-out: cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -205,11 +229,77 @@
   --eo-page-max: 1200px;
 
   --eo-scrim: rgb(18 20 28 / 0.55);
+  --eo-shadow-sm: rgb(18 20 28 / 0.06);
+  --eo-shadow-md: rgb(18 20 28 / 0.08);
+  --eo-shadow-lg: rgb(18 20 28 / 0.18);
+  --eo-edge-inverse: var(--color-eo-ink-700);
+  --eo-focus-ring: rgb(37 99 235 / 0.35);
   --eo-blur-panel: saturate(140%) blur(12px);
 
   /* Split field: red half against blue half, the core brand background. */
-  --eo-versus: linear-gradient(100deg, var(--color-eo-red-400) 0 49.5%, var(--color-eo-blue-500) 50.5% 100%);
-  --eo-red-wash: linear-gradient(180deg, var(--color-eo-red-50), var(--color-eo-paper));
-  --eo-blue-wash: linear-gradient(180deg, var(--color-eo-blue-50), var(--color-eo-paper));
-  --eo-checker: repeating-conic-gradient(var(--color-eo-ink-100) 0 25%, transparent 0 50%) 0 0 / 24px 24px;
+  --eo-versus: linear-gradient(100deg, var(--color-eo-red-solid) 0 49.5%, var(--color-eo-blue-solid) 50.5% 100%);
+  --eo-red-wash: linear-gradient(180deg, var(--color-eo-red-soft), var(--color-eo-card));
+  --eo-blue-wash: linear-gradient(180deg, var(--color-eo-blue-soft), var(--color-eo-card));
+  --eo-checker: repeating-conic-gradient(var(--color-eo-sunken) 0 25%, transparent 0 50%) 0 0 / 24px 24px;
+}
+
+/* Tailwind's stock `dark:` follows prefers-color-scheme, which ignores the attribute
+   the switcher sets, so the variant is rebound to the attribute instead. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+}
+
+/* ---- Dark mode ----
+   Opt in with <html data-theme="dark">. Only the semantic aliases repoint; the raw
+   ramps stay identical, so anything reaching past a semantic into a ramp step will
+   not flip. Red and blue brighten a step to hold contrast on ink surfaces. */
+[data-theme="dark"] {
+  --color-eo-page: var(--color-eo-ink-900);
+  --color-eo-card: var(--color-eo-ink-800);
+  --color-eo-sunken: var(--color-eo-ink-700);
+  --color-eo-inverse: var(--color-eo-ink-50);
+  --color-eo-on-inverse: var(--color-eo-ink-900);
+  --color-eo-red-solid: var(--color-eo-red-400);
+  --color-eo-red-soft: rgb(255 77 61 / 0.14);
+  --color-eo-blue-solid: var(--color-eo-blue-400);
+  --color-eo-blue-soft: rgb(74 123 240 / 0.16);
+  --color-eo-blue-solid-hover: var(--color-eo-blue-300);
+  --color-eo-inverse-hover: var(--color-eo-ink-200);
+  --color-eo-live-soft: rgb(23 178 106 / 0.16);
+  --color-eo-waiting-soft: rgb(242 166 59 / 0.16);
+
+  --color-eo-strong: var(--color-eo-ink-50);
+  --color-eo-body: var(--color-eo-ink-200);
+  --color-eo-muted: var(--color-eo-ink-400);
+  --color-eo-faint: var(--color-eo-ink-500);
+  --color-eo-red-ink: var(--color-eo-red-300);
+  --color-eo-blue-ink: var(--color-eo-blue-300);
+  --color-eo-live-ink: var(--color-eo-live);
+  --color-eo-waiting-ink: var(--color-eo-waiting);
+  --color-eo-link: var(--color-eo-blue-300);
+  --color-eo-link-hover: var(--color-eo-blue-200);
+
+  --color-eo-hairline: var(--color-eo-ink-700);
+  --color-eo-control-line: var(--color-eo-ink-600);
+  --color-eo-red-line: var(--color-eo-red-400);
+  --color-eo-blue-line: var(--color-eo-blue-400);
+  --color-eo-red-hairline: var(--color-eo-red-700);
+  --color-eo-blue-hairline: var(--color-eo-blue-700);
+
+  --color-eo-draw: var(--color-eo-ink-400);
+  --color-eo-offline: var(--color-eo-ink-600);
+  --color-eo-focus: var(--color-eo-blue-300);
+
+  /* Ink-tinted shadows vanish against ink surfaces, so elevation goes to black. */
+  --eo-shadow-sm: rgb(0 0 0 / 0.4);
+  --eo-shadow-md: rgb(0 0 0 / 0.45);
+  --eo-shadow-lg: rgb(0 0 0 / 0.6);
+  --eo-edge-inverse: var(--color-eo-ink-300);
+  --eo-focus-ring: rgb(123 160 250 / 0.4);
+
+  --eo-scrim: rgb(0 0 0 / 0.65);
+
+  color-scheme: dark;
 }

@@ -27,7 +27,7 @@ export const Select = ({
     )}
     <span
       className={cx(
-        "relative flex h-(--eo-control-md) items-center rounded-eo-md border-2 border-eo-ink-300 focus-within:border-eo-focus focus-within:shadow-eo-focus",
+        "relative flex h-(--eo-control-md) items-center rounded-eo-md border-2 border-eo-control-line focus-within:border-eo-focus focus-within:shadow-eo-focus",
         disabled ? "bg-eo-sunken" : "bg-eo-card",
       )}
     >

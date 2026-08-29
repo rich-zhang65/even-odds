@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fredoka, Nunito } from "next/font/google";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -20,7 +21,16 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: LayoutProps<"/">) => (
-  <html lang="en" className={`${fredoka.variable} ${nunito.variable} h-full`}>
+  // The boot script writes data-theme onto this element before React hydrates,
+  // which is exactly the mismatch suppressHydrationWarning is for.
+  <html
+    lang="en"
+    className={`${fredoka.variable} ${nunito.variable} h-full`}
+    suppressHydrationWarning
+  >
+    <head>
+      <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+    </head>
     <body className="h-full antialiased">{children}</body>
   </html>
 );

@@ -52,7 +52,7 @@ describe("ScoreBoard", () => {
     );
 
     expect(html.match(/rounded-full/g)).toHaveLength(5);
-    expect(html).toContain("bg-eo-ink-200");
+    expect(html).toContain("bg-eo-hairline");
   });
 
   it("omits the pip row entirely when the match is not by rounds", () => {

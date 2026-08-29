@@ -38,7 +38,7 @@ export const Checkbox = ({
     <span
       className={cx(
         "grid size-6 shrink-0 place-items-center rounded-eo-xs border-2 transition-colors duration-(--eo-duration-fast) ease-eo-out peer-focus-visible:shadow-eo-focus",
-        checked ? "border-eo-blue-600 bg-eo-blue-500" : "border-eo-ink-300 bg-eo-card",
+        checked ? "border-eo-blue-line bg-eo-blue-solid" : "border-eo-control-line bg-eo-card",
       )}
     >
       {checked && <Check aria-hidden="true" size={16} className="text-eo-on-color" />}

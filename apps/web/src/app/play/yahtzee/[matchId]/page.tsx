@@ -5,12 +5,13 @@ import { use, useState } from "react";
 import type { PlayerId } from "@even-odds/game-sdk";
 import { Button, Card, Flex, PlayerChip, Toast } from "@even-odds/design-system/ui";
 import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Wordmark } from "@/components/Wordmark";
 import { useMatch } from "@/lib/useMatch";
 
 const SEAT_NAME: Record<PlayerId, string> = { p0: "Red", p1: "Blue" };
 const SEAT_SIDE: Record<PlayerId, "red" | "blue"> = { p0: "red", p1: "blue" };
-const SEAT_TEXT: Record<PlayerId, string> = { p0: "text-eo-red-600", p1: "text-eo-blue-600" };
+const SEAT_TEXT: Record<PlayerId, string> = { p0: "text-eo-red-ink", p1: "text-eo-blue-ink" };
 
 const MESSAGES: Record<string, string> = {
   full: "This match already has two players.",
@@ -48,6 +49,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
           <Button variant="outline" size="sm" onClick={copyLink}>
             {copied ? "Copied" : "Copy link"}
           </Button>
+          <ThemeToggle />
         </Flex>
       </Flex>
 

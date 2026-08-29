@@ -36,7 +36,7 @@ export const Tabs = ({
             "cursor-pointer rounded-eo-pill px-5 font-eo-display transition-colors duration-(--eo-duration-fast) ease-eo-out",
             size === "sm" ? "h-8.5 text-[13px]" : "h-10 text-[15px]",
             tab.value === active
-              ? "bg-eo-paper text-eo-strong shadow-eo-sm"
+              ? "bg-eo-card text-eo-strong shadow-eo-sm"
               : "bg-transparent text-eo-muted",
           )}
         >

@@ -4,9 +4,9 @@ import { cx } from "./cx";
 export type RoundResult = "red" | "blue" | "draw";
 
 const PIPS: Record<RoundResult, string> = {
-  red: "bg-eo-red-400",
-  blue: "bg-eo-blue-500",
-  draw: "bg-eo-ink-400",
+  red: "bg-eo-red-solid",
+  blue: "bg-eo-blue-solid",
+  draw: "bg-eo-draw",
 };
 
 const Side = ({
@@ -55,15 +55,15 @@ export const ScoreBoard = ({
 }) => (
   <div
     className={cx(
-      "inline-grid justify-items-center gap-3 rounded-eo-lg border-2 border-eo-ink-900 bg-eo-card shadow-eo-edge-ink",
+      "inline-grid justify-items-center gap-3 rounded-eo-lg border-2 border-eo-strong bg-eo-card shadow-eo-edge-ink",
       size === "lg" ? "px-8 py-5" : "px-6 py-4",
       className,
     )}
   >
     <div className="flex items-center gap-5">
-      <Side label={redName} score={redScore} big={size === "lg"} className="text-eo-red-600" />
+      <Side label={redName} score={redScore} big={size === "lg"} className="text-eo-red-ink" />
       <span className="font-eo-display text-eo-label tracking-eo-caps text-eo-faint uppercase">vs</span>
-      <Side label={blueName} score={blueScore} big={size === "lg"} className="text-eo-blue-600" />
+      <Side label={blueName} score={blueScore} big={size === "lg"} className="text-eo-blue-ink" />
     </div>
     {timer !== undefined && (
       <span className="font-eo-body text-eo-stat tabular-nums text-eo-strong">{timer}</span>
@@ -73,7 +73,7 @@ export const ScoreBoard = ({
         {Array.from({ length: rounds }, (_, round) => (
           <span
             key={round}
-            className={cx("size-2.5 rounded-full", PIPS[roundResults[round]] ?? "bg-eo-ink-200")}
+            className={cx("size-2.5 rounded-full", PIPS[roundResults[round]] ?? "bg-eo-hairline")}
           />
         ))}
       </div>

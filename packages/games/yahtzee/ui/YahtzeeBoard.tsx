@@ -16,8 +16,8 @@ import {
 } from "../src/scoring";
 
 const SEAT_TEXT: Record<PlayerId, string> = {
-  p0: "text-eo-red-600",
-  p1: "text-eo-blue-600",
+  p0: "text-eo-red-ink",
+  p1: "text-eo-blue-ink",
 };
 
 const SEAT_NAME: Record<PlayerId, string> = { p0: "Red", p1: "Blue" };
@@ -34,7 +34,7 @@ const PIPS: Record<number, number[]> = {
 const Pips = ({ value }: { value: number }) => (
   <span className="grid h-8 w-8 grid-cols-3 grid-rows-3 gap-0.5">
     {Array.from({ length: 9 }, (_, cell) => (
-      <span key={cell} className={PIPS[value]?.includes(cell) ? "rounded-full bg-eo-ink-900" : ""} />
+      <span key={cell} className={PIPS[value]?.includes(cell) ? "rounded-full bg-eo-strong" : ""} />
     ))}
   </span>
 );
@@ -59,7 +59,7 @@ const Die = ({
     className={cx(
       "cursor-pointer rounded-eo-md border-2 bg-eo-card p-3 transition-[transform,box-shadow] duration-(--eo-duration-fast) ease-eo-out disabled:cursor-not-allowed max-md:p-2",
       held
-        ? "-translate-y-1 border-eo-ink-900 shadow-eo-edge-ink"
+        ? "-translate-y-1 border-eo-strong shadow-eo-edge-ink"
         : "border-eo-hairline hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0",
     )}
   >
@@ -105,7 +105,7 @@ const Scorecard = ({
         title={CATEGORY_INFO[category].description}
         className={cx(
           "flex w-full items-baseline justify-between rounded-eo-sm px-3 py-1.5 text-left font-eo-body text-eo-body-s transition-colors duration-(--eo-duration-fast) ease-eo-out",
-          open ? "cursor-pointer bg-eo-sunken hover:bg-eo-ink-900 hover:text-eo-on-color" : "cursor-default",
+          open ? "cursor-pointer bg-eo-sunken hover:bg-eo-inverse hover:text-eo-on-inverse" : "cursor-default",
         )}
       >
         <span className={recorded === undefined ? "text-eo-muted" : "text-eo-strong"}>

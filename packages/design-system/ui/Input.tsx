@@ -39,8 +39,8 @@ export const Input = ({
         CONTROL_HEIGHTS[size],
         disabled ? "bg-eo-sunken" : "bg-eo-card",
         error === undefined
-          ? "border-eo-ink-300 focus-within:border-eo-focus focus-within:shadow-eo-focus"
-          : "border-eo-red-500",
+          ? "border-eo-control-line focus-within:border-eo-focus focus-within:shadow-eo-focus"
+          : "border-eo-red-line",
       )}
     >
       {icon !== undefined && <span className="text-eo-faint [&_svg]:size-4.5">{icon}</span>}
@@ -59,7 +59,7 @@ export const Input = ({
       <span
         className={cx(
           "mt-2 block font-eo-body text-eo-body-s",
-          error === undefined ? "text-eo-muted" : "text-eo-red-600",
+          error === undefined ? "text-eo-muted" : "text-eo-red-ink",
         )}
       >
         {error ?? hint}

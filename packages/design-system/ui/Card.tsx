@@ -7,10 +7,10 @@ export type CardTone = "plain" | "outlined" | "red" | "blue" | "inverse";
 
 const TONES: Record<CardTone, string> = {
   plain: "border border-eo-hairline bg-eo-card",
-  outlined: "border-2 border-eo-ink-900 bg-eo-card",
-  red: "border-2 border-eo-red-200 bg-(image:--eo-red-wash)",
-  blue: "border-2 border-eo-blue-200 bg-(image:--eo-blue-wash)",
-  inverse: "bg-eo-inverse text-eo-on-color",
+  outlined: "border-2 border-eo-strong bg-eo-card",
+  red: "border-2 border-eo-red-hairline bg-(image:--eo-red-wash)",
+  blue: "border-2 border-eo-blue-hairline bg-(image:--eo-blue-wash)",
+  inverse: "bg-eo-inverse text-eo-on-inverse",
 };
 
 export const Card = ({
