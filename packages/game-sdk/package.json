@@ -16,5 +16,8 @@
     "@types/react-dom": "^19.2.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
+  },
+  "dependencies": {
+    "@even-odds/design-system": "*"
   }
 }

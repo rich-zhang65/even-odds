@@ -36,7 +36,7 @@ const snapshotOf = (overrides: {
 
 const render = (snapshot: Snapshot<YahtzeeState>, seat: PlayerId | null) =>
   renderToStaticMarkup(
-    <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={() => {}} onExit={() => {}} />,
+    <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={() => {}} />,
   );
 
 const cell = (html: string, label: string): { tag: string; text: string } => {
@@ -93,27 +93,6 @@ describe("YahtzeeBoard", () => {
     const red = cell(html, "Yahtzee, Red");
     expect(red.text).toBe("50");
     expect(red.tag).toContain("disabled");
-  });
-
-  // Both seats read the same banner, so a screenshot means the same thing to either.
-  it("names the winner by seat, not relative to the viewer", () => {
-    for (const seat of ["p0", "p1"] as const) {
-      const html = render(
-        snapshotOf({ p0: { yahtzee: 50 }, p1: { ones: 3 }, result: { winner: "p0" }, phase: "over" }),
-        seat,
-      );
-
-      expect(html).toContain("Red wins");
-      expect(html).toContain("50–3");
-      expect(html).not.toContain("You win");
-    }
-  });
-
-  it("calls a tie a draw", () => {
-    const html = render(snapshotOf({ result: { draw: true }, phase: "over" }), "p0");
-
-    expect(html).toContain("Draw");
-    expect(html).not.toContain("wins");
   });
 
   // With the turn badge gone, colour is the only thing that says whose turn it is.

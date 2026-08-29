@@ -1,64 +1,13 @@
 "use client";
 
-import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, LogOut, type LucideIcon } from "lucide-react";
+import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, type LucideIcon } from "lucide-react";
 import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
-import { GameAsset } from "@even-odds/game-sdk/ui";
+import { GameAsset, SEATS, SEAT_ORDER, YouTag } from "@even-odds/game-sdk/ui";
 import { Button, Card, Flex, Icon, cx } from "@even-odds/design-system/ui";
-import type { ControlVariant } from "@even-odds/design-system/ui";
 import type { Category, YahtzeeAction, YahtzeeState } from "../src/types";
 import { assets } from "../src/assets";
 import { legalScoringCategories, previewScore } from "../src/logic";
-import { CATEGORY_INFO, LOWER_CATEGORIES, UPPER_CATEGORIES, totalScore } from "../src/scoring";
-
-type SeatTheme = {
-  name: string;
-  column: string;
-  activeEdge: string;
-  youPill: string;
-  scored: string;
-  open: string;
-  nameText: string;
-  totalText: string;
-  dieBorder: string;
-  dieEdge: string;
-  rollVariant: ControlVariant;
-  banner: string;
-};
-
-const PLAYERS: PlayerId[] = ["p0", "p1"];
-
-/* Every colour here is a semantic token, never a raw ramp step: the ramps do not
-   repoint in dark mode, so a bg-eo-red-50 column would stay pale on an ink page. */
-const SEATS: Record<PlayerId, SeatTheme> = {
-  p0: {
-    name: "Red",
-    column: "bg-eo-red-soft",
-    activeEdge: "border-b-eo-red-solid",
-    youPill: "bg-eo-red-solid",
-    scored: "bg-eo-red-soft text-eo-red-ink",
-    open: "cursor-pointer bg-eo-red-solid/20 text-eo-red-ink hover:bg-eo-red-solid/35",
-    nameText: "text-eo-red-ink",
-    totalText: "text-eo-red-solid",
-    dieBorder: "border-eo-red-solid",
-    dieEdge: "shadow-eo-edge-red",
-    rollVariant: "red",
-    banner: "bg-eo-red-solid text-eo-on-color",
-  },
-  p1: {
-    name: "Blue",
-    column: "bg-eo-blue-soft",
-    activeEdge: "border-b-eo-blue-solid",
-    youPill: "bg-eo-blue-solid",
-    scored: "bg-eo-blue-soft text-eo-blue-ink",
-    open: "cursor-pointer bg-eo-blue-solid/20 text-eo-blue-ink hover:bg-eo-blue-solid/35",
-    nameText: "text-eo-blue-ink",
-    totalText: "text-eo-blue-solid",
-    dieBorder: "border-eo-blue-solid",
-    dieEdge: "shadow-eo-edge-blue",
-    rollVariant: "primary",
-    banner: "bg-eo-blue-solid text-eo-on-color",
-  },
-};
+import { CATEGORY_INFO, LOWER_CATEGORIES, UPPER_CATEGORIES } from "../src/scoring";
 
 const PIPS: Record<number, number[]> = {
   1: [4],
@@ -84,17 +33,6 @@ const CATEGORY_ICONS: Record<Category, LucideIcon[]> = {
 };
 
 const ROW_GRID = "grid grid-cols-[minmax(0,1fr)_clamp(76px,18vw,110px)_clamp(76px,18vw,110px)]";
-
-const YouTag = ({ className }: { className: string }) => (
-  <span
-    className={cx(
-      "rounded-eo-pill px-2.5 py-0.5 font-eo-body text-[10px] font-semibold tracking-eo-caps uppercase",
-      className,
-    )}
-  >
-    You
-  </span>
-);
 
 const Pips = ({ value, dot }: { value: number; dot: string }) => (
   <span className="grid size-full grid-cols-3 grid-rows-3 place-items-center">
@@ -133,7 +71,7 @@ const Die = ({
     className={cx(
       "grid shrink-0 place-items-center rounded-eo-md border-2 bg-eo-card transition-[transform,box-shadow,opacity] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:active:translate-y-0.5 enabled:active:shadow-none disabled:cursor-not-allowed",
       large ? "size-16 p-2.5" : "size-14 p-[9px]",
-      held ? cx(SEATS[turn].dieBorder, SEATS[turn].dieEdge) : "border-eo-strong shadow-eo-edge-ink",
+      held ? cx(SEATS[turn].border, SEATS[turn].edge) : "border-eo-strong shadow-eo-edge-ink",
       dimmed && "opacity-45",
     )}
   >
@@ -221,7 +159,7 @@ const ScoreCell = ({
       aria-label={`${CATEGORY_INFO[category].label}, ${seat.name}`}
       className={cx(
         "min-h-14 border-l border-eo-hairline font-eo-body text-base font-extrabold tabular-nums transition-colors duration-(--eo-duration-fast) ease-eo-out",
-        recorded !== undefined ? seat.scored : open ? seat.open : seat.column,
+        recorded !== undefined ? cx(seat.soft, seat.ink) : open ? cx("cursor-pointer", seat.pick, seat.ink) : seat.soft,
       )}
     >
       {recorded ?? (open ? previewScore(state, player, category) : null)}
@@ -257,7 +195,7 @@ const Scorecard = ({
           <Icon key={index} icon={glyph} size={CATEGORY_ICONS[category].length === 1 ? 28 : 22} />
         ))}
       </div>
-      {PLAYERS.map((player) => (
+      {SEAT_ORDER.map((player) => (
         <ScoreCell
           key={player}
           player={player}
@@ -274,17 +212,17 @@ const Scorecard = ({
     <div className="overflow-hidden rounded-eo-lg border border-eo-hairline bg-eo-card shadow-eo-sm">
       <div className={ROW_GRID}>
         <div className="min-h-13" />
-        {PLAYERS.map((player) => (
+        {SEAT_ORDER.map((player) => (
           <div
             key={player}
             className={cx(
               "grid min-h-13 place-items-center border-l border-b-[3px] border-eo-hairline",
-              SEATS[player].column,
-              live && player === currentPlayer ? SEATS[player].activeEdge : "border-b-transparent",
+              SEATS[player].soft,
+              live && player === currentPlayer ? SEATS[player].underline : "border-b-transparent",
             )}
           >
             {player === seat && (
-              <YouTag className={cx(SEATS[player].youPill, "text-eo-on-color")} />
+              <YouTag className={cx(SEATS[player].solid, "text-eo-on-color")} />
             )}
           </div>
         ))}
@@ -300,12 +238,10 @@ export const YahtzeeBoard = ({
   snapshot,
   seat,
   onAction,
-  onExit,
 }: {
   snapshot: Snapshot<YahtzeeState>;
   seat: PlayerId | null;
   onAction: (action: YahtzeeAction) => void;
-  onExit: () => void;
 }) => {
   const state = snapshot.state;
   const result = snapshot.result;
@@ -316,26 +252,19 @@ export const YahtzeeBoard = ({
   const selectable =
     myTurn && rollsUsed > 0 && seat !== null ? legalScoringCategories(state, seat) : [];
 
-  const totals: Record<PlayerId, number> = {
-    p0: totalScore(state.scores.p0),
-    p1: totalScore(state.scores.p1),
-  };
-
   const current = SEATS[snapshot.currentPlayer];
 
   const rollLabel = yourTurn && result === null ? "Roll" : null;
-
-  const winner = result !== null && !("draw" in result) ? result.winner : null;
 
   const rollButton = (size: "md" | "lg") => (
     <Button
       fullWidth
       size={size}
-      variant={current.rollVariant}
+      variant={current.button}
       disabled={!myTurn || state.rollsLeft === 0}
       onClick={() => onAction({ type: "ROLL" })}
       iconRight={
-        <RollPips used={rollsUsed} spentText={current.totalText} />
+        <RollPips used={rollsUsed} spentText={current.accent} />
       }
     >
       {rollLabel}
@@ -344,71 +273,6 @@ export const YahtzeeBoard = ({
 
   return (
     <div>
-      <Flex wrap="wrap" align="center" gap="12px" className="mb-5">
-        <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
-          Yahtzee
-        </h1>
-        <span className="flex-1 max-[680px]:hidden" />
-
-        <Flex
-          justify="center"
-          shrink={0}
-          className="max-[680px]:order-10 max-[680px]:w-full"
-        >
-          <Flex
-            align="center"
-            gap="12px"
-            className="rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 py-2 shadow-eo-sm"
-          >
-            <span className={cx("font-eo-display text-[15px] font-semibold", SEATS.p0.nameText)}>
-              Red
-            </span>
-            {seat === "p0" && <YouTag className="bg-eo-inverse text-eo-on-inverse" />}
-            <span className="font-eo-body text-[22px] font-extrabold tabular-nums">
-              <span className={SEATS.p0.totalText}>{totals.p0}</span>
-              <span className="text-eo-muted"> – </span>
-              <span className={SEATS.p1.totalText}>{totals.p1}</span>
-            </span>
-            {seat === "p1" && <YouTag className="bg-eo-inverse text-eo-on-inverse" />}
-            <span className={cx("font-eo-display text-[15px] font-semibold", SEATS.p1.nameText)}>
-              Blue
-            </span>
-          </Flex>
-        </Flex>
-
-        <span className="flex-1 max-[680px]:hidden" />
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="max-[680px]:ml-auto"
-          iconLeft={<Icon icon={LogOut} size={16} />}
-          onClick={onExit}
-        >
-          Exit
-        </Button>
-      </Flex>
-
-      {result !== null && (
-        <div
-          className={cx(
-            "mb-6 rounded-eo-xl px-6 py-8 text-center max-md:px-4 max-md:py-6",
-            winner === null ? "bg-eo-inverse text-eo-on-inverse" : SEATS[winner].banner,
-          )}
-        >
-          <span className="font-eo-body text-eo-caption tracking-eo-caps uppercase opacity-85">
-            Yahtzee
-          </span>
-          <h2 className="mt-3 mb-2 font-eo-display text-eo-display-m tracking-eo-tight">
-            {winner === null ? "Draw" : `${SEATS[winner].name} wins`}
-          </h2>
-          <p className="font-eo-body text-eo-body-m opacity-90">
-            {totals.p0}–{totals.p1}
-            {winner !== null && result.reason !== undefined && ` · ${result.reason}`}
-          </p>
-        </div>
-      )}
-
       <Flex wrap="wrap" align="start" gap="24px">
         <div className="min-w-0 flex-[1_1_440px]">
           <Scorecard

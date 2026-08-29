@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { Button, Card, Dialog, Flex, Toast } from "@even-odds/design-system/ui";
+import { totalScore } from "@even-odds/yahtzee";
 import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
+import { MatchHeader } from "@/components/MatchHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Wordmark } from "@/components/Wordmark";
 import { useMatch } from "@/lib/useMatch";
@@ -47,6 +49,19 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
       </Flex>
 
       <div className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-8 max-md:px-3 max-md:py-4">
+        {snapshot !== null && (
+          <MatchHeader
+            title="Yahtzee"
+            totals={{
+              p0: totalScore(snapshot.state.scores.p0),
+              p1: totalScore(snapshot.state.scores.p1),
+            }}
+            seat={seat}
+            result={snapshot.result}
+            onExit={() => setLeaving(true)}
+          />
+        )}
+
         {snapshot?.phase === "paused" && (
           <Card className="mb-6 text-center font-eo-body text-eo-body-s text-eo-muted">
             Opponent disconnected — waiting for them to come back.
@@ -75,12 +90,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
         )}
 
         {snapshot !== null && snapshot.phase !== "waiting" && (
-          <YahtzeeBoard
-            snapshot={snapshot}
-            seat={seat}
-            onAction={send}
-            onExit={() => setLeaving(true)}
-          />
+          <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={send} />
         )}
       </div>
 
