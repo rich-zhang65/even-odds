@@ -25,18 +25,18 @@ export const MatchHeader = ({
 
   return (
     <>
-      <Flex wrap="wrap" align="center" gap="12px" className="mb-5">
+      <Flex className="mb-5" wrap="wrap" align="center" gap="12px">
         <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
           {title}
         </h1>
 
         <span className="flex-1 max-[680px]:hidden" />
 
-        <Flex justify="center" shrink={0} className="max-[680px]:order-10 max-[680px]:w-full">
+        <Flex className="max-[680px]:order-10 max-[680px]:w-full" justify="center" shrink={0}>
           <Flex
+            className="rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 py-2 shadow-eo-sm"
             align="center"
             gap="12px"
-            className="rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 py-2 shadow-eo-sm"
           >
             <span className={cx("font-eo-display text-[15px] font-semibold", SEATS.p0.ink)}>
               {SEATS.p0.name}
@@ -57,9 +57,9 @@ export const MatchHeader = ({
         <span className="flex-1 max-[680px]:hidden" />
 
         <Button
+          className="max-[680px]:ml-auto"
           variant="outline"
           size="sm"
-          className="max-[680px]:ml-auto"
           iconLeft={<Icon icon={LogOut} size={16} />}
           onClick={onExit}
         >

@@ -56,7 +56,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
         )}
 
         {snapshot?.phase === "waiting" && (
-          <Card tone="outlined" className="mx-auto max-w-md text-center">
+          <Card className="mx-auto max-w-md text-center" tone="outlined">
             <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
               Waiting for an opponent
             </h1>

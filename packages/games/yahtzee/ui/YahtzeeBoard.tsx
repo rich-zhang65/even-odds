@@ -63,23 +63,23 @@ const Die = ({
   onToggle: () => void;
 }) => (
   <button
-    type="button"
-    disabled={disabled}
-    onClick={onToggle}
-    aria-label={`Die showing ${value}${held ? ", held" : ""}`}
-    aria-pressed={held}
     className={cx(
       "grid shrink-0 place-items-center rounded-eo-md border-2 bg-eo-card transition-[transform,box-shadow,opacity] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:active:translate-y-0.5 enabled:active:shadow-none disabled:cursor-not-allowed",
       large ? "size-16 p-2.5" : "size-14 p-[9px]",
       held ? cx(SEATS[turn].border, SEATS[turn].edge) : "border-eo-strong shadow-eo-edge-ink",
       dimmed && "opacity-45",
     )}
+    type="button"
+    disabled={disabled}
+    onClick={onToggle}
+    aria-label={`Die showing ${value}${held ? ", held" : ""}`}
+    aria-pressed={held}
   >
     <GameAsset
+      className="size-full"
       manifest={assets}
       slot={`die-${value}`}
       alt={`Die showing ${value}`}
-      className="size-full"
       fallback={<Pips value={value} dot={large ? "size-2.5" : "size-2"} />}
     />
   </button>
@@ -119,13 +119,13 @@ const RollPips = ({ used, spentText }: { used: number; spentText: string }) => (
     {[1, 2, 3].map((n) => (
       <Flex
         key={n}
-        align="center"
-        justify="center"
-        shrink={0}
         className={cx(
           "size-6 rounded-full border-2 border-eo-on-color font-eo-body text-[12px] font-extrabold tabular-nums leading-none",
           n <= used ? cx("bg-eo-on-color", spentText) : "text-eo-on-color",
         )}
+        align="center"
+        justify="center"
+        shrink={0}
       >
         {n}
       </Flex>
@@ -153,14 +153,14 @@ const ScoreCell = ({
   // reads as "still open" instead of "scored nothing".
   return (
     <button
-      type="button"
-      disabled={!open}
-      onClick={() => onScore(category)}
-      aria-label={`${CATEGORY_INFO[category].label}, ${seat.name}`}
       className={cx(
         "min-h-14 border-l border-eo-hairline font-eo-body text-base font-extrabold tabular-nums transition-colors duration-(--eo-duration-fast) ease-eo-out",
         recorded !== undefined ? cx(seat.soft, seat.ink) : open ? cx("cursor-pointer", seat.pick, seat.ink) : seat.soft,
       )}
+      type="button"
+      disabled={!open}
+      onClick={() => onScore(category)}
+      aria-label={`${CATEGORY_INFO[category].label}, ${seat.name}`}
     >
       {recorded ?? (open ? previewScore(state, player, category) : null)}
     </button>
@@ -187,7 +187,7 @@ const Scorecard = ({
       key={category}
       className={cx(ROW_GRID, divider ? "border-t-2 border-eo-strong" : "border-t border-eo-hairline")}
     >
-      <Flex align="center" gap="4px" className="min-w-0 px-4 py-2 text-eo-body">
+      <Flex className="min-w-0 px-4 py-2 text-eo-body" align="center" gap="4px">
         {CATEGORY_ICONS[category].map((glyph, index) => (
           <Icon key={index} icon={glyph} size={CATEGORY_ICONS[category].length === 1 ? 28 : 22} />
         ))}
@@ -285,7 +285,7 @@ export const YahtzeeBoard = ({
         {/* Above 800px the dice sit in a sticky rail; below it they move to the
             fixed tray below, so the scorecard keeps the full width. */}
         <div className="sticky top-6 flex-[0_0_288px] max-[800px]:hidden">
-          <Card tone="outlined" className="grid gap-5">
+          <Card className="grid gap-5" tone="outlined">
             <DiceRow
               state={state}
               turn={snapshot.currentPlayer}

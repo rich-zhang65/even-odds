@@ -44,9 +44,6 @@ export const Button = ({
   className?: string;
 }) => (
   <button
-    type={type}
-    disabled={disabled || loading}
-    onClick={onClick}
     className={cx(
       "inline-flex items-center justify-center whitespace-nowrap rounded-eo-md font-eo-display enabled:cursor-pointer",
       CONTROL_VARIANTS[variant],
@@ -58,6 +55,9 @@ export const Button = ({
       fullWidth ? "w-full" : "w-auto",
       className,
     )}
+    type={type}
+    disabled={disabled || loading}
+    onClick={onClick}
   >
     {loading ? (
       <span className="size-3.5 animate-eo-spin rounded-full border-2 border-current border-t-transparent" />

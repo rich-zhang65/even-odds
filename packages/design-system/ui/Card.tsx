@@ -27,7 +27,6 @@ export const Card = ({
   className?: string;
 }) => (
   <div
-    onClick={onClick}
     className={cx(
       "rounded-eo-lg p-6 shadow-eo-sm",
       TONES[tone],
@@ -35,6 +34,7 @@ export const Card = ({
         "cursor-pointer transition-[transform,box-shadow] duration-(--eo-duration-base) ease-eo-out hover:-translate-y-px hover:shadow-eo-lg",
       className,
     )}
+    onClick={onClick}
   >
     {children}
   </div>

@@ -24,13 +24,13 @@ export const Switch = ({
     )}
   >
     <input
+      className="peer sr-only"
       type="checkbox"
       role="switch"
       checked={checked}
       onChange={onChange}
       readOnly={onChange === undefined}
       disabled={disabled}
-      className="peer sr-only"
     />
     <span
       className={cx(

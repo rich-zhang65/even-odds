@@ -28,12 +28,12 @@ export const Checkbox = ({
     )}
   >
     <input
+      className="peer sr-only"
       type="checkbox"
       checked={checked}
       onChange={onChange}
       readOnly={onChange === undefined}
       disabled={disabled}
-      className="peer sr-only"
     />
     <span
       className={cx(
@@ -41,7 +41,7 @@ export const Checkbox = ({
         checked ? "border-eo-blue-line bg-eo-blue-solid" : "border-eo-control-line bg-eo-card",
       )}
     >
-      {checked && <Check aria-hidden="true" size={16} className="text-eo-on-color" />}
+      {checked && <Check className="text-eo-on-color" aria-hidden="true" size={16} />}
     </span>
     <span>
       <span className="block font-eo-body text-eo-body-m text-eo-strong">{label}</span>

@@ -45,6 +45,7 @@ export const Input = ({
     >
       {icon !== undefined && <span className="text-eo-faint [&_svg]:size-4.5">{icon}</span>}
       <input
+        className="min-w-0 flex-1 border-none bg-transparent font-eo-body text-eo-body-m text-eo-strong outline-none"
         type={type}
         value={value}
         onChange={onChange}
@@ -52,7 +53,6 @@ export const Input = ({
         placeholder={placeholder}
         disabled={disabled}
         aria-invalid={error !== undefined}
-        className="min-w-0 flex-1 border-none bg-transparent font-eo-body text-eo-body-m text-eo-strong outline-none"
       />
     </span>
     {(error ?? hint) !== undefined && (

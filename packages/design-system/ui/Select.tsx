@@ -32,10 +32,10 @@ export const Select = ({
       )}
     >
       <select
+        className="h-full flex-1 cursor-pointer appearance-none border-none bg-transparent pr-10 pl-4 font-eo-body text-eo-body-m text-eo-strong outline-none disabled:cursor-not-allowed"
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="h-full flex-1 cursor-pointer appearance-none border-none bg-transparent pr-10 pl-4 font-eo-body text-eo-body-m text-eo-strong outline-none disabled:cursor-not-allowed"
       >
         {options.map((option) => {
           const { value: optionValue, label: optionLabel } =
@@ -48,9 +48,9 @@ export const Select = ({
         })}
       </select>
       <ChevronDown
+        className="pointer-events-none absolute right-4 text-eo-muted"
         aria-hidden="true"
         size={18}
-        className="pointer-events-none absolute right-4 text-eo-muted"
       />
     </span>
   </label>

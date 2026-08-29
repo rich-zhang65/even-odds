@@ -40,7 +40,7 @@ describe("Flex", () => {
   });
 
   it("appends className last so callers can add responsive overrides", () => {
-    const html = renderToStaticMarkup(<Flex direction="row" className="max-md:flex-col" />);
+    const html = renderToStaticMarkup(<Flex className="max-md:flex-col" direction="row" />);
 
     expect(html.indexOf("flex-row")).toBeLessThan(html.indexOf("max-md:flex-col"));
   });

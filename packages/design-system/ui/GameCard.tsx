@@ -34,12 +34,12 @@ export const GameCard = ({
   className?: string;
 }) => (
   <button
-    type="button"
-    onClick={onClick}
     className={cx(
       "block w-full cursor-pointer overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-eo-card text-left shadow-eo-edge-ink transition-[transform,box-shadow] duration-(--eo-duration-fast) ease-eo-out hover:-translate-y-[3px] hover:shadow-[0_6px_0_var(--color-eo-strong)]",
       className,
     )}
+    type="button"
+    onClick={onClick}
   >
     <span
       className={cx(
@@ -49,7 +49,7 @@ export const GameCard = ({
     >
       {art ??
         icon ?? (
-          <Icon icon={Gamepad2} size={size === "sm" ? 32 : 48} className="text-eo-on-color/90" />
+          <Icon className="text-eo-on-color/90" icon={Gamepad2} size={size === "sm" ? 32 : 48} />
         )}
       {live && (
         <span className="absolute top-3 left-3">
