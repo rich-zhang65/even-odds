@@ -16,6 +16,19 @@ const freshDocument = () => {
 
 const theme = () => (globalThis as any).document.documentElement.dataset.theme;
 
+// Blocked third-party storage and some privacy modes throw on access rather than
+// returning null, which must not cost us the OS preference.
+const denyStorage = () => {
+  (globalThis as any).localStorage = {
+    getItem: () => {
+      throw new Error("denied");
+    },
+    setItem: () => {
+      throw new Error("denied");
+    },
+  };
+};
+
 beforeEach(() => {
   for (const key of Object.keys(stored)) delete stored[key];
   freshDocument();
@@ -63,6 +76,12 @@ describe("theme", () => {
     expect(theme()).toBe("dark");
   });
 
+  it("keeps the OS preference when storage access throws", () => {
+    denyStorage();
+    boot(true);
+    expect(theme()).toBe("dark");
+  });
+
   // The dev-remount repair in ThemeToggle re-derives the theme in TS rather than
   // by running the script, so the two have to reach the same answer every time.
   it.each([
@@ -72,10 +91,16 @@ describe("theme", () => {
     { stored: "dark", prefersDark: false },
     { stored: "chartreuse", prefersDark: true },
     { stored: "chartreuse", prefersDark: false },
-  ])("resolveTheme agrees with the boot script (%j)", ({ stored: value, prefersDark }) => {
-    if (value !== null) stored["eo-theme"] = value;
-    boot(prefersDark);
-    expect(theme()).toMatch(/^(light|dark)$/);
-    expect(resolveTheme()).toBe(theme());
-  });
+    { stored: null, prefersDark: true, denied: true },
+    { stored: null, prefersDark: false, denied: true },
+  ])(
+    "resolveTheme agrees with the boot script (%j)",
+    ({ stored: value, prefersDark, denied }) => {
+      if (value !== null) stored["eo-theme"] = value;
+      if (denied === true) denyStorage();
+      boot(prefersDark);
+      expect(theme()).toMatch(/^(light|dark)$/);
+      expect(resolveTheme()).toBe(theme());
+    },
+  );
 });
