@@ -1,14 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
-import { Button, Card, Dialog, Flex, Toast } from "@even-odds/design-system/ui";
+import { Button, Card, Dialog, Toast } from "@even-odds/design-system/ui";
 import { totalScore } from "@even-odds/yahtzee";
 import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
 import { MatchHeader } from "@/components/MatchHeader";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Wordmark } from "@/components/Wordmark";
+import { PageHeader } from "@/components/PageHeader";
 import { useMatch } from "@/lib/useMatch";
 
 const MESSAGES: Record<string, string> = {
@@ -31,22 +29,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <Flex
-        align="center"
-        justify="space-between"
-        className="border-b border-eo-hairline bg-eo-card px-8 py-4 max-md:px-4"
-      >
-        <Link href="/">
-          <Wordmark />
-        </Link>
-
-        <Flex align="center" gap="12px">
-          <Button variant="outline" size="sm" onClick={copyLink}>
-            {copied ? "Copied" : "Copy link"}
-          </Button>
-          <ThemeToggle />
-        </Flex>
-      </Flex>
+      <PageHeader />
 
       <div className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-8 max-md:px-3 max-md:py-4">
         {snapshot !== null && (

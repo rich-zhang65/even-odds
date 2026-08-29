@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Flex, GameCard, Toast } from "@even-odds/design-system/ui";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Wordmark } from "@/components/Wordmark";
+import { GameCard, Toast } from "@even-odds/design-system/ui";
+import { PageHeader } from "@/components/PageHeader";
 import { getSocket, tokenKey } from "@/lib/socket";
 
 const GAMES = [
@@ -37,19 +36,7 @@ const Home = () => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <Flex
-        align="center"
-        justify="space-between"
-        className="border-b border-eo-hairline px-8 py-5 max-md:px-4"
-      >
-        <Wordmark />
-        <Flex align="center" gap="12px">
-          <span className="font-eo-body text-eo-body-s text-eo-muted max-md:hidden">
-            Settle the score online
-          </span>
-          <ThemeToggle />
-        </Flex>
-      </Flex>
+      <PageHeader />
 
       <div className="mx-auto w-full max-w-5xl flex-1 px-8 py-12 max-md:px-4 max-md:py-8">
         <h1 className="font-eo-display text-eo-display-l tracking-eo-tight text-eo-strong max-md:text-eo-display-m">
