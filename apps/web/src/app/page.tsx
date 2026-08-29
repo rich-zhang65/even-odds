@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GameCard, Toast } from "@even-odds/design-system/ui";
+import { Flex, GameCard, Toast } from "@even-odds/design-system/ui";
 import { Wordmark } from "@/components/Wordmark";
 import { getSocket, tokenKey } from "@/lib/socket";
 
@@ -36,12 +36,16 @@ const Home = () => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between border-b border-eo-hairline px-8 py-5 max-md:px-4">
+      <Flex
+        align="center"
+        justify="space-between"
+        className="border-b border-eo-hairline px-8 py-5 max-md:px-4"
+      >
         <Wordmark />
         <span className="font-eo-body text-eo-body-s text-eo-muted max-md:hidden">
           Settle the score online
         </span>
-      </header>
+      </Flex>
 
       <div className="mx-auto w-full max-w-5xl flex-1 px-8 py-12 max-md:px-4 max-md:py-8">
         <h1 className="font-eo-display text-eo-display-l tracking-eo-tight text-eo-strong max-md:text-eo-display-m">
