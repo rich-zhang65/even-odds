@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Dialog } from "./Dialog";
-import { Toast } from "./Toast";
-import { Tooltip } from "./Tooltip";
+import { Dialog } from "../Dialog";
+import { Toast } from "../Toast";
+import { Tooltip } from "../Tooltip";
 
 describe("Dialog", () => {
   it("renders as a native dialog so Escape and focus trapping come for free", () => {

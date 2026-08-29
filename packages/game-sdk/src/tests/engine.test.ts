@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createEngine } from "./engine";
-import type { GameDefinition, GameAction, PlayerId } from "./types";
+import { createEngine } from "../engine";
+import type { GameDefinition, GameAction, PlayerId } from "../types";
 
 type CountState = { count: number; turn: PlayerId; done: boolean };
 type CountAction = GameAction & { type: "INCREMENT" };

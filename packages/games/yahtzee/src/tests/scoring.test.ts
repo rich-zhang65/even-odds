@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { scoreCategory, totalScore, ALL_CATEGORIES } from "./scoring";
-import type { Category } from "./types";
+import { scoreCategory, totalScore, ALL_CATEGORIES } from "../scoring";
+import type { Category } from "../types";
 
 describe("scoreCategory — upper section", () => {
   it("counts matching faces only", () => {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
-import { YahtzeeBoard } from "./YahtzeeBoard";
-import type { Category, YahtzeeState } from "../src/types";
+import { YahtzeeBoard } from "../YahtzeeBoard";
+import type { Category, YahtzeeState } from "../../src/types";
 
 type Scores = Partial<Record<Category, number>>;
 

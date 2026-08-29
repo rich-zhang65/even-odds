@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Flex } from "./Flex";
+import { Flex } from "../Flex";
 
 describe("Flex", () => {
   it("is a bare flex row until told otherwise", () => {

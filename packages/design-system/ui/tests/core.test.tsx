@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Swords } from "lucide-react";
-import { Icon } from "./Icon";
-import { Badge } from "./Badge";
-import { Button } from "./Button";
-import { Card } from "./Card";
-import { IconButton } from "./IconButton";
-import { Tag } from "./Tag";
+import { Icon } from "../Icon";
+import { Badge } from "../Badge";
+import { Button } from "../Button";
+import { Card } from "../Card";
+import { IconButton } from "../IconButton";
+import { Tag } from "../Tag";
 
 describe("Button", () => {
   it("defaults to a non-submitting primary button", () => {

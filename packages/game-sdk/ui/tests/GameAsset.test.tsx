@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { GameAsset } from "./GameAsset";
-import type { AssetManifest } from "../src/types";
+import { GameAsset } from "../GameAsset";
+import type { AssetManifest } from "../../src/types";
 
 const manifest = (path: string | null): AssetManifest => ({
   icon: null,

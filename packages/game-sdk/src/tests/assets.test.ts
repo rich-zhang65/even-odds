@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { resolveSprite } from "./assets";
-import type { AssetManifest } from "./types";
+import { resolveSprite } from "../assets";
+import type { AssetManifest } from "../types";
 
 const empty: AssetManifest = {
   icon: null,

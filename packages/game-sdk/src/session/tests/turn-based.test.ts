@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createTurnBasedSession } from "./turn-based";
-import { createSession } from "./index";
-import type { SessionEvent } from "./types";
-import type { GameDefinition, PlayerId } from "../types";
+import { createTurnBasedSession } from "../turn-based";
+import { createSession } from "../index";
+import type { SessionEvent } from "../types";
+import type { GameDefinition, PlayerId } from "../../types";
 
 type RaceState = {
   scores: Record<PlayerId, number>;

@@ -5,7 +5,7 @@ import type { Socket } from "socket.io-client";
 import { ALL_CATEGORIES } from "@even-odds/yahtzee";
 import type { YahtzeeState } from "@even-odds/yahtzee";
 import type { GameResult, PlayerId, Snapshot } from "@even-odds/game-sdk";
-import { attachSocketServer } from "./server";
+import { attachSocketServer } from "../server";
 
 type CreateOk = { matchId: string; you: PlayerId; token: string };
 type JoinOk = { matchId: string; you: PlayerId; token: string; reconnected: boolean };

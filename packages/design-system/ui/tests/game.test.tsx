@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { GameCard } from "./GameCard";
-import { PlayerChip } from "./PlayerChip";
-import { ScoreBoard } from "./ScoreBoard";
-import { Tabs } from "./Tabs";
-import { VersusBanner } from "./VersusBanner";
+import { GameCard } from "../GameCard";
+import { PlayerChip } from "../PlayerChip";
+import { ScoreBoard } from "../ScoreBoard";
+import { Tabs } from "../Tabs";
+import { VersusBanner } from "../VersusBanner";
 
 describe("GameCard", () => {
   it("falls back to the versus field when no artwork is supplied", () => {

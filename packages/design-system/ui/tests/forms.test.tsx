@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Checkbox } from "./Checkbox";
-import { Input } from "./Input";
-import { Radio } from "./Radio";
-import { Select } from "./Select";
-import { Switch } from "./Switch";
+import { Checkbox } from "../Checkbox";
+import { Input } from "../Input";
+import { Radio } from "../Radio";
+import { Select } from "../Select";
+import { Switch } from "../Switch";
 
 describe("Input", () => {
   it("shows the hint until an error replaces it", () => {
