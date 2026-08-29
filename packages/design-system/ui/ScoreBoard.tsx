@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cx } from "./cx";
+import { Flex } from "./Flex";
 
 export type RoundResult = "red" | "blue" | "draw";
 
@@ -60,23 +61,23 @@ export const ScoreBoard = ({
       className,
     )}
   >
-    <div className="flex items-center gap-5">
+    <Flex align="center" gap="20px">
       <Side label={redName} score={redScore} big={size === "lg"} className="text-eo-red-ink" />
       <span className="font-eo-display text-eo-label tracking-eo-caps text-eo-faint uppercase">vs</span>
       <Side label={blueName} score={blueScore} big={size === "lg"} className="text-eo-blue-ink" />
-    </div>
+    </Flex>
     {timer !== undefined && (
       <span className="font-eo-body text-eo-stat tabular-nums text-eo-strong">{timer}</span>
     )}
     {rounds > 0 && (
-      <div className="flex gap-1.5">
+      <Flex gap="6px">
         {Array.from({ length: rounds }, (_, round) => (
           <span
             key={round}
             className={cx("size-2.5 rounded-full", PIPS[roundResults[round]] ?? "bg-eo-hairline")}
           />
         ))}
-      </div>
+      </Flex>
     )}
   </div>
 );

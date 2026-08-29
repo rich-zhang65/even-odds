@@ -187,14 +187,11 @@ const Scorecard = ({
       key={category}
       className={cx(ROW_GRID, divider ? "border-t-2 border-eo-strong" : "border-t border-eo-hairline")}
     >
-      <div
-        className="flex min-w-0 items-center gap-1 px-4 py-2 text-eo-body"
-        title={CATEGORY_INFO[category].description}
-      >
+      <Flex align="center" gap="4px" className="min-w-0 px-4 py-2 text-eo-body">
         {CATEGORY_ICONS[category].map((glyph, index) => (
           <Icon key={index} icon={glyph} size={CATEGORY_ICONS[category].length === 1 ? 28 : 22} />
         ))}
-      </div>
+      </Flex>
       {SEAT_ORDER.map((player) => (
         <ScoreCell
           key={player}
