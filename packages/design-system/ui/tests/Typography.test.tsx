@@ -18,7 +18,7 @@ describe("Typography", () => {
   it("takes the element from the caller when the markup has to carry meaning", () => {
     const html = renderToStaticMarkup(
       <Typography variant="display-l" element="h1">
-        Yahtzee
+        Yazy
       </Typography>
     );
 

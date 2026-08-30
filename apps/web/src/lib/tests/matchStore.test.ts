@@ -42,7 +42,7 @@ const settle = () => new Promise<void>(resolve => setTimeout(resolve, 60));
 
 const openMatch = (): Promise<string> =>
   new Promise<string>((resolve, reject) => {
-    getSocket().emit("match:create", { gameId: "yahtzee" }, (res) => {
+    getSocket().emit("match:create", { gameId: "yazy" }, (res) => {
       if ("error" in res) reject(new Error(res.error));
       else resolve(res.matchId);
     });

@@ -1,5 +1,5 @@
 import type { GameDefinition, PlayerId } from "@even-odds/game-sdk";
-import type { YahtzeeState, YahtzeeAction, Category } from "./types";
+import type { YazyState, YazyAction, Category } from "./types";
 import {
   scoreCategory,
   totalScore,
@@ -13,10 +13,10 @@ const FACE_TO_UPPER: Record<number, Category> = {
   1: "ones", 2: "twos", 3: "threes", 4: "fours", 5: "fives", 6: "sixes",
 };
 
-const isJokerSituation = (state: YahtzeeState, by: PlayerId): boolean =>
-  state.dice.every(d => d === state.dice[0]) && state.scores[by]["yahtzee"] === 50;
+const isJokerSituation = (state: YazyState, by: PlayerId): boolean =>
+  state.dice.every(d => d === state.dice[0]) && state.scores[by]["yazy"] === 50;
 
-export const legalScoringCategories = (state: YahtzeeState, by: PlayerId): Category[] => {
+export const legalScoringCategories = (state: YazyState, by: PlayerId): Category[] => {
   const playerScores = state.scores[by];
 
   if (isJokerSituation(state, by)) {
@@ -32,13 +32,13 @@ export const legalScoringCategories = (state: YahtzeeState, by: PlayerId): Categ
   return ALL_CATEGORIES.filter(c => playerScores[c] === undefined);
 };
 
-export const previewScore = (state: YahtzeeState, by: PlayerId, category: Category): number =>
+export const previewScore = (state: YazyState, by: PlayerId, category: Category): number =>
   scoreCategory(category, state.dice, isJokerSituation(state, by));
 
-export const Yahtzee: GameDefinition<YahtzeeState, YahtzeeAction> = {
+export const Yazy: GameDefinition<YazyState, YazyAction> = {
   meta: {
-    id: "yahtzee",
-    name: "Yahtzee",
+    id: "yazy",
+    name: "Yazy",
     tagline: "Roll your way to victory",
     estimatedMinutes: 15,
     mode: "turn-based",

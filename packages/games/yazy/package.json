@@ -1,5 +1,5 @@
 {
-  "name": "@even-odds/yahtzee",
+  "name": "@even-odds/yazy",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",

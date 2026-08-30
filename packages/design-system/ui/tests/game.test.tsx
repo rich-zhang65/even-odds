@@ -8,7 +8,7 @@ import { VersusBanner } from "../VersusBanner";
 
 describe("GameCard", () => {
   it("falls back to the versus field and a glyph when no artwork is supplied", () => {
-    const html = renderToStaticMarkup(<GameCard name="Yahtzee" />);
+    const html = renderToStaticMarkup(<GameCard name="Yazy" />);
 
     expect(html).toContain("bg-(image:--eo-versus)");
     expect(html).toContain("text-eo-on-color/90");
@@ -16,21 +16,21 @@ describe("GameCard", () => {
   });
 
   it("uses supplied artwork instead of the placeholder glyph", () => {
-    const html = renderToStaticMarkup(<GameCard name="Yahtzee" art="/y.png" />);
+    const html = renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" />);
 
     expect(html).toContain('src="/y.png"');
     expect(html).not.toContain("text-eo-on-color/90");
   });
 
   it("backs the title with a pill only when it sits on artwork", () => {
-    expect(renderToStaticMarkup(<GameCard name="Yahtzee" art="/y.png" />)).toContain(
+    expect(renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" />)).toContain(
       "bg-eo-paper/85",
     );
-    expect(renderToStaticMarkup(<GameCard name="Yahtzee" />)).not.toContain("bg-eo-paper/85");
+    expect(renderToStaticMarkup(<GameCard name="Yazy" />)).not.toContain("bg-eo-paper/85");
   });
 
   it("draws the lift edge as a static element, never a shadow", () => {
-    const html = renderToStaticMarkup(<GameCard name="Yahtzee" />);
+    const html = renderToStaticMarkup(<GameCard name="Yazy" />);
 
     expect(html).toContain("bg-eo-strong");
     expect(html).not.toContain("shadow");
@@ -38,7 +38,7 @@ describe("GameCard", () => {
   });
 
   it("dims and disables a card that cannot be clicked", () => {
-    const html = renderToStaticMarkup(<GameCard name="Yahtzee" disabled />);
+    const html = renderToStaticMarkup(<GameCard name="Yazy" disabled />);
 
     expect(html).toContain("disabled");
     expect(html).toContain("opacity-45");

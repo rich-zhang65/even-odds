@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GameCard, Toast, cx } from "@even-odds/design-system/ui";
-import { Yahtzee } from "@even-odds/yahtzee";
+import { Yazy } from "@even-odds/yazy";
 import { PageHeader } from "@/components/PageHeader";
 import { getSocket, tokenKey } from "@/lib/socket";
 
@@ -17,9 +17,9 @@ type PlayableGame = {
    is one path in assets.ts and no edit here. */
 const PLAYABLE: PlayableGame[] = [
   {
-    id: Yahtzee.meta.id,
-    name: Yahtzee.meta.name,
-    art: Yahtzee.meta.assets.icon,
+    id: Yazy.meta.id,
+    name: Yazy.meta.name,
+    art: Yazy.meta.assets.icon,
   },
 ];
 

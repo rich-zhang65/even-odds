@@ -1,7 +1,7 @@
 import type { PlayerId } from "@even-odds/game-sdk";
 import { SEATS } from "@even-odds/game-sdk/ui";
 import { cx } from "@even-odds/design-system/ui";
-import type { Category, YahtzeeState } from "../src/types";
+import type { Category, YazyState } from "../src/types";
 import { previewScore } from "../src/logic";
 import { CATEGORY_INFO } from "../src/scoring";
 
@@ -14,7 +14,7 @@ export const ScoreCell = ({
 }: {
   player: PlayerId;
   category: Category;
-  state: YahtzeeState;
+  state: YazyState;
   open: boolean;
   onScore: (category: Category) => void;
 }) => {

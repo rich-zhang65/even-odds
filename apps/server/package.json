@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@even-odds/game-sdk": "*",
-    "@even-odds/yahtzee": "*",
+    "@even-odds/yazy": "*",
     "nanoid": "^5.1.16",
     "socket.io": "^4.8.3",
     "zod": "^4.4.3"

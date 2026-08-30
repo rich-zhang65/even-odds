@@ -9,7 +9,7 @@ const render = (
   totals: Record<PlayerId, number> = { p0: 164, p1: 174 },
 ) =>
   renderToStaticMarkup(
-    <MatchHeader title="Yahtzee" totals={totals} seat={seat} result={result} onExit={() => {}} />,
+    <MatchHeader title="Yazy" totals={totals} seat={seat} result={result} onExit={() => {}} />,
   );
 
 describe("MatchHeader", () => {

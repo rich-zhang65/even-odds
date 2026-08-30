@@ -2,8 +2,8 @@ import { createServer } from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
 import { io as connectClient } from "socket.io-client";
 import type { Socket } from "socket.io-client";
-import { ALL_CATEGORIES } from "@even-odds/yahtzee";
-import type { YahtzeeState } from "@even-odds/yahtzee";
+import { ALL_CATEGORIES } from "@even-odds/yazy";
+import type { YazyState } from "@even-odds/yazy";
 import type { GameResult, PlayerId, Snapshot } from "@even-odds/game-sdk";
 import { attachSocketServer } from "../server";
 
@@ -11,7 +11,7 @@ type CreateOk = { matchId: string; you: PlayerId; token: string };
 type JoinOk = { matchId: string; you: PlayerId; token: string; reconnected: boolean };
 type ErrAck = { error: string };
 type ActionAck = { ok: true } | ErrAck;
-type StatePayload = { snapshot: Snapshot<YahtzeeState> };
+type StatePayload = { snapshot: Snapshot<YazyState> };
 type OverPayload = { result: GameResult };
 type OpponentPayload = { connected: boolean };
 
@@ -70,7 +70,7 @@ const waitForPhase = (socket: Socket, phase: string): Promise<StatePayload> =>
 
 const openMatch = async (url: string) => {
   const a = await connect(url);
-  const created = await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+  const created = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
 
   const b = await connect(url);
   // Both seats must settle on "playing" — awaiting only one leaves the other's
@@ -96,7 +96,7 @@ describe("server — match lifecycle", () => {
   it("pushes match:state naming the occupied seats", async () => {
     const url = await startServer();
     const a = await connect(url);
-    const created = await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+    const created = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
 
     const b = await connect(url);
     const seated = waitFor<{ seats: { p0: boolean; p1: boolean } }>(a, "match:state");
@@ -108,7 +108,7 @@ describe("server — match lifecycle", () => {
   it("re-seats a socket into the seat it already holds, even with no token", async () => {
     const url = await startServer();
     const a = await connect(url);
-    const created = await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+    const created = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
 
     const rejoined = await ask<JoinOk>(a, "match:join", { matchId: created.matchId });
     expect(rejoined).toMatchObject({ you: "p0", reconnected: true });
@@ -126,7 +126,7 @@ describe("server — match lifecycle", () => {
     b.disconnect();
     await finished;
 
-    const second = await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+    const second = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
     const waiting = waitForPhase(a, "waiting");
     await ask<JoinOk>(a, "match:join", { matchId: second.matchId });
 
@@ -231,7 +231,7 @@ describe("server — disconnect and reconnect", () => {
   it("takes a player back to the match they walked away from", async () => {
     const url = await startServer();
     const { a, created } = await openMatch(url);
-    await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+    await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
 
     const resumed = waitForPhase(a, "playing");
     const back = await ask<JoinOk>(a, "match:join", {
@@ -249,7 +249,7 @@ describe("server — disconnect and reconnect", () => {
 
     const dropped = waitFor<OpponentPayload>(b, "match:opponent");
     const over = waitFor<OverPayload>(b, "game:over");
-    await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+    await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
 
     expect(await dropped).toEqual({ connected: false });
     expect(await over).toEqual({ result: { winner: "p1", reason: "opponent disconnected" } });
