@@ -1,77 +1,60 @@
 "use client";
 
-import type { MouseEvent, ReactNode } from "react";
-import { Gamepad2, Users } from "lucide-react";
-import { Badge } from "./Badge";
+import type { MouseEvent } from "react";
+import { Dice5, type LucideIcon } from "lucide-react";
 import { cx } from "./cx";
 import { Icon } from "./Icon";
 
-export type GameCardSize = "sm" | "md" | "lg";
-
-const ART_HEIGHTS: Record<GameCardSize, string> = {
-  sm: "h-24",
-  md: "h-37",
-  lg: "h-50",
-};
-
+/* The title pill sits on top of artwork we know nothing about, so it holds a raw
+   paper/ink pair rather than a semantic surface: repointing it in dark mode would
+   put dark text on dark art. Without artwork the versus field is the background,
+   and the name is simply white on it. */
 export const GameCard = ({
   name,
-  icon,
-  players = "1v1",
-  live = false,
+  icon = Dice5,
   art,
-  size = "md",
+  disabled = false,
   onClick,
   className,
 }: {
   name: string;
-  icon?: ReactNode;
-  players?: string;
-  live?: boolean;
-  art?: ReactNode;
-  size?: GameCardSize;
+  icon?: LucideIcon;
+  art?: string;
+  disabled?: boolean;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   className?: string;
 }) => (
-  <button
-    className={cx(
-      "block w-full cursor-pointer overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-eo-card text-left shadow-eo-edge-ink transition-[transform,box-shadow] duration-(--eo-duration-fast) ease-eo-out hover:-translate-y-[3px] hover:shadow-[0_6px_0_var(--color-eo-strong)]",
-      className,
-    )}
-    type="button"
-    onClick={onClick}
-  >
-    <span
-      className={cx(
-        "relative grid place-items-center bg-(image:--eo-versus)",
-        ART_HEIGHTS[size],
-      )}
+  <div className={cx("group relative pb-0.5", className)}>
+    {/* The edge is a real element rather than a shadow. A zero-blur shadow can only
+        land on whole pixels, so growing one during the lift rendered as visible 1px
+        steps trailing the motion -- box-shadow and drop-shadow both did it. This
+        never moves: the card slides off it, and a transform is all that animates.
+        Hover lives on the group so the card cannot lift out from under the cursor. */}
+    <span className="absolute inset-0 rounded-eo-lg bg-eo-strong" />
+
+    <button
+      className="relative block h-50 w-full overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-(image:--eo-versus) text-left transition-[translate] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:group-hover:-translate-y-[3px] enabled:active:translate-y-0.5"
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
     >
-      {art ??
-        icon ?? (
-          <Icon className="text-eo-on-color/90" icon={Gamepad2} size={size === "sm" ? 32 : 48} />
+      <span className={cx("absolute inset-0", disabled && "opacity-45")}>
+        {art === undefined ? (
+          <span className="grid size-full place-items-center">
+            <Icon className="text-eo-on-color/90" icon={icon} size={48} />
+          </span>
+        ) : (
+          <img className="size-full object-cover" src={art} alt="" />
         )}
-      {live && (
-        <span className="absolute top-3 left-3">
-          <Badge tone="live" dot>
-            Live
-          </Badge>
+        <span
+          className={cx(
+            "absolute bottom-3 left-3 rounded-eo-pill font-eo-display text-eo-title font-bold tracking-eo-tight",
+            art === undefined ? "text-eo-on-color" : "bg-eo-paper/85 px-3 py-0.5 text-eo-ink-900",
+          )}
+        >
+          {name}
         </span>
-      )}
-    </span>
-    <span className="flex items-center justify-between gap-3 p-4">
-      <span
-        className={cx(
-          "font-eo-display text-eo-strong",
-          size === "sm" ? "text-eo-button" : "text-eo-title",
-        )}
-      >
-        {name}
       </span>
-      <span className="inline-flex items-center gap-1 font-eo-body text-eo-caption text-eo-muted">
-        <Icon icon={Users} size={14} />
-        {players}
-      </span>
-    </span>
-  </button>
+    </button>
+  </div>
 );

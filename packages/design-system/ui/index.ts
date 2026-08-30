@@ -5,7 +5,7 @@ export { cx } from "./cx";
 export { Checkbox } from "./Checkbox";
 export { Dialog } from "./Dialog";
 export { Flex } from "./Flex";
-export { GameCard, type GameCardSize } from "./GameCard";
+export { GameCard } from "./GameCard";
 export { Icon } from "./Icon";
 export { IconButton } from "./IconButton";
 export { Input } from "./Input";

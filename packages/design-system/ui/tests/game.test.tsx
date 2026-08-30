@@ -7,30 +7,41 @@ import { Tabs } from "../Tabs";
 import { VersusBanner } from "../VersusBanner";
 
 describe("GameCard", () => {
-  it("falls back to the versus field when no artwork is supplied", () => {
+  it("falls back to the versus field and a glyph when no artwork is supplied", () => {
     const html = renderToStaticMarkup(<GameCard name="Yahtzee" />);
 
     expect(html).toContain("bg-(image:--eo-versus)");
     expect(html).toContain("text-eo-on-color/90");
+    expect(html).not.toContain("<img");
   });
 
   it("uses supplied artwork instead of the placeholder glyph", () => {
-    const html = renderToStaticMarkup(<GameCard name="Yahtzee" art={<img src="/y.png" alt="" />} />);
+    const html = renderToStaticMarkup(<GameCard name="Yahtzee" art="/y.png" />);
 
     expect(html).toContain('src="/y.png"');
     expect(html).not.toContain("text-eo-on-color/90");
   });
 
-  it("lets a game supply its own placeholder glyph", () => {
-    const html = renderToStaticMarkup(<GameCard name="Yahtzee" icon={<span data-glyph="die" />} />);
-
-    expect(html).toContain('data-glyph="die"');
-    expect(html).not.toContain("text-eo-on-color/90");
+  it("backs the title with a pill only when it sits on artwork", () => {
+    expect(renderToStaticMarkup(<GameCard name="Yahtzee" art="/y.png" />)).toContain(
+      "bg-eo-paper/85",
+    );
+    expect(renderToStaticMarkup(<GameCard name="Yahtzee" />)).not.toContain("bg-eo-paper/85");
   });
 
-  it("flags a live game", () => {
-    expect(renderToStaticMarkup(<GameCard name="Yahtzee" />)).not.toContain("Live");
-    expect(renderToStaticMarkup(<GameCard name="Yahtzee" live />)).toContain("Live");
+  it("draws the lift edge as a static element, never a shadow", () => {
+    const html = renderToStaticMarkup(<GameCard name="Yahtzee" />);
+
+    expect(html).toContain("bg-eo-strong");
+    expect(html).not.toContain("shadow");
+    expect(html).toContain("group-hover:-translate-y-[3px]");
+  });
+
+  it("dims and disables a card that cannot be clicked", () => {
+    const html = renderToStaticMarkup(<GameCard name="Yahtzee" disabled />);
+
+    expect(html).toContain("disabled");
+    expect(html).toContain("opacity-45");
   });
 });
 
@@ -48,7 +59,7 @@ describe("PlayerChip", () => {
 describe("ScoreBoard", () => {
   it("renders one pip per round, unplayed rounds included", () => {
     const html = renderToStaticMarkup(
-      <ScoreBoard rounds={5} roundResults={["red", "blue", "draw"]} />
+      <ScoreBoard rounds={5} roundResults={["red", "blue", "draw"]} />,
     );
 
     expect(html.match(/rounded-full/g)).toHaveLength(5);
@@ -70,7 +81,7 @@ describe("Tabs", () => {
 
   it("accepts bare strings and value/label pairs alike", () => {
     const html = renderToStaticMarkup(
-      <Tabs tabs={["All", { value: "dice", label: "Dice games" }]} value="dice" />
+      <Tabs tabs={["All", { value: "dice", label: "Dice games" }]} value="dice" />,
     );
 
     expect(html).toContain("Dice games");
@@ -79,7 +90,9 @@ describe("Tabs", () => {
 
 describe("VersusBanner", () => {
   it("names both sides and marks the centre", () => {
-    const html = renderToStaticMarkup(<VersusBanner redName="Ada" blueName="Grace" label="Best of 5" />);
+    const html = renderToStaticMarkup(
+      <VersusBanner redName="Ada" blueName="Grace" label="Best of 5" />,
+    );
 
     expect(html).toContain("Ada");
     expect(html).toContain("Grace");

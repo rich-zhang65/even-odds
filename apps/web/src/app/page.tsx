@@ -2,18 +2,29 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GameCard, Toast } from "@even-odds/design-system/ui";
+import { GameCard, Toast, cx } from "@even-odds/design-system/ui";
+import { Yahtzee } from "@even-odds/yahtzee";
 import { PageHeader } from "@/components/PageHeader";
 import { getSocket, tokenKey } from "@/lib/socket";
 
-const GAMES = [
+type PlayableGame = {
+  id: string;
+  name: string;
+  art: string | null;
+};
+
+/* Artwork comes from the game's own asset manifest, so dropping a real image in
+   is one path in assets.ts and no edit here. */
+const PLAYABLE: PlayableGame[] = [
   {
-    id: "yahtzee",
-    name: "Yahtzee",
-    tagline: "Roll your way to victory",
-    estimatedMinutes: 15,
+    id: Yahtzee.meta.id,
+    name: Yahtzee.meta.name,
+    art: Yahtzee.meta.assets.icon,
   },
-] as const;
+];
+
+const GRID = "grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-5";
+const HEADING = "font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong";
 
 const Home = () => {
   const router = useRouter();
@@ -34,28 +45,32 @@ const Home = () => {
     });
   };
 
+  const playable = PLAYABLE.map((game) => (
+    <GameCard
+      key={game.id}
+      name={game.name}
+      art={game.art ?? undefined}
+      disabled={pending !== null}
+      onClick={() => start(game.id)}
+    />
+  ));
+
   return (
     <main className="flex min-h-full flex-col">
       <PageHeader />
 
-      <div className="mx-auto w-full max-w-5xl flex-1 px-8 py-12 max-md:px-4 max-md:py-8">
-        <h1 className="font-eo-display text-eo-display-l tracking-eo-tight text-eo-strong max-md:text-eo-display-m">
-          Choose a game
-        </h1>
-        <p className="mt-2 mb-10 font-eo-body text-eo-body-m text-eo-muted">
-          Pick a game, share a link, play.
-        </p>
+      <div className="mx-auto w-full max-w-(--eo-page-max) flex-1 px-6 py-10 max-md:px-4 max-md:py-6">
+        <h1 className="sr-only">Even Odds</h1>
 
-        <div className="grid grid-cols-3 gap-5 max-lg:grid-cols-2 max-md:grid-cols-1">
-          {GAMES.map((game) => (
-            <GameCard
-              key={game.id}
-              name={game.name}
-              players={pending === game.id ? "Starting…" : `~${game.estimatedMinutes} min`}
-              onClick={() => start(game.id)}
-            />
-          ))}
-        </div>
+        <section className="mb-14 max-md:mb-8">
+          <h2 className={cx(HEADING, "mb-5")}>Recently played</h2>
+          <div className={GRID}>{playable}</div>
+        </section>
+
+        <section>
+          <h2 className={cx(HEADING, "mb-5")}>All games</h2>
+          <div className={GRID}>{playable}</div>
+        </section>
       </div>
 
       {error !== null && (
