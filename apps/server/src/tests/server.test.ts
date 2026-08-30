@@ -228,6 +228,33 @@ describe("server — disconnect and reconnect", () => {
     expect((await resumed).snapshot.phase).toBe("playing");
   });
 
+  it("takes a player back to the match they walked away from", async () => {
+    const url = await startServer();
+    const { a, created } = await openMatch(url);
+    await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+
+    const resumed = waitForPhase(a, "playing");
+    const back = await ask<JoinOk>(a, "match:join", {
+      matchId: created.matchId,
+      token: created.token,
+    });
+
+    expect(back).toMatchObject({ you: "p0", reconnected: true });
+    expect((await resumed).snapshot.matchId).toBe(created.matchId);
+  });
+
+  it("tells the opponent when a player walks off to start another match", async () => {
+    const url = await startServer(100);
+    const { a, b } = await openMatch(url);
+
+    const dropped = waitFor<OpponentPayload>(b, "match:opponent");
+    const over = waitFor<OverPayload>(b, "game:over");
+    await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+
+    expect(await dropped).toEqual({ connected: false });
+    expect(await over).toEqual({ result: { winner: "p1", reason: "opponent disconnected" } });
+  });
+
   it("forfeits to the opponent when the grace window expires", async () => {
     const url = await startServer(100);
     const { a, b } = await openMatch(url);
