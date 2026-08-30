@@ -171,7 +171,42 @@
   --animate-eo-pop: eo-pop var(--eo-duration-base) var(--ease-eo-bounce);
   --animate-eo-rise: eo-rise var(--eo-duration-base) var(--ease-eo-out);
   --animate-eo-pulse: eo-pulse 1.6s var(--ease-eo-in-out) infinite;
+  --animate-eo-dice-roll: eo-dice-roll 0.7s linear;
 
+  /* A tumble, not a spin: rotateX and rotateY under a perspective foreshorten
+     the face so the die reads as turning over rather than skidding. Every axis
+     lands on a multiple of 360deg, so the last frame is the identity transform
+     and the die snaps to rest invisibly. The bounce is baked into the keyframes,
+     which is why the token drives it with linear timing. */
+  @keyframes eo-dice-roll {
+    0% {
+      transform: perspective(420px) rotateX(0) rotateY(0) rotateZ(0) translateY(0) scale(1);
+    }
+    20% {
+      transform: perspective(420px) rotateX(140deg) rotateY(80deg) rotateZ(70deg)
+        translateY(-18px) scale(1.08);
+    }
+    40% {
+      transform: perspective(420px) rotateX(280deg) rotateY(180deg) rotateZ(140deg)
+        translateY(-1px) scale(1);
+    }
+    55% {
+      transform: perspective(420px) rotateX(390deg) rotateY(250deg) rotateZ(200deg)
+        translateY(-11px) scale(1.05);
+    }
+    70% {
+      transform: perspective(420px) rotateX(500deg) rotateY(300deg) rotateZ(260deg)
+        translateY(0) scale(1);
+    }
+    85% {
+      transform: perspective(420px) rotateX(600deg) rotateY(340deg) rotateZ(320deg)
+        translateY(-4px) scale(1.02);
+    }
+    100% {
+      transform: perspective(420px) rotateX(720deg) rotateY(360deg) rotateZ(360deg)
+        translateY(0) scale(1);
+    }
+  }
   @keyframes eo-spin {
     to {
       transform: rotate(360deg);

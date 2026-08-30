@@ -30,6 +30,8 @@ export const Die = ({
   dimmed,
   disabled,
   large,
+  rolling,
+  delayMs,
   onToggle,
 }: {
   value: number;
@@ -38,6 +40,8 @@ export const Die = ({
   dimmed: boolean;
   disabled: boolean;
   large: boolean;
+  rolling: boolean;
+  delayMs: number;
   onToggle: () => void;
 }) => (
   <button
@@ -46,7 +50,9 @@ export const Die = ({
       large ? "size-16 p-2.5" : "size-14 p-[9px]",
       held ? cx(SEATS[turn].border, SEATS[turn].edge) : "border-eo-strong shadow-eo-edge-ink",
       dimmed && "opacity-45",
+      rolling && "animate-eo-dice-roll motion-reduce:animate-none",
     )}
+    style={rolling ? { animationDelay: `${delayMs}ms` } : undefined}
     type="button"
     disabled={disabled}
     onClick={onToggle}
