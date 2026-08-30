@@ -25,6 +25,26 @@ body {
   height: 100%;
 }
 
+/* Controls are pressed, not read. A drag across a row of dice or a scorecard
+   should not leave a blue smear behind it, and none of this text is worth
+   copying. Prose is untouched -- this reaches only the things you click.
+
+   Artwork gets both treatments: -webkit-user-drag stops Chromium and WebKit
+   peeling the image out of the page, and Firefox ignores it, so the elements
+   themselves also carry draggable={false}. */
+button,
+[role="button"],
+label,
+summary {
+  user-select: none;
+}
+
+img,
+svg {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 body {
   background-color: var(--color-eo-page);
   color: var(--color-eo-body);

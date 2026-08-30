@@ -22,6 +22,13 @@ describe("GameCard", () => {
     expect(html).not.toContain("text-eo-on-color/90");
   });
 
+  it("does not let the artwork be dragged out of the page", () => {
+    // CSS covers Chromium and WebKit; Firefox only honours the attribute.
+    expect(renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" />)).toContain(
+      'draggable="false"',
+    );
+  });
+
   it("drops the versus field behind artwork, so dimming cannot bleed it through", () => {
     const html = renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" disabled />);
 

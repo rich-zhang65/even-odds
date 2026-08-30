@@ -42,7 +42,7 @@ export const GameCard = ({
             <Icon className="text-eo-on-color/90" icon={icon} size={48} />
           </span>
         ) : (
-          <img className="size-full object-cover" src={art} alt="" />
+          <img className="size-full object-cover" src={art} alt="" draggable={false} />
         )}
         <span
           className={cx(

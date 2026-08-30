@@ -13,7 +13,7 @@ export const PageHeader = () => (
       align="center"
       justify="space-between"
     >
-      <Link href="/" aria-label="Even Odds home">
+      <Link className="select-none" href="/" aria-label="Even Odds home">
         <Wordmark />
       </Link>
       <ThemeToggle />
