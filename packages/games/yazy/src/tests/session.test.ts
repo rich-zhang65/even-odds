@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { createSession } from "@even-odds/game-sdk";
 import type { PlayerId, SessionEvent } from "@even-odds/game-sdk";
-import { Yahtzee } from "../logic";
+import { Yazy } from "../logic";
 import { ALL_CATEGORIES, totalScore } from "../scoring";
-import type { YahtzeeAction, YahtzeeState } from "../types";
+import type { YazyAction, YazyState } from "../types";
 
-type Emitted = { to: PlayerId; event: SessionEvent<YahtzeeState> };
+type Emitted = { to: PlayerId; event: SessionEvent<YazyState> };
 
 const playFullMatch = () => {
   const emitted: Emitted[] = [];
-  const session = createSession(Yahtzee, {
+  const session = createSession(Yazy, {
     matchId: "m1",
     seed: 42,
     emit: (to, event) => emitted.push({ to, event }),
@@ -18,7 +18,7 @@ const playFullMatch = () => {
   session.start();
 
   const rejected: string[] = [];
-  const act = (action: YahtzeeAction, by: PlayerId) => {
+  const act = (action: YazyAction, by: PlayerId) => {
     const result = session.handleAction(action, by);
     if (!result.ok) rejected.push(`${by} ${action.type}: ${result.error}`);
   };
@@ -34,7 +34,7 @@ const playFullMatch = () => {
   return { session, emitted, rejected };
 };
 
-describe("Yahtzee over a TurnBasedSession", () => {
+describe("Yazy over a TurnBasedSession", () => {
   it("drives a full 11-round match to game over with no socket", () => {
     const { session, emitted, rejected } = playFullMatch();
 

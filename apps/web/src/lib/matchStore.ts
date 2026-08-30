@@ -1,9 +1,9 @@
 import type { PlayerId, SeatFlags, Snapshot } from "@even-odds/game-sdk";
-import type { YahtzeeAction, YahtzeeState } from "@even-odds/yahtzee";
+import type { YazyAction, YazyState } from "@even-odds/yazy";
 import { getSocket, tokenKey } from "./socket";
 
 export type MatchState = {
-  snapshot: Snapshot<YahtzeeState> | null;
+  snapshot: Snapshot<YazyState> | null;
   seat: PlayerId | null;
   seats: SeatFlags;
   error: string | null;
@@ -12,7 +12,7 @@ export type MatchState = {
 export type MatchStore = {
   subscribe: (listener: () => void) => () => void;
   getState: () => MatchState;
-  send: (action: YahtzeeAction) => void;
+  send: (action: YazyAction) => void;
 };
 
 export const EMPTY_MATCH: MatchState = {
@@ -31,7 +31,7 @@ const createMatchStore = (matchId: string): MatchStore => {
     for (const listener of listeners) listener();
   };
 
-  const onGameState = (payload: { snapshot: Snapshot<YahtzeeState> }): void =>
+  const onGameState = (payload: { snapshot: Snapshot<YazyState> }): void =>
     set({ snapshot: payload.snapshot });
 
   const onMatchState = (payload: { seats: SeatFlags }): void => set({ seats: payload.seats });

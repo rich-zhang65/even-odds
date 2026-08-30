@@ -16,7 +16,7 @@ export const CATEGORY_INFO: Record<Category, CategoryInfo> = {
   fourOfAKind:  { label: "4 of a Kind",    description: "Sum of all dice (need 4 of same)" },
   fullHouse:    { label: "Full House",     description: "25 pts — 3 of one, 2 of another" },
   straight:     { label: "Straight",       description: "40 pts — 5 consecutive numbers" },
-  yahtzee:      { label: "Yahtzee",        description: "50 pts — all 5 dice the same" },
+  yazy:         { label: "Yazy",           description: "50 pts — all 5 dice the same" },
 };
 
 const sum = (dice: number[]): number => dice.reduce((acc, d) => acc + d, 0);
@@ -32,7 +32,7 @@ const countFaces = (dice: number[]): Map<number, number> => {
 const maxCount = (counts: Map<number, number>): number =>
   Math.max(0, ...counts.values());
 
-const isYahtzee = (dice: number[]): boolean => dice.every(d => d === dice[0]);
+const isYazy = (dice: number[]): boolean => dice.every(d => d === dice[0]);
 
 const isFullHouse = (counts: Map<number, number>): boolean => {
   const vals = [...counts.values()].sort((a, b) => a - b);
@@ -62,7 +62,7 @@ export const scoreCategory = (category: Category, dice: number[], isJoker: boole
     case "fourOfAKind":  return (isJoker || maxCount(counts) >= 4) ? total : 0;
     case "fullHouse":    return (isJoker || isFullHouse(counts)) ? 25 : 0;
     case "straight":     return (isJoker || hasStraight(dice)) ? 40 : 0;
-    case "yahtzee":      return isYahtzee(dice) ? 50 : 0;
+    case "yazy":      return isYazy(dice) ? 50 : 0;
   }
 };
 
@@ -71,7 +71,7 @@ export const UPPER_CATEGORIES: Category[] = [
 ];
 
 export const LOWER_CATEGORIES: Category[] = [
-  "threeOfAKind", "fourOfAKind", "fullHouse", "straight", "yahtzee",
+  "threeOfAKind", "fourOfAKind", "fullHouse", "straight", "yazy",
 ];
 
 export const ALL_CATEGORIES: Category[] = [...UPPER_CATEGORIES, ...LOWER_CATEGORIES];

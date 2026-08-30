@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { Button, Card, Dialog, Toast } from "@even-odds/design-system/ui";
-import { totalScore } from "@even-odds/yahtzee";
-import { YahtzeeBoard } from "@even-odds/yahtzee/ui";
+import { totalScore } from "@even-odds/yazy";
+import { YazyBoard } from "@even-odds/yazy/ui";
 import { MatchHeader } from "@/components/MatchHeader";
 import { PageHeader } from "@/components/PageHeader";
 import { useMatch } from "@/lib/useMatch";
@@ -14,7 +14,7 @@ const MESSAGES: Record<string, string> = {
   notfound: "That match no longer exists.",
 };
 
-const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
+const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
   const { matchId } = use(params);
   const router = useRouter();
   const { snapshot, seat, seats, error, send } = useMatch(matchId);
@@ -34,7 +34,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
       <div className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-8 max-md:px-3 max-md:py-4">
         {snapshot !== null && (
           <MatchHeader
-            title="Yahtzee"
+            title="Yazy"
             totals={{
               p0: totalScore(snapshot.state.scores.p0),
               p1: totalScore(snapshot.state.scores.p1),
@@ -73,7 +73,7 @@ const MatchPage = ({ params }: PageProps<"/play/yahtzee/[matchId]">) => {
         )}
 
         {snapshot !== null && snapshot.phase !== "waiting" && (
-          <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={send} />
+          <YazyBoard snapshot={snapshot} seat={seat} onAction={send} />
         )}
       </div>
 

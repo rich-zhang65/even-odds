@@ -1,6 +1,6 @@
 import type { PlayerId } from "@even-odds/game-sdk";
 import { Flex } from "@even-odds/design-system/ui";
-import type { YahtzeeAction, YahtzeeState } from "../src/types";
+import type { YazyAction, YazyState } from "../src/types";
 import { Die } from "./Die";
 
 export const DiceRow = ({
@@ -10,11 +10,11 @@ export const DiceRow = ({
   large,
   onAction,
 }: {
-  state: YahtzeeState;
+  state: YazyState;
   turn: PlayerId;
   disabled: boolean;
   large: boolean;
-  onAction: (action: YahtzeeAction) => void;
+  onAction: (action: YazyAction) => void;
 }) => (
   <Flex wrap="wrap" justify="center" gap={large ? "12px" : "8px"}>
     {state.dice.map((value, index) => (

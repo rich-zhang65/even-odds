@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
-import { YahtzeeBoard } from "../YahtzeeBoard";
-import type { Category, YahtzeeState } from "../../src/types";
+import { YazyBoard } from "../YazyBoard";
+import type { Category, YazyState } from "../../src/types";
 
 type Scores = Partial<Record<Category, number>>;
 
@@ -12,11 +12,11 @@ const snapshotOf = (overrides: {
   turn?: PlayerId;
   p0?: Scores;
   p1?: Scores;
-  phase?: Snapshot<YahtzeeState>["phase"];
-  result?: Snapshot<YahtzeeState>["result"];
-}): Snapshot<YahtzeeState> => {
+  phase?: Snapshot<YazyState>["phase"];
+  result?: Snapshot<YazyState>["result"];
+}): Snapshot<YazyState> => {
   const turn = overrides.turn ?? "p0";
-  const state: YahtzeeState = {
+  const state: YazyState = {
     dice: overrides.dice ?? [3, 3, 3, 3, 3],
     held: [false, false, false, false, false],
     rollsLeft: overrides.rollsLeft ?? 2,
@@ -34,9 +34,9 @@ const snapshotOf = (overrides: {
   };
 };
 
-const render = (snapshot: Snapshot<YahtzeeState>, seat: PlayerId | null) =>
+const render = (snapshot: Snapshot<YazyState>, seat: PlayerId | null) =>
   renderToStaticMarkup(
-    <YahtzeeBoard snapshot={snapshot} seat={seat} onAction={() => {}} />,
+    <YazyBoard snapshot={snapshot} seat={seat} onAction={() => {}} />,
   );
 
 const cell = (html: string, label: string): { tag: string; text: string } => {
@@ -45,11 +45,11 @@ const cell = (html: string, label: string): { tag: string; text: string } => {
   return { tag: found[1], text: found[2] };
 };
 
-describe("YahtzeeBoard", () => {
+describe("YazyBoard", () => {
   it("gives every category a cell for each player", () => {
     const html = render(snapshotOf({}), "p0");
 
-    for (const label of ["Ones", "Sixes", "Full House", "Straight", "Yahtzee"]) {
+    for (const label of ["Ones", "Sixes", "Full House", "Straight", "Yazy"]) {
       expect(() => cell(html, `${label}, Red`)).not.toThrow();
       expect(() => cell(html, `${label}, Blue`)).not.toThrow();
     }
@@ -58,8 +58,8 @@ describe("YahtzeeBoard", () => {
   it("previews a score only in the viewer's own column", () => {
     const html = render(snapshotOf({ dice: [3, 3, 3, 3, 3] }), "p0");
 
-    const red = cell(html, "Yahtzee, Red");
-    const blue = cell(html, "Yahtzee, Blue");
+    const red = cell(html, "Yazy, Red");
+    const blue = cell(html, "Yazy, Blue");
 
     expect(red.text).toBe("50");
     expect(red.tag).not.toContain("disabled");
@@ -70,7 +70,7 @@ describe("YahtzeeBoard", () => {
   it("previews nothing to the player waiting for their turn", () => {
     const html = render(snapshotOf({ turn: "p1" }), "p0");
 
-    const red = cell(html, "Yahtzee, Red");
+    const red = cell(html, "Yazy, Red");
     expect(red.text).toBe("");
     expect(red.tag).toContain("disabled");
   });
@@ -78,7 +78,7 @@ describe("YahtzeeBoard", () => {
   it("offers nothing before the dice are rolled", () => {
     const html = render(snapshotOf({ rollsLeft: 3 }), "p0");
 
-    expect(cell(html, "Yahtzee, Red").tag).toContain("disabled");
+    expect(cell(html, "Yazy, Red").tag).toContain("disabled");
   });
 
   it("keeps a scored zero visible instead of blanking the cell", () => {
@@ -88,9 +88,9 @@ describe("YahtzeeBoard", () => {
   });
 
   it("closes a category once it has been scored", () => {
-    const html = render(snapshotOf({ p0: { yahtzee: 50 } }), "p0");
+    const html = render(snapshotOf({ p0: { yazy: 50 } }), "p0");
 
-    const red = cell(html, "Yahtzee, Red");
+    const red = cell(html, "Yazy, Red");
     expect(red.text).toBe("50");
     expect(red.tag).toContain("disabled");
   });

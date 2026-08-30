@@ -1,7 +1,7 @@
 import type { AssetManifest } from "@even-odds/game-sdk";
 
 export const assets: AssetManifest = {
-  icon: null,
+  icon: "/games/yazy.png",
   sprites: {
     "die-1": null,
     "die-2": null,
@@ -13,7 +13,7 @@ export const assets: AssetManifest = {
   sounds: {
     roll: null,
     score: null,
-    yahtzee: null,
+    yazy: null,
     win: null,
   },
 };

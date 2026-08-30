@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createEngine } from "@even-odds/game-sdk";
 import type { EngineContext } from "@even-odds/game-sdk";
-import { Yahtzee, legalScoringCategories, previewScore } from "../logic";
+import { Yazy, legalScoringCategories, previewScore } from "../logic";
 import { ALL_CATEGORIES, totalScore } from "../scoring";
-import type { YahtzeeAction, Category, YahtzeeState } from "../types";
+import type { YazyAction, Category, YazyState } from "../types";
 
 const newGame = (seed = 1) =>
-  createEngine(Yahtzee, { matchId: "test", seed });
+  createEngine(Yazy, { matchId: "test", seed });
 
 // SCORE never reaches for the RNG, so a stub context is enough to drive reduce directly.
 const CTX: EngineContext = {
@@ -16,7 +16,7 @@ const CTX: EngineContext = {
   now: 0,
 };
 
-const stateWith = (overrides: Partial<YahtzeeState>): YahtzeeState => ({
+const stateWith = (overrides: Partial<YazyState>): YazyState => ({
   dice: [1, 2, 3, 4, 5],
   held: [false, false, false, false, false],
   rollsLeft: 2,
@@ -26,11 +26,11 @@ const stateWith = (overrides: Partial<YahtzeeState>): YahtzeeState => ({
   ...overrides,
 });
 
-const roll = (): YahtzeeAction => ({ type: "ROLL" });
-const score = (category: Category): YahtzeeAction => ({ type: "SCORE", category });
-const hold = (index: number): YahtzeeAction => ({ type: "TOGGLE_HOLD", index });
+const roll = (): YazyAction => ({ type: "ROLL" });
+const score = (category: Category): YazyAction => ({ type: "SCORE", category });
+const hold = (index: number): YazyAction => ({ type: "TOGGLE_HOLD", index });
 
-describe("Yahtzee — illegal move rejection", () => {
+describe("Yazy — illegal move rejection", () => {
   it("rejects scoring before rolling", () => {
     const e = newGame();
     const result = e.dispatch(score("ones"), "p0");
@@ -71,7 +71,7 @@ describe("Yahtzee — illegal move rejection", () => {
   });
 });
 
-describe("Yahtzee — turn flow", () => {
+describe("Yazy — turn flow", () => {
   it("alternates turns after scoring", () => {
     const e = newGame();
     e.dispatch(roll(), "p0");
@@ -100,7 +100,7 @@ describe("Yahtzee — turn flow", () => {
   });
 });
 
-describe("Yahtzee — terminal detection", () => {
+describe("Yazy — terminal detection", () => {
   it("is null until all categories are filled", () => {
     const e = newGame();
     expect(e.result()).toBeNull();
@@ -124,7 +124,7 @@ describe("Yahtzee — terminal detection", () => {
   });
 });
 
-describe("Yahtzee — UI helpers", () => {
+describe("Yazy — UI helpers", () => {
   it("offers every category on an empty scorecard", () => {
     expect(legalScoringCategories(stateWith({}), "p0")).toEqual(ALL_CATEGORIES);
   });
@@ -141,7 +141,7 @@ describe("Yahtzee — UI helpers", () => {
   it("forces the matching upper category in a joker situation", () => {
     const state = stateWith({
       dice: [4, 4, 4, 4, 4],
-      scores: { p0: { yahtzee: 50 }, p1: {} },
+      scores: { p0: { yazy: 50 }, p1: {} },
     });
     expect(legalScoringCategories(state, "p0")).toEqual(["fours"]);
   });
@@ -156,33 +156,33 @@ describe("Yahtzee — UI helpers", () => {
   it("previews joker scoring the way the reducer will score it", () => {
     const state = stateWith({
       dice: [4, 4, 4, 4, 4],
-      scores: { p0: { yahtzee: 50, fours: 20 }, p1: {} },
+      scores: { p0: { yazy: 50, fours: 20 }, p1: {} },
     });
     expect(previewScore(state, "p0", "fullHouse")).toBe(25);
     expect(previewScore(state, "p0", "straight")).toBe(40);
   });
 });
 
-describe("Yahtzee — a repeat Yahtzee earns no bonus", () => {
+describe("Yazy — a repeat Yazy earns no bonus", () => {
   it("scores a joker category at face value and nothing more", () => {
     const state = stateWith({
       dice: [4, 4, 4, 4, 4],
-      scores: { p0: { yahtzee: 50, fours: 20 }, p1: {} },
+      scores: { p0: { yazy: 50, fours: 20 }, p1: {} },
     });
 
-    const next = Yahtzee.reduce(state, score("fullHouse"), "p0", CTX);
+    const next = Yazy.reduce(state, score("fullHouse"), "p0", CTX);
 
     expect(next.scores.p0.fullHouse).toBe(25);
     expect(totalScore(next.scores.p0)).toBe(50 + 20 + 25);
   });
 
-  it("leaves a second Yahtzee worth only the cell it is spent on", () => {
+  it("leaves a second Yazy worth only the cell it is spent on", () => {
     const state = stateWith({
       dice: [4, 4, 4, 4, 4],
-      scores: { p0: { yahtzee: 50 }, p1: {} },
+      scores: { p0: { yazy: 50 }, p1: {} },
     });
 
-    const next = Yahtzee.reduce(state, score("fours"), "p0", CTX);
+    const next = Yazy.reduce(state, score("fours"), "p0", CTX);
 
     expect(totalScore(next.scores.p0)).toBe(50 + 20);
   });

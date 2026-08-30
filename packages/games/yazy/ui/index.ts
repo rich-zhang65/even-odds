@@ -1,0 +1,1 @@
+export { YazyBoard } from "./YazyBoard";

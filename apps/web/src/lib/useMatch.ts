@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { EMPTY_MATCH, getMatchStore } from "./matchStore";
 import type { MatchState } from "./matchStore";
-import type { YahtzeeAction } from "@even-odds/yahtzee";
+import type { YazyAction } from "@even-odds/yazy";
 
 const serverState = (): MatchState => EMPTY_MATCH;
 
@@ -16,6 +16,6 @@ export const useMatch = (matchId: string) => {
     seat: state.seat,
     seats: state.seats,
     error: state.error,
-    send: (action: YahtzeeAction) => store.send(action),
+    send: (action: YazyAction) => store.send(action),
   };
 };

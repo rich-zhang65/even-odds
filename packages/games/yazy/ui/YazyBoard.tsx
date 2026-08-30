@@ -3,20 +3,20 @@
 import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
 import { SEATS } from "@even-odds/game-sdk/ui";
 import { Button, Card, Flex } from "@even-odds/design-system/ui";
-import type { YahtzeeAction, YahtzeeState } from "../src/types";
+import type { YazyAction, YazyState } from "../src/types";
 import { legalScoringCategories } from "../src/logic";
 import { DiceRow } from "./DiceRow";
 import { RollPips } from "./RollPips";
 import { Scorecard } from "./Scorecard";
 
-export const YahtzeeBoard = ({
+export const YazyBoard = ({
   snapshot,
   seat,
   onAction,
 }: {
-  snapshot: Snapshot<YahtzeeState>;
+  snapshot: Snapshot<YazyState>;
   seat: PlayerId | null;
-  onAction: (action: YahtzeeAction) => void;
+  onAction: (action: YazyAction) => void;
 }) => {
   const state = snapshot.state;
   const result = snapshot.result;

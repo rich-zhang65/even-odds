@@ -2,7 +2,7 @@ import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, type LucideIcon } from "lucid
 import type { PlayerId } from "@even-odds/game-sdk";
 import { SEATS, SEAT_ORDER, YouTag } from "@even-odds/game-sdk/ui";
 import { Flex, Icon, cx } from "@even-odds/design-system/ui";
-import type { Category, YahtzeeState } from "../src/types";
+import type { Category, YazyState } from "../src/types";
 import { LOWER_CATEGORIES, UPPER_CATEGORIES } from "../src/scoring";
 import { ScoreCell } from "./ScoreCell";
 
@@ -17,7 +17,7 @@ const CATEGORY_ICONS: Record<Category, LucideIcon[]> = {
   fourOfAKind: [Dice4, Dice4, Dice4, Dice4],
   fullHouse: [Dice6, Dice6, Dice6, Dice2, Dice2],
   straight: [Dice1, Dice2, Dice3, Dice4, Dice5],
-  yahtzee: [Dice5, Dice5, Dice5, Dice5, Dice5],
+  yazy: [Dice5, Dice5, Dice5, Dice5, Dice5],
 };
 
 const ROW_GRID = "grid grid-cols-[minmax(0,1fr)_clamp(76px,18vw,110px)_clamp(76px,18vw,110px)]";
@@ -30,7 +30,7 @@ export const Scorecard = ({
   selectable,
   onScore,
 }: {
-  state: YahtzeeState;
+  state: YazyState;
   seat: PlayerId | null;
   currentPlayer: PlayerId;
   live: boolean;

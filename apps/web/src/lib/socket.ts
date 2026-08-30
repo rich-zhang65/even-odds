@@ -1,10 +1,10 @@
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 import type { ClientToServerEvents, ServerToClientEvents } from "@even-odds/game-sdk";
-import type { YahtzeeState } from "@even-odds/yahtzee";
+import type { YazyState } from "@even-odds/yazy";
 
-// Pinned to Yahtzee while it is the only game; becomes a generic when there are two.
-export type MatchSocket = Socket<ServerToClientEvents<YahtzeeState>, ClientToServerEvents>;
+// Pinned to Yazy while it is the only game; becomes a generic when there are two.
+export type MatchSocket = Socket<ServerToClientEvents<YazyState>, ClientToServerEvents>;
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:4000";
 

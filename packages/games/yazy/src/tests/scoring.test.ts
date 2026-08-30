@@ -37,9 +37,9 @@ describe("scoreCategory — lower section", () => {
     expect(scoreCategory("straight", [1, 2, 3, 4, 4], false)).toBe(0);
   });
 
-  it("yahtzee: 50 for all same, 0 otherwise", () => {
-    expect(scoreCategory("yahtzee", [5, 5, 5, 5, 5], false)).toBe(50);
-    expect(scoreCategory("yahtzee", [5, 5, 5, 5, 4], false)).toBe(0);
+  it("yazy: 50 for all same, 0 otherwise", () => {
+    expect(scoreCategory("yazy", [5, 5, 5, 5, 5], false)).toBe(50);
+    expect(scoreCategory("yazy", [5, 5, 5, 5, 4], false)).toBe(0);
   });
 });
 

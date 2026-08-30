@@ -1,5 +1,5 @@
-export { Yahtzee, legalScoringCategories, previewScore } from "./logic";
-export type { YahtzeeState, YahtzeeAction, Category } from "./types";
+export { Yazy, legalScoringCategories, previewScore } from "./logic";
+export type { YazyState, YazyAction, Category } from "./types";
 export {
   CATEGORY_INFO,
   ALL_CATEGORIES,
