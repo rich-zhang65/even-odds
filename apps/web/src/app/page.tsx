@@ -23,7 +23,11 @@ const PLAYABLE: PlayableGame[] = [
   },
 ];
 
-const GRID = "grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-5";
+/* Fixed tracks, so a card is the same square at every viewport and object-cover
+   never re-crops the art. 214px is not arbitrary: it tiles five across the 1200px
+   page max with 2px to spare. Any fixed width leaves a remainder at other widths --
+   that is the cost of not using 1fr, and it only shows once a row fills. */
+const GRID = "grid grid-cols-[repeat(auto-fill,214px)] gap-5";
 const HEADING = "font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong";
 
 const Home = () => {

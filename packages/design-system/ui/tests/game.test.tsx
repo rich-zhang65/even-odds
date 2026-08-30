@@ -22,19 +22,42 @@ describe("GameCard", () => {
     expect(html).not.toContain("text-eo-on-color/90");
   });
 
+  it("drops the versus field behind artwork, so dimming cannot bleed it through", () => {
+    const html = renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" disabled />);
+
+    expect(html).not.toContain("bg-(image:--eo-versus)");
+    expect(html).toContain("bg-eo-card");
+    expect(html).toContain("opacity-45");
+  });
+
   it("backs the title with a pill only when it sits on artwork", () => {
-    expect(renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" />)).toContain(
-      "bg-eo-paper/85",
-    );
+    expect(renderToStaticMarkup(<GameCard name="Yazy" art="/y.png" />)).toContain("bg-eo-paper/85");
     expect(renderToStaticMarkup(<GameCard name="Yazy" />)).not.toContain("bg-eo-paper/85");
   });
 
-  it("draws the lift edge as a static element, never a shadow", () => {
+  it("behaves like a control: washes on hover, sinks on press, never lifts", () => {
     const html = renderToStaticMarkup(<GameCard name="Yazy" />);
 
-    expect(html).toContain("bg-eo-strong");
+    expect(html).not.toContain("-translate-y-");
+    expect(html).toContain("group-hover:bg-eo-ink-900/15");
+    expect(html).toContain("active:translate-y-0.5");
+  });
+
+  it("draws its edge as a heavier bottom border, nothing offset", () => {
+    const html = renderToStaticMarkup(<GameCard name="Yazy" />);
+
+    // Offsetting anything -- a shadow or an element -- widens the band by
+    // sqrt(2 * radius * depth) at the bottom corners. A border cannot.
+    expect(html).toContain("border-b-4");
+    expect(html).toContain("group-active:border-b-2");
     expect(html).not.toContain("shadow");
-    expect(html).toContain("group-hover:-translate-y-[3px]");
+    expect(html).not.toContain("eo-edge-inverse");
+  });
+
+  it("stops washing on hover once it cannot be clicked", () => {
+    const html = renderToStaticMarkup(<GameCard name="Yazy" disabled />);
+
+    expect(html).not.toContain("group-hover:bg-eo-ink-900/15");
   });
 
   it("dims and disables a card that cannot be clicked", () => {
