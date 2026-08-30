@@ -7,13 +7,16 @@
     "packages/games/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace apps/web",
+    "dev": "concurrently --kill-others-on-fail -n web,server -c cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev:server": "npm run dev --workspace apps/server",
     "test": "vitest run",
     "typecheck": "tsgo",
     "lint": "eslint ."
   },
   "devDependencies": {
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
+    "concurrently": "^10.0.5",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.2",
     "eslint-plugin-react": "^7.37.5",
