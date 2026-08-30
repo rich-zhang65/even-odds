@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GameCard, Toast, cx } from "@even-odds/design-system/ui";
 import { Yazy } from "@even-odds/yazy";
+import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { getSocket, tokenKey } from "@/lib/socket";
 
@@ -63,7 +64,7 @@ const Home = () => {
     <main className="flex min-h-full flex-col">
       <PageHeader />
 
-      <div className="mx-auto w-full max-w-(--eo-page-max) flex-1 px-6 py-10 max-md:px-4 max-md:py-6">
+      <PageContainer>
         <h1 className="sr-only">Even Odds</h1>
 
         <section className="mb-14 max-md:mb-8">
@@ -75,7 +76,7 @@ const Home = () => {
           <h2 className={cx(HEADING, "mb-5")}>All games</h2>
           <div className={GRID}>{playable}</div>
         </section>
-      </div>
+      </PageContainer>
 
       {error !== null && (
         <div className="fixed inset-x-0 bottom-8 grid place-items-center px-4">
