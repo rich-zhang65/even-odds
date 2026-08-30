@@ -18,5 +18,6 @@ export { Tabs, type TabOption } from "./Tabs";
 export { Tag } from "./Tag";
 export { Toast, type ToastTone } from "./Toast";
 export { Tooltip } from "./Tooltip";
+export { Typography, type TypographyColorVariant, type TypographyVariant } from "./Typography";
 export { VersusBanner } from "./VersusBanner";
 export { type ControlSize, type ControlVariant } from "./tokens";
