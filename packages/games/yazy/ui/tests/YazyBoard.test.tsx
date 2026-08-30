@@ -35,9 +35,7 @@ const snapshotOf = (overrides: {
 };
 
 const render = (snapshot: Snapshot<YazyState>, seat: PlayerId | null) =>
-  renderToStaticMarkup(
-    <YazyBoard snapshot={snapshot} seat={seat} onAction={() => {}} />,
-  );
+  renderToStaticMarkup(<YazyBoard snapshot={snapshot} seat={seat} onAction={() => {}} />);
 
 const cell = (html: string, label: string): { tag: string; text: string } => {
   const found = html.match(new RegExp(`<button([^>]*aria-label="${label}"[^>]*)>([^<]*)</button>`));
@@ -46,6 +44,28 @@ const cell = (html: string, label: string): { tag: string; text: string } => {
 };
 
 describe("YazyBoard", () => {
+  it("washes a cell only once it is taken, so a column reads filled versus empty", () => {
+    const html = render(snapshotOf({ p0: { ones: 3 } }), "p1");
+
+    // Taken: seat wash, seat ink, heavy.
+    expect(cell(html, "Ones, Red").tag).toContain("bg-eo-red-soft");
+    expect(cell(html, "Ones, Red").tag).toContain("font-extrabold");
+
+    // Untaken and not actionable: no wash at all.
+    expect(cell(html, "Twos, Red").tag).toContain("bg-eo-card");
+    expect(cell(html, "Twos, Red").tag).not.toContain("bg-eo-red-soft");
+  });
+
+  it("renders a preview muted, so it cannot pass for a committed score", () => {
+    const html = render(snapshotOf({ p0: { ones: 3 } }), "p0");
+
+    const preview = cell(html, "Twos, Red");
+    expect(preview.tag).toContain("text-eo-faint");
+    expect(preview.tag).not.toContain("font-extrabold");
+
+    expect(cell(html, "Ones, Red").tag).toContain("text-eo-red-ink");
+  });
+
   it("gives every category a cell for each player", () => {
     const html = render(snapshotOf({}), "p0");
 

@@ -21,13 +21,20 @@ export const ScoreCell = ({
   const seat = SEATS[player];
   const recorded = state.scores[player][category];
 
-  // An untaken cell renders no text rather than a greyed zero, so a blank row
-  // reads as "still open" instead of "scored nothing".
+  /* Only a taken cell carries the seat wash, so scanning a column reads as
+     filled-versus-empty rather than one flat tint. A preview is a suggestion, not
+     a score: it renders muted and unweighted, so it cannot be mistaken for the
+     committed number it sits next to. An untaken cell renders no text rather than
+     a greyed zero, so a blank row reads as "still open", not "scored nothing". */
   return (
     <button
       className={cx(
-        "min-h-14 border-l border-eo-hairline font-eo-body text-base font-extrabold tabular-nums transition-colors duration-(--eo-duration-fast) ease-eo-out",
-        recorded !== undefined ? cx(seat.soft, seat.ink) : open ? cx("cursor-pointer", seat.pick, seat.ink) : seat.soft,
+        "min-h-14 border-l border-eo-hairline font-eo-body text-base tabular-nums transition-colors duration-(--eo-duration-fast) ease-eo-out",
+        recorded !== undefined
+          ? cx(seat.soft, seat.ink, "font-extrabold")
+          : open
+            ? cx("cursor-pointer font-semibold text-eo-faint", seat.pick)
+            : "bg-eo-card",
       )}
       type="button"
       disabled={!open}
