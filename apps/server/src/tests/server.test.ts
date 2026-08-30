@@ -118,6 +118,22 @@ describe("server — match lifecycle", () => {
     expect(joined.you).toBe("p1");
   });
 
+  it("opens a fresh match for a socket whose previous match has finished", async () => {
+    const url = await startServer(100);
+    const { a, b, created } = await openMatch(url);
+
+    const finished = waitForPhase(a, "over");
+    b.disconnect();
+    await finished;
+
+    const second = await ask<CreateOk>(a, "match:create", { gameId: "yahtzee" });
+    const waiting = waitForPhase(a, "waiting");
+    await ask<JoinOk>(a, "match:join", { matchId: second.matchId });
+
+    expect(second.matchId).not.toBe(created.matchId);
+    expect((await waiting).snapshot.matchId).toBe(second.matchId);
+  });
+
   it("refuses a third player gracefully", async () => {
     const url = await startServer();
     const { created } = await openMatch(url);

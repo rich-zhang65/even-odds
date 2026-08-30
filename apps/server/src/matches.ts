@@ -35,6 +35,7 @@ export type MatchRegistry = {
   join(matchId: string, socketId: string, token?: string): JoinResult;
   activate(socketId: string, reconnected: boolean): void;
   action(socketId: string, action: GameAction): ActionOutcome;
+  leaveOthers(socketId: string, keep: string): Match[];
   release(socketId: string): Match | null;
   matchFor(socketId: string): Match | null;
   get(matchId: string): Match | null;
@@ -66,6 +67,11 @@ export const createRegistry = (
   };
 
   const seated = (match: Match): boolean => SEATS.every(player => match.seats[player] !== null);
+
+  const vacate = (match: Match, seat: Seat): void => {
+    seat.socketId = null;
+    match.session.onDisconnect(seat.player);
+  };
 
   return {
     create(gameId, socketId) {
@@ -137,11 +143,24 @@ export const createRegistry = (
       return found.match.session.handleAction(action, found.seat.player);
     },
 
+    // One socket holds one seat, so locate() can never answer with a match the
+    // player has already walked away from.
+    leaveOthers(socketId, keep) {
+      const left: Match[] = [];
+      for (const match of matches.values()) {
+        if (match.id === keep) continue;
+        const seat = seatOf(match, socketId);
+        if (!seat) continue;
+        vacate(match, seat);
+        left.push(match);
+      }
+      return left;
+    },
+
     release(socketId) {
       const found = locate(socketId);
       if (!found) return null;
-      found.seat.socketId = null;
-      found.match.session.onDisconnect(found.seat.player);
+      vacate(found.match, found.seat);
       return found.match;
     },
 
