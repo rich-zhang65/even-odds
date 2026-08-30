@@ -6,6 +6,7 @@ import { Button, Card, Dialog, Toast } from "@even-odds/design-system/ui";
 import { totalScore } from "@even-odds/yazy";
 import { YazyBoard } from "@even-odds/yazy/ui";
 import { MatchHeader } from "@/components/MatchHeader";
+import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { useMatch } from "@/lib/useMatch";
 
@@ -31,7 +32,7 @@ const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
     <main className="flex min-h-full flex-col">
       <PageHeader />
 
-      <div className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-8 max-md:px-3 max-md:py-4">
+      <PageContainer>
         {snapshot !== null && (
           <MatchHeader
             title="Yazy"
@@ -75,7 +76,7 @@ const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
         {snapshot !== null && snapshot.phase !== "waiting" && (
           <YazyBoard snapshot={snapshot} seat={seat} onAction={send} />
         )}
-      </div>
+      </PageContainer>
 
       <Dialog
         open={leaving}

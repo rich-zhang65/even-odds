@@ -49,7 +49,7 @@ export const YazyBoard = ({
   return (
     <div>
       <Flex wrap="wrap" align="start" gap="24px">
-        <div className="min-w-0 flex-[1_1_440px]">
+        <div className="min-w-0 flex-[1_1_400px]">
           <Scorecard
             state={state}
             seat={seat}
@@ -61,7 +61,11 @@ export const YazyBoard = ({
         </div>
 
         {/* Above 800px the dice sit in a sticky rail; below it they move to the
-            fixed tray below, so the scorecard keeps the full width. */}
+            fixed tray below, so the scorecard keeps the full width. The card's
+            basis has to leave room for 288px of rail plus the gap inside the
+            container at 800px -- flex wraps on the basis, before any shrinking,
+            so an oversized basis drops the rail under the card in a band just
+            above the breakpoint where the tray is already hidden. */}
         <div className="sticky top-6 flex-[0_0_288px] max-[800px]:hidden">
           <Card className="grid gap-5" tone="outlined">
             <DiceRow
@@ -78,7 +82,7 @@ export const YazyBoard = ({
 
       <div className="h-39 min-[800px]:hidden" />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-eo-strong bg-eo-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] min-[800px]:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-eo-strong bg-eo-card px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] min-[800px]:hidden">
         <div className="mx-auto grid max-w-[312px] gap-3">
           <DiceRow
             state={state}
