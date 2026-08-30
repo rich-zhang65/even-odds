@@ -33,8 +33,13 @@ export const MatchHeader = ({
         <span className="flex-1 max-[680px]:hidden" />
 
         <Flex className="max-[680px]:order-10 max-[680px]:w-full" justify="center" shrink={0}>
+          {/* A control height rather than padding, so the pill and the Exit button
+              are the same 44px and the row reads as one band. Left to size itself,
+              the pill came out ~50px against a 36px button: both centred, but with
+              7px of air above and below the button, which reads as the two being
+              out of line rather than as a size difference. */}
           <Flex
-            className="rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 py-2 shadow-eo-sm"
+            className="h-(--eo-control-md) rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 shadow-eo-sm"
             align="center"
             gap="12px"
           >
@@ -59,7 +64,7 @@ export const MatchHeader = ({
         <Button
           className="max-[680px]:ml-auto"
           variant="outline"
-          size="sm"
+          size="md"
           iconLeft={<Icon icon={LogOut} size={16} />}
           onClick={onExit}
         >
