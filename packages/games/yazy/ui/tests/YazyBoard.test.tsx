@@ -45,15 +45,39 @@ const cell = (html: string, label: string): { tag: string; text: string } => {
 
 describe("YazyBoard", () => {
   it("washes a cell only once it is taken, so a column reads filled versus empty", () => {
-    const html = render(snapshotOf({ p0: { ones: 3 } }), "p1");
+    // Red is up, so Blue's column is the one with nothing open in it.
+    const html = render(snapshotOf({ turn: "p0", p1: { ones: 3 } }), "p1");
 
     // Taken: seat wash, seat ink, heavy.
-    expect(cell(html, "Ones, Red").tag).toContain("bg-eo-red-soft");
-    expect(cell(html, "Ones, Red").tag).toContain("font-extrabold");
+    expect(cell(html, "Ones, Blue").tag).toContain("bg-eo-blue-soft");
+    expect(cell(html, "Ones, Blue").tag).toContain("font-extrabold");
 
-    // Untaken and not actionable: no wash at all.
-    expect(cell(html, "Twos, Red").tag).toContain("bg-eo-card");
-    expect(cell(html, "Twos, Red").tag).not.toContain("bg-eo-red-soft");
+    // Untaken, and not the acting player's: no wash at all.
+    expect(cell(html, "Twos, Blue").tag).toContain("bg-eo-card");
+    expect(cell(html, "Twos, Blue").tag).not.toContain("bg-eo-blue-soft");
+  });
+
+  it("lights the acting player's open rows for both players, from the turn's start", () => {
+    // rollsLeft 3 -- the turn has begun and nothing has been rolled yet.
+    const fresh = snapshotOf({ turn: "p0", rollsLeft: 3 });
+
+    for (const viewer of ["p0", "p1"] as const) {
+      const open = cell(render(fresh, viewer), "Yazy, Red");
+      expect(open.tag).toContain("bg-eo-red-solid"); // tinted for whoever is looking
+      expect(open.text).toBe(""); // but nothing to read yet
+      expect(open.tag).toContain("disabled"); // SCORE is illegal at rollsLeft 3
+    }
+
+    // The waiting player's own column stays plain.
+    expect(cell(render(fresh, "p1"), "Yazy, Blue").tag).toContain("bg-eo-card");
+  });
+
+  it("shows the acting player's preview to their opponent as well", () => {
+    const html = render(snapshotOf({ turn: "p0", dice: [3, 3, 3, 3, 3] }), "p1");
+
+    const red = cell(html, "Yazy, Red");
+    expect(red.text).toBe("50");
+    expect(red.tag).toContain("disabled"); // visible, but not the watcher's to score
   });
 
   it("renders a preview muted, so it cannot pass for a committed score", () => {
@@ -75,7 +99,7 @@ describe("YazyBoard", () => {
     }
   });
 
-  it("previews a score only in the viewer's own column", () => {
+  it("previews a score only in the acting player's column", () => {
     const html = render(snapshotOf({ dice: [3, 3, 3, 3, 3] }), "p0");
 
     const red = cell(html, "Yazy, Red");

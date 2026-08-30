@@ -28,6 +28,7 @@ export const Scorecard = ({
   currentPlayer,
   live,
   selectable,
+  revealed,
   onScore,
 }: {
   state: YazyState;
@@ -35,28 +36,39 @@ export const Scorecard = ({
   currentPlayer: PlayerId;
   live: boolean;
   selectable: Category[];
+  revealed: boolean;
   onScore: (category: Category) => void;
 }) => {
   const row = (category: Category, divider = false) => (
     <div
       key={category}
-      className={cx(ROW_GRID, divider ? "border-t-2 border-eo-strong" : "border-t border-eo-hairline")}
+      className={cx(
+        ROW_GRID,
+        divider ? "border-t-2 border-eo-strong" : "border-t border-eo-hairline",
+      )}
     >
       <Flex className="min-w-0 px-4 py-2 text-eo-body" align="center" gap="4px">
         {CATEGORY_ICONS[category].map((glyph, index) => (
           <Icon key={index} icon={glyph} size={CATEGORY_ICONS[category].length === 1 ? 28 : 22} />
         ))}
       </Flex>
-      {SEAT_ORDER.map((player) => (
-        <ScoreCell
-          key={player}
-          player={player}
-          category={category}
-          state={state}
-          open={player === seat && selectable.includes(category)}
-          onScore={onScore}
-        />
-      ))}
+      {SEAT_ORDER.map((player) => {
+        const open = player === currentPlayer && selectable.includes(category);
+        const previewed = open && revealed;
+
+        return (
+          <ScoreCell
+            key={player}
+            player={player}
+            category={category}
+            state={state}
+            open={open}
+            previewed={previewed}
+            actionable={previewed && player === seat}
+            onScore={onScore}
+          />
+        );
+      })}
     </div>
   );
 
@@ -73,9 +85,7 @@ export const Scorecard = ({
               live && player === currentPlayer ? SEATS[player].underline : "border-b-transparent",
             )}
           >
-            {player === seat && (
-              <YouTag className={cx(SEATS[player].solid, "text-eo-on-color")} />
-            )}
+            {player === seat && <YouTag className={cx(SEATS[player].solid, "text-eo-on-color")} />}
           </div>
         ))}
       </div>

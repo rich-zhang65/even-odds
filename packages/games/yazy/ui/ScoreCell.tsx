@@ -10,12 +10,16 @@ export const ScoreCell = ({
   category,
   state,
   open,
+  previewed,
+  actionable,
   onScore,
 }: {
   player: PlayerId;
   category: Category;
   state: YazyState;
   open: boolean;
+  previewed: boolean;
+  actionable: boolean;
   onScore: (category: Category) => void;
 }) => {
   const seat = SEATS[player];
@@ -25,7 +29,13 @@ export const ScoreCell = ({
      filled-versus-empty rather than one flat tint. A preview is a suggestion, not
      a score: it renders muted and unweighted, so it cannot be mistaken for the
      committed number it sits next to. An untaken cell renders no text rather than
-     a greyed zero, so a blank row reads as "still open", not "scored nothing". */
+     a greyed zero, so a blank row reads as "still open", not "scored nothing".
+
+     The tint tracks whose turn it is, not who is looking, and lands the moment a
+     turn starts. The number is the part that waits -- for a roll to have happened
+     and for the dice to stop tumbling. Closing the cell outright to hide it would
+     drop the tint and bring it back a second later, flashing the column on every
+     roll. */
   return (
     <button
       className={cx(
@@ -33,15 +43,19 @@ export const ScoreCell = ({
         recorded !== undefined
           ? cx(seat.soft, seat.ink, "font-extrabold")
           : open
-            ? cx("cursor-pointer font-semibold text-eo-faint", seat.pick)
+            ? cx(
+                "font-semibold text-eo-faint",
+                seat.pick,
+                actionable ? "cursor-pointer" : "pointer-events-none",
+              )
             : "bg-eo-card",
       )}
       type="button"
-      disabled={!open}
+      disabled={!actionable}
       onClick={() => onScore(category)}
       aria-label={`${CATEGORY_INFO[category].label}, ${seat.name}`}
     >
-      {recorded ?? (open ? previewScore(state, player, category) : null)}
+      {recorded ?? (previewed ? previewScore(state, player, category) : null)}
     </button>
   );
 };
