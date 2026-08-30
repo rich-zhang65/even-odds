@@ -154,10 +154,10 @@
   --shadow-eo-lg: 0 10px 24px -8px var(--eo-shadow-lg);
 
   /* ---- The pressable bottom edge. Never a blur. ---- */
-  --shadow-eo-edge-ink: 0 3px 0 var(--color-eo-strong);
-  --shadow-eo-edge-ink-soft: 0 3px 0 var(--eo-edge-inverse);
-  --shadow-eo-edge-red: 0 3px 0 var(--color-eo-red-600);
-  --shadow-eo-edge-blue: 0 3px 0 var(--color-eo-blue-700);
+  --shadow-eo-edge-ink: 0 2px 0 var(--color-eo-strong);
+  --shadow-eo-edge-ink-soft: 0 2px 0 var(--eo-edge-inverse);
+  --shadow-eo-edge-red: 0 2px 0 var(--color-eo-red-600);
+  --shadow-eo-edge-blue: 0 2px 0 var(--color-eo-blue-700);
   --shadow-eo-edge-hairline: 0 2px 0 var(--color-eo-hairline);
   --shadow-eo-focus: 0 0 0 3px var(--eo-focus-ring);
 
