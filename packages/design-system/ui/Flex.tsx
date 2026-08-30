@@ -78,8 +78,6 @@ export const Flex = ({
   id?: string;
 }) => (
   <div
-    id={id}
-    style={{ gap, flexBasis: basis }}
     className={cx(
       "flex",
       direction !== undefined && DIRECTIONS[direction],
@@ -91,6 +89,8 @@ export const Flex = ({
       alignSelf !== undefined && SELVES[alignSelf],
       className,
     )}
+    id={id}
+    style={{ gap, flexBasis: basis }}
   >
     {children}
   </div>

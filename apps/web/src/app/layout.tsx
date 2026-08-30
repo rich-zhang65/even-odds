@@ -24,8 +24,8 @@ const RootLayout = ({ children }: LayoutProps<"/">) => (
   // The boot script writes data-theme onto this element before React hydrates,
   // which is exactly the mismatch suppressHydrationWarning is for.
   <html
-    lang="en"
     className={`${fredoka.variable} ${nunito.variable} h-full`}
+    lang="en"
     suppressHydrationWarning
   >
     <head>

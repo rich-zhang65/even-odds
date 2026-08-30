@@ -44,10 +44,6 @@ export const IconButton = ({
   className?: string;
 }) => (
   <button
-    type="button"
-    aria-label={label}
-    disabled={disabled}
-    onClick={onClick}
     className={cx(
       "inline-flex cursor-pointer items-center justify-center rounded-eo-md",
       CONTROL_VARIANTS[variant],
@@ -59,6 +55,10 @@ export const IconButton = ({
       CONTROL_DISABLED,
       className,
     )}
+    type="button"
+    aria-label={label}
+    disabled={disabled}
+    onClick={onClick}
   >
     {icon}
   </button>

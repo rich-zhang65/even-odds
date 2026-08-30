@@ -5,9 +5,9 @@ import { Wordmark } from "./Wordmark";
 
 export const PageHeader = () => (
   <Flex
+    className="border-b border-eo-hairline bg-eo-card px-8 py-4 max-md:px-4"
     align="center"
     justify="space-between"
-    className="border-b border-eo-hairline bg-eo-card px-8 py-4 max-md:px-4"
   >
     <Link href="/" aria-label="Even Odds home">
       <Wordmark />

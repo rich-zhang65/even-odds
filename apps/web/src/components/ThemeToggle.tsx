@@ -23,8 +23,8 @@ export const ThemeToggle = () => {
       onClick={toggleTheme}
       icon={
         <>
-          <Sun aria-hidden="true" className="hidden dark:block" />
-          <Moon aria-hidden="true" className="dark:hidden" />
+          <Sun className="hidden dark:block" aria-hidden="true" />
+          <Moon className="dark:hidden" aria-hidden="true" />
         </>
       }
     />

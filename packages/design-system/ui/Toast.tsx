@@ -27,22 +27,22 @@ export const Toast = ({
   className?: string;
 }) => (
   <div
-    role="status"
     className={cx(
       "inline-flex animate-eo-rise items-center gap-3 rounded-eo-pill px-4 py-3 font-eo-body text-eo-body-s font-semibold text-eo-on-color shadow-eo-lg",
       TONES[tone].className,
       className,
     )}
+    role="status"
   >
     <Icon icon={TONES[tone].icon} size={18} />
     <span>{message}</span>
     {action}
     {onDismiss !== undefined && (
       <button
+        className="ml-1 grid cursor-pointer place-items-center text-current opacity-70 hover:opacity-100"
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss"
-        className="ml-1 grid cursor-pointer place-items-center text-current opacity-70 hover:opacity-100"
       >
         <Icon icon={X} size={16} />
       </button>

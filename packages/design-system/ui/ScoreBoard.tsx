@@ -62,9 +62,9 @@ export const ScoreBoard = ({
     )}
   >
     <Flex align="center" gap="20px">
-      <Side label={redName} score={redScore} big={size === "lg"} className="text-eo-red-ink" />
+      <Side className="text-eo-red-ink" label={redName} score={redScore} big={size === "lg"} />
       <span className="font-eo-display text-eo-label tracking-eo-caps text-eo-faint uppercase">vs</span>
-      <Side label={blueName} score={blueScore} big={size === "lg"} className="text-eo-blue-ink" />
+      <Side className="text-eo-blue-ink" label={blueName} score={blueScore} big={size === "lg"} />
     </Flex>
     {timer !== undefined && (
       <span className="font-eo-body text-eo-stat tabular-nums text-eo-strong">{timer}</span>

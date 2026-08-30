@@ -18,5 +18,5 @@ export const GameAsset = ({
   const src = resolveSprite(manifest, slot);
   if (src === null) return <>{fallback}</>;
 
-  return <img src={src} alt={alt ?? slot} className={className} />;
+  return <img className={className} src={src} alt={alt ?? slot} />;
 };

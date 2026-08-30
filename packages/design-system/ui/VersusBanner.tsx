@@ -13,12 +13,12 @@ export const VersusBanner = ({
   className?: string;
 }) => (
   <div className={cx("relative grid h-33 grid-cols-2 overflow-hidden rounded-eo-lg", className)}>
-    <Flex align="center" justify="start" className="bg-eo-red-solid px-8">
+    <Flex className="bg-eo-red-solid px-8" align="center" justify="start">
       <span className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-on-color">
         {redName}
       </span>
     </Flex>
-    <Flex align="center" justify="end" className="bg-eo-blue-solid px-8">
+    <Flex className="bg-eo-blue-solid px-8" align="center" justify="end">
       <span className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-on-color">
         {blueName}
       </span>

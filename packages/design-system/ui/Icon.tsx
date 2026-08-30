@@ -9,4 +9,4 @@ export const Icon = ({
   icon: LucideIcon;
   size?: number;
   className?: string;
-}) => <Glyph aria-hidden="true" size={size} className={cx("shrink-0", className)} />;
+}) => <Glyph className={cx("shrink-0", className)} aria-hidden="true" size={size} />;

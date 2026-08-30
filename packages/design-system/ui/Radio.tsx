@@ -28,6 +28,7 @@ export const Radio = ({
     )}
   >
     <input
+      className="peer sr-only"
       type="radio"
       name={name}
       value={value}
@@ -35,7 +36,6 @@ export const Radio = ({
       onChange={onChange}
       readOnly={onChange === undefined}
       disabled={disabled}
-      className="peer sr-only"
     />
     <span
       className={cx(
