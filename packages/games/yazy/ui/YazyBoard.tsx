@@ -8,6 +8,7 @@ import { legalScoringCategories } from "../src/logic";
 import { DiceRow } from "./DiceRow";
 import { RollPips } from "./RollPips";
 import { Scorecard } from "./Scorecard";
+import { useRoll } from "./useRoll";
 
 export const YazyBoard = ({
   snapshot,
@@ -24,8 +25,19 @@ export const YazyBoard = ({
   const yourTurn = seat !== null && snapshot.currentPlayer === seat;
   const myTurn = live && yourTurn;
   const rollsUsed = 3 - state.rollsLeft;
+
+  /* The rolled values arrive already settled, so every preview in the scorecard
+     would spell out the result while the dice were still in the air. Only the
+     numbers wait: the cells stay open through the tumble, so the column does not
+     flash its tint off and back on with every roll.
+
+     What is open follows the current player rather than the viewer, so a turn
+     lights up its own available rows for both people the moment it starts. Acting
+     on one still needs the seat and a roll -- SCORE is illegal at rollsLeft 3. */
+  const { rolling, tick } = useRoll(state.rollsLeft, state.dice.length);
   const selectable =
-    myTurn && rollsUsed > 0 && seat !== null ? legalScoringCategories(state, seat) : [];
+    live && result === null ? legalScoringCategories(state, snapshot.currentPlayer) : [];
+  const revealed = rollsUsed > 0 && !rolling;
 
   const current = SEATS[snapshot.currentPlayer];
 
@@ -36,11 +48,9 @@ export const YazyBoard = ({
       fullWidth
       size={size}
       variant={current.button}
-      disabled={!myTurn || state.rollsLeft === 0}
+      disabled={!myTurn || rolling || state.rollsLeft === 0}
       onClick={() => onAction({ type: "ROLL" })}
-      iconRight={
-        <RollPips used={rollsUsed} spentText={current.accent} />
-      }
+      iconRight={<RollPips used={rollsUsed} spentText={current.accent} />}
     >
       {rollLabel}
     </Button>
@@ -56,6 +66,7 @@ export const YazyBoard = ({
             currentPlayer={snapshot.currentPlayer}
             live={live}
             selectable={selectable}
+            revealed={revealed}
             onScore={(category) => onAction({ type: "SCORE", category })}
           />
         </div>
@@ -73,6 +84,8 @@ export const YazyBoard = ({
               turn={snapshot.currentPlayer}
               disabled={!myTurn}
               large
+              rolling={rolling}
+              tick={tick}
               onAction={onAction}
             />
             {rollButton("lg")}
@@ -89,6 +102,8 @@ export const YazyBoard = ({
             turn={snapshot.currentPlayer}
             disabled={!myTurn}
             large={false}
+            rolling={rolling}
+            tick={tick}
             onAction={onAction}
           />
           {rollButton("md")}
