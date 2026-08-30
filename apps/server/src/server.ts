@@ -57,6 +57,10 @@ export const attachSocketServer = (
         return;
       }
 
+      for (const left of registry.leaveOthers(socket.id, result.matchId)) {
+        broadcastMatchState(left);
+      }
+
       ack({ matchId: result.matchId, you: result.you, token: result.token });
       const match = registry.get(result.matchId);
       if (match) broadcastMatchState(match);
@@ -73,6 +77,10 @@ export const attachSocketServer = (
       if (!result.ok) {
         ack({ error: result.error });
         return;
+      }
+
+      for (const left of registry.leaveOthers(socket.id, result.matchId)) {
+        broadcastMatchState(left);
       }
 
       ack({
