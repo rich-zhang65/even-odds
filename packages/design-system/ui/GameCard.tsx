@@ -24,16 +24,14 @@ export const GameCard = ({
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   className?: string;
 }) => (
-  <div className={cx("group relative pb-0.5", className)}>
-    {/* The edge is a real element rather than a shadow. A zero-blur shadow can only
-        land on whole pixels, so growing one during the lift rendered as visible 1px
-        steps trailing the motion -- box-shadow and drop-shadow both did it. This
-        never moves: the card slides off it, and a transform is all that animates.
-        Hover lives on the group so the card cannot lift out from under the cursor. */}
-    <span className="absolute inset-0 rounded-eo-lg bg-eo-strong" />
-
+  <div className={cx("group pb-0.5", className)}>
     <button
-      className="relative block h-50 w-full overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-(image:--eo-versus) text-left transition-[translate] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:group-hover:-translate-y-[3px] enabled:active:translate-y-0.5"
+      className={cx(
+        "relative block aspect-square w-full overflow-hidden rounded-eo-lg text-left transition-[translate] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:active:translate-y-0.5",
+        // The versus field is what a card without art looks like, not a layer under
+        // one: artwork dimmed to 45% would let the gradient bleed through it.
+        art === undefined ? "bg-(image:--eo-versus)" : "bg-eo-card",
+      )}
       type="button"
       disabled={disabled}
       onClick={onClick}
@@ -55,6 +53,27 @@ export const GameCard = ({
           {name}
         </span>
       </span>
+
+      {/* The outline rides on top of the art rather than being a border on the
+          button. A border makes overflow clip children at the padding-box curve
+          while the border paints to the border-box curve: two separately
+          antialiased arcs meeting only on the corners, with the background showing
+          through the gap between them.
+
+          Its heavier bottom is the edge. Nothing is offset, so the sqrt(2 * radius
+          * depth) corner widening that every shadow and every displaced element has
+          simply cannot arise -- a border follows the contour and tapers into the
+          sides through the arcs. Press thins it, the way a Button drops its
+          shadow. */}
+      <span
+        className={cx(
+          "pointer-events-none absolute inset-0 rounded-eo-lg border-2 border-b-4 border-eo-strong transition-colors duration-(--eo-duration-fast) ease-eo-out group-active:border-b-2",
+          // A raw ramp step on purpose. The wash sits on artwork, which does not
+          // repoint in dark mode, so eo-strong inverted to near-white and vanished
+          // against a light PNG. Darkening reads on both themes and on the gradient.
+          !disabled && "group-hover:bg-eo-ink-900/15",
+        )}
+      />
     </button>
   </div>
 );
