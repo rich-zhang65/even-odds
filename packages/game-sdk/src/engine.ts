@@ -1,6 +1,7 @@
-import type { EngineContext, GameAction, GameDefinition, GameResult, PlayerId } from "./types";
+import type { EngineContext, GameAction, GameResult, PlayerId, TurnBasedGame } from "./types";
 import { createRandom } from "./random";
 
+// Turn-based only: dispatch enforces whose move it is, which realtime has no answer to.
 export type Engine<S, A extends GameAction> = {
   state: S;
   context: EngineContext;
@@ -9,8 +10,8 @@ export type Engine<S, A extends GameAction> = {
 };
 
 export const createEngine = <S, A extends GameAction>(
-  def: GameDefinition<S, A>,
-  opts: { matchId: string; seed: number; now?: number }
+  def: TurnBasedGame<S, A>,
+  opts: { matchId: string; seed: number; now?: number },
 ): Engine<S, A> => {
   const ctx: EngineContext = {
     matchId: opts.matchId,

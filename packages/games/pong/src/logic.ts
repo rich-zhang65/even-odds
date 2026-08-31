@@ -1,4 +1,4 @@
-import type { EngineContext, GameDefinition, PlayerId, RandomAPI } from "@even-odds/game-sdk";
+import type { EngineContext, PlayerId, RandomAPI, RealtimeGame } from "@even-odds/game-sdk";
 import { assets } from "./assets";
 import { BALL, PADDLE, SERVE_DELAY_MS, TABLE, TARGET_SCORE } from "./types";
 import type { PongAction, PongState, Vec } from "./types";
@@ -123,13 +123,14 @@ const moveBall = (state: PongState, dt: number): PongState => {
   return moved;
 };
 
-export const Pong: GameDefinition<PongState, PongAction> = {
+export const Pong: RealtimeGame<PongState, PongAction> = {
+  mode: "realtime",
+
   meta: {
     id: "pong",
     name: "Pong",
     tagline: "Keep it off your wall",
     estimatedMinutes: 3,
-    mode: "realtime",
     assets,
   },
 
@@ -144,10 +145,6 @@ export const Pong: GameDefinition<PongState, PongAction> = {
     scores: { p0: 0, p1: 0 },
     serve: { inMs: SERVE_DELAY_MS, toward: ctx.random.int(0, 1) === 0 ? "p0" : "p1" },
   }),
-
-  /* Required by GameDefinition, meaningless here: both players act on the same
-     tick and RealtimeSnapshot carries no such field, so nothing reads it. */
-  currentPlayer: () => "p0",
 
   isLegal: (_state, action) => action.dir === -1 || action.dir === 0 || action.dir === 1,
 

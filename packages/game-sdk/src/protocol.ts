@@ -9,13 +9,10 @@ export type MatchStatePayload = {
   seats: SeatFlags;
 };
 
-export type CreateAck =
-  | { matchId: string; you: PlayerId; token: string }
-  | { error: string };
+export type CreateAck = { matchId: string; you: PlayerId; token: string } | { error: string };
 
 export type JoinAck =
-  | { matchId: string; you: PlayerId; token: string; reconnected: boolean }
-  | { error: string };
+  { matchId: string; you: PlayerId; token: string; reconnected: boolean } | { error: string };
 
 export type ActionAck = { ok: true } | { error: string };
 
