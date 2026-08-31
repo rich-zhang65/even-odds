@@ -20,9 +20,13 @@ export const YazyBoard = ({
   onAction: (action: YazyAction) => void;
 }) => {
   const state = snapshot.state;
+  /* The game's own state says whose turn it is. snapshot.currentPlayer is the
+     same value by way of def.currentPlayer, but it is nullable now that realtime
+     shares the type, and reaching past it costs nothing here. */
+  const turn = state.turn;
   const result = snapshot.result;
   const live = snapshot.phase === "playing";
-  const yourTurn = seat !== null && snapshot.currentPlayer === seat;
+  const yourTurn = seat !== null && turn === seat;
   const myTurn = live && yourTurn;
   const rollsUsed = 3 - state.rollsLeft;
 
@@ -35,11 +39,10 @@ export const YazyBoard = ({
      lights up its own available rows for both people the moment it starts. Acting
      on one still needs the seat and a roll -- SCORE is illegal at rollsLeft 3. */
   const { rolling, tick } = useRoll(state.rollsLeft, state.dice.length);
-  const selectable =
-    live && result === null ? legalScoringCategories(state, snapshot.currentPlayer) : [];
+  const selectable = live && result === null ? legalScoringCategories(state, turn) : [];
   const revealed = rollsUsed > 0 && !rolling;
 
-  const current = SEATS[snapshot.currentPlayer];
+  const current = SEATS[turn];
 
   const rollLabel = yourTurn && result === null ? "Roll" : null;
 
@@ -63,7 +66,7 @@ export const YazyBoard = ({
           <Scorecard
             state={state}
             seat={seat}
-            currentPlayer={snapshot.currentPlayer}
+            currentPlayer={turn}
             live={live}
             selectable={selectable}
             revealed={revealed}
@@ -81,7 +84,7 @@ export const YazyBoard = ({
           <Card className="grid gap-5" tone="outlined">
             <DiceRow
               state={state}
-              turn={snapshot.currentPlayer}
+              turn={turn}
               disabled={!myTurn}
               large
               rolling={rolling}
@@ -99,7 +102,7 @@ export const YazyBoard = ({
         <div className="mx-auto grid max-w-[312px] gap-3">
           <DiceRow
             state={state}
-            turn={snapshot.currentPlayer}
+            turn={turn}
             disabled={!myTurn}
             large={false}
             rolling={rolling}

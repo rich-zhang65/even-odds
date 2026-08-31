@@ -4,7 +4,7 @@ import type { Session, SessionOptions } from "./types";
 
 export const createSession = <S, A extends GameAction>(
   def: GameDefinition<S, A>,
-  opts: SessionOptions<S>
+  opts: SessionOptions<S>,
 ): Session<S, A> => {
   switch (def.meta.mode) {
     case "turn-based":
@@ -22,5 +22,7 @@ export type {
   SessionEvent,
   SessionOptions,
   SessionPhase,
+  RealtimeSnapshot,
   Snapshot,
+  TurnBasedSnapshot,
 } from "./types";

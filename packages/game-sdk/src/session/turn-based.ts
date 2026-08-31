@@ -1,6 +1,12 @@
 import { createEngine } from "../engine";
 import type { GameAction, GameDefinition, GameResult, PlayerId } from "../types";
-import type { Session, SessionEvent, SessionOptions, SessionPhase, Snapshot } from "./types";
+import type {
+  Session,
+  SessionEvent,
+  SessionOptions,
+  SessionPhase,
+  TurnBasedSnapshot,
+} from "./types";
 
 const OPPONENT: Record<PlayerId, PlayerId> = { p0: "p1", p1: "p0" };
 
@@ -8,7 +14,7 @@ const DEFAULT_GRACE_MS = 60_000;
 
 export const createTurnBasedSession = <S, A extends GameAction>(
   def: GameDefinition<S, A>,
-  opts: SessionOptions<S>
+  opts: SessionOptions<S>,
 ): Session<S, A> => {
   const engine = createEngine(def, {
     matchId: opts.matchId,
@@ -22,7 +28,8 @@ export const createTurnBasedSession = <S, A extends GameAction>(
   let forfeit: GameResult | null = null;
   let graceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  const snapshotFor = (viewer: PlayerId): Snapshot<S> => ({
+  const snapshotFor = (viewer: PlayerId): TurnBasedSnapshot<S> => ({
+    mode: "turn-based",
     matchId: engine.context.matchId,
     phase,
     state: def.playerView?.(engine.state, viewer) ?? engine.state,

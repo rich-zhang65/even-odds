@@ -32,5 +32,7 @@ export type {
   SessionEvent,
   SessionOptions,
   SessionPhase,
+  RealtimeSnapshot,
   Snapshot,
+  TurnBasedSnapshot,
 } from "./session";
