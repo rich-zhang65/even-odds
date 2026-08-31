@@ -1,10 +1,11 @@
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 import type { ClientToServerEvents, ServerToClientEvents } from "@even-odds/game-sdk";
-import type { YazyState } from "@even-odds/yazy";
 
-// Pinned to Yazy while it is the only game; becomes a generic when there are two.
-export type MatchSocket = Socket<ServerToClientEvents<YazyState>, ClientToServerEvents>;
+/* One connection carries every match, so it cannot be typed to one game's state.
+   What comes down it is narrowed once, in useMatch, by the page that knows which
+   game it is showing. */
+export type MatchSocket = Socket<ServerToClientEvents<unknown>, ClientToServerEvents>;
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:4000";
 
