@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     "@even-odds/game-sdk",
     "@even-odds/yazy",
+    "@even-odds/pong",
   ],
 };
 

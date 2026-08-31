@@ -12,6 +12,11 @@ export type MatchStore = {
   subscribe: (listener: () => void) => () => void;
   getState: () => MatchState;
   send: (action: GameAction) => void;
+
+  /* Every snapshot, outside React. A realtime game receives twenty a second and
+     draws on every frame between them; routing that through useSyncExternalStore
+     would re-render the tree at the same rate to move three divs. */
+  onSnapshot: (listener: (snapshot: Snapshot<unknown>) => void) => () => void;
 };
 
 export const EMPTY_MATCH: MatchState = {
@@ -24,14 +29,17 @@ export const EMPTY_MATCH: MatchState = {
 const createMatchStore = (matchId: string): MatchStore => {
   let state = EMPTY_MATCH;
   const listeners = new Set<() => void>();
+  const snapshotListeners = new Set<(snapshot: Snapshot<unknown>) => void>();
 
   const set = (patch: Partial<MatchState>): void => {
     state = { ...state, ...patch };
     for (const listener of listeners) listener();
   };
 
-  const onGameState = (payload: { snapshot: Snapshot<unknown> }): void =>
+  const onGameState = (payload: { snapshot: Snapshot<unknown> }): void => {
+    for (const listener of snapshotListeners) listener(payload.snapshot);
     set({ snapshot: payload.snapshot });
+  };
 
   const onMatchState = (payload: { seats: SeatFlags }): void => set({ seats: payload.seats });
 
@@ -68,6 +76,11 @@ const createMatchStore = (matchId: string): MatchStore => {
         socket.off("match:state", onMatchState);
         socket.off("connect", join);
       };
+    },
+
+    onSnapshot(listener) {
+      snapshotListeners.add(listener);
+      return () => snapshotListeners.delete(listener);
     },
 
     getState: () => state,
