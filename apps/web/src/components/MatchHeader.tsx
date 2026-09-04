@@ -39,7 +39,7 @@ export const MatchHeader = ({
               7px of air above and below the button, which reads as the two being
               out of line rather than as a size difference. */}
           <Flex
-            className="h-(--eo-control-md) rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 shadow-eo-sm"
+            className="h-(--eo-control-md) select-none rounded-eo-pill border-2 border-eo-strong bg-eo-card px-5 shadow-eo-sm"
             align="center"
             gap="12px"
           >
