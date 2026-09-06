@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTurnBasedSession } from "../turn-based";
 import { createSession } from "../index";
-import type { SessionEvent } from "../types";
+import type { SessionEvent, Snapshot, TurnBasedSnapshot } from "../types";
 import type { GameDefinition, PlayerId } from "../../types";
 
 type RaceState = {
@@ -62,8 +62,14 @@ const newSession = (graceMs = 60_000) => {
 
 const inc = (): RaceAction => ({ type: "INC" });
 
+// Session hands back the union; a turn-based session only ever builds one arm.
+const turnBased = (snapshot: Snapshot<RaceState>): TurnBasedSnapshot<RaceState> => {
+  if (snapshot.mode !== "turn-based") throw new Error(`unexpected ${snapshot.mode} snapshot`);
+  return snapshot;
+};
+
 const eventsOfType = (emitted: Emitted[], type: SessionEvent<RaceState>["type"]) =>
-  emitted.filter(e => e.event.type === type);
+  emitted.filter((e) => e.event.type === type);
 
 describe("TurnBasedSession — lifecycle", () => {
   it("starts in waiting and reports it in the snapshot", () => {
@@ -77,7 +83,7 @@ describe("TurnBasedSession — lifecycle", () => {
     session.start();
 
     expect(session.snapshotFor("p0").phase).toBe("playing");
-    expect(emitted.map(e => e.to)).toEqual(["p0", "p1"]);
+    expect(emitted.map((e) => e.to)).toEqual(["p0", "p1"]);
     expect(eventsOfType(emitted, "state")).toHaveLength(2);
   });
 
@@ -102,9 +108,9 @@ describe("TurnBasedSession — actions", () => {
     emitted.length = 0;
 
     expect(session.handleAction(inc(), "p0")).toEqual({ ok: true });
-    expect(emitted.map(e => e.to)).toEqual(["p0", "p1"]);
+    expect(emitted.map((e) => e.to)).toEqual(["p0", "p1"]);
     expect(session.snapshotFor("p0").state.scores.p0).toBe(1);
-    expect(session.snapshotFor("p0").currentPlayer).toBe("p1");
+    expect(turnBased(session.snapshotFor("p0")).currentPlayer).toBe("p1");
   });
 
   it("rejects an out-of-turn action and emits nothing", () => {
@@ -127,7 +133,7 @@ describe("TurnBasedSession — actions", () => {
 
     const over = eventsOfType(emitted, "over");
     expect(over).toHaveLength(2);
-    expect(over.map(e => e.to)).toEqual(["p0", "p1"]);
+    expect(over.map((e) => e.to)).toEqual(["p0", "p1"]);
     expect(over[0].event).toEqual({ type: "over", result: { winner: "p0" } });
     expect(session.snapshotFor("p0").phase).toBe("over");
   });
@@ -155,8 +161,9 @@ describe("createSession — runtime selection", () => {
       ...Race,
       meta: { ...Race.meta, id: "race-rt", mode: "realtime" },
     };
-    expect(() => createSession(realtimeRace, { matchId: "m1", seed: 1, emit: () => {} }))
-      .toThrow(/realtime sessions are not implemented yet \(game: race-rt\)/);
+    expect(() => createSession(realtimeRace, { matchId: "m1", seed: 1, emit: () => {} })).toThrow(
+      /realtime sessions are not implemented yet \(game: race-rt\)/,
+    );
   });
 
   it("survives its methods being detached onto socket handlers", () => {
@@ -168,7 +175,7 @@ describe("createSession — runtime selection", () => {
     onDisconnect("p1");
 
     expect(session.snapshotFor("p0").phase).toBe("paused");
-    expect(emitted.some(e => e.event.type === "opponent")).toBe(true);
+    expect(emitted.some((e) => e.event.type === "opponent")).toBe(true);
   });
 });
 

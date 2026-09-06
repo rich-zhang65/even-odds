@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
+import type { PlayerId, Snapshot, TurnBasedSnapshot } from "@even-odds/game-sdk";
 import { YazyBoard } from "../YazyBoard";
 import type { Category, YazyState } from "../../src/types";
 
@@ -14,7 +14,7 @@ const snapshotOf = (overrides: {
   p1?: Scores;
   phase?: Snapshot<YazyState>["phase"];
   result?: Snapshot<YazyState>["result"];
-}): Snapshot<YazyState> => {
+}): TurnBasedSnapshot<YazyState> => {
   const turn = overrides.turn ?? "p0";
   const state: YazyState = {
     dice: overrides.dice ?? [3, 3, 3, 3, 3],
@@ -26,6 +26,7 @@ const snapshotOf = (overrides: {
   };
 
   return {
+    mode: "turn-based",
     matchId: "m1",
     phase: overrides.phase ?? "playing",
     state,
