@@ -12,7 +12,12 @@ import type { PongAction, PongState } from "../src/types";
    extrapolating past the newest one and the ball would jitter. */
 const DELAY_MS = 100;
 
-const PADDLE_WIDTH = 3;
+// A fifth of a unit is about half a pixel at the table's largest. Below that the
+// paddle cannot visibly move, so sending it only spends bandwidth.
+const AIM_EPSILON = 0.2;
+
+const MIN_X = PADDLE.width / 2;
+const MAX_X = TABLE.width - PADDLE.width / 2;
 
 type Frame = { received: number; tick: number; state: PongState };
 
@@ -39,7 +44,7 @@ export const PongBoard = ({
      absolutely positioned divs. */
   const frames = useRef<Frame[]>([]);
   const size = useRef({ width: 0, height: 0 });
-  const held = useRef(0);
+  const aim = useRef<number | null>(null);
 
   useEffect(() => {
     const stop = subscribe((snapshot) => {
@@ -77,7 +82,9 @@ export const PongBoard = ({
   }, []);
 
   useEffect(() => {
+    const element = table.current;
     let running = 0;
+    let sent = Number.NaN;
 
     const place = (node: HTMLDivElement | null, x: number, y: number): void => {
       if (node === null) return;
@@ -88,8 +95,6 @@ export const PongBoard = ({
     };
 
     const draw = (): void => {
-      running = requestAnimationFrame(draw);
-
       const buffered = frames.current;
       if (buffered.length === 0) return;
 
@@ -118,55 +123,63 @@ export const PongBoard = ({
       );
 
       for (const player of ["p0", "p1"] as const) {
+        /* Your own paddle is drawn from the pointer, never from the snapshot.
+           Everything else renders DELAY_MS behind the server, and a hand that
+           lags its own cursor by a tenth of a second is the one delay nobody
+           tolerates. The server still owns the value the ball collides with. */
+        const own = player === seat ? aim.current : null;
         place(
           paddleRefs.current[player],
-          player === "p0" ? PADDLE.inset : TABLE.width - PADDLE.inset,
-          lerp(older.state.paddles[player].y, newer.state.paddles[player].y, t),
+          own ?? lerp(older.state.paddles[player], newer.state.paddles[player], t),
+          player === "p0" ? TABLE.height - PADDLE.inset : PADDLE.inset,
         );
       }
     };
 
-    running = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(running);
-  }, []);
-
-  useEffect(() => {
-    if (seat === null) return;
-
-    const directionOf = (key: string): -1 | 0 | 1 =>
-      key === "ArrowUp" || key === "w" ? -1 : key === "ArrowDown" || key === "s" ? 1 : 0;
-
-    const press = (event: KeyboardEvent): void => {
-      const dir = directionOf(event.key);
-      if (dir === 0 || held.current === dir) return;
-      event.preventDefault();
-      held.current = dir;
-      onAction({ type: "SET_DIR", dir });
+    /* A pointer fires far faster than the sim ticks, so moving only records the
+       position and the frame sends whatever it last settled on. Emitting from the
+       handler would put a hundred-odd actions a second on the wire. */
+    const flush = (): void => {
+      const wanted = aim.current;
+      if (wanted === null || Math.abs(wanted - sent) < AIM_EPSILON) return;
+      sent = wanted;
+      onAction({ type: "AIM", x: wanted });
     };
 
-    const release = (event: KeyboardEvent): void => {
-      const dir = directionOf(event.key);
-      if (dir === 0 || held.current !== dir) return;
-      held.current = 0;
-      onAction({ type: "SET_DIR", dir: 0 });
+    // One loop, so the position drawn this frame is exactly the one sent.
+    const frame = (): void => {
+      running = requestAnimationFrame(frame);
+      draw();
+      flush();
     };
 
-    window.addEventListener("keydown", press);
-    window.addEventListener("keyup", release);
+    /* Tracked on the window rather than the board: the cursor leaving the table
+       mid-rally is normal, and freezing the paddle when it does would be worse
+       than clamping to the edge it left by. */
+    const track = (event: PointerEvent): void => {
+      if (element === null) return;
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0) return;
+      const x = ((event.clientX - rect.left) / rect.width) * TABLE.width;
+      aim.current = Math.min(Math.max(x, MIN_X), MAX_X);
+    };
+
+    if (seat !== null) window.addEventListener("pointermove", track);
+    running = requestAnimationFrame(frame);
 
     return () => {
-      window.removeEventListener("keydown", press);
-      window.removeEventListener("keyup", release);
+      window.removeEventListener("pointermove", track);
+      cancelAnimationFrame(running);
     };
   }, [seat, onAction]);
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-eo-inverse"
+      className="relative mx-auto h-[min(68vh,720px)] max-w-full touch-none overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-eo-inverse"
       style={{ aspectRatio: `${TABLE.width} / ${TABLE.height}` }}
       ref={table}
     >
-      <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-eo-on-inverse/20" />
+      <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-eo-on-inverse/20" />
 
       {(["p0", "p1"] as const).map((player) => (
         <div
@@ -177,8 +190,8 @@ export const PongBoard = ({
             seat === player && "ring-2 ring-eo-on-inverse/60",
           )}
           style={{
-            width: `${(PADDLE_WIDTH / TABLE.width) * 100}%`,
-            height: `${(PADDLE.height / TABLE.height) * 100}%`,
+            width: `${(PADDLE.width / TABLE.width) * 100}%`,
+            height: `${(PADDLE.thickness / TABLE.height) * 100}%`,
           }}
           ref={(node) => {
             paddleRefs.current[player] = node;
