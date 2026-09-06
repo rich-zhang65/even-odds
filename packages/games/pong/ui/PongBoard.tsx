@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { PlayerId, RealtimeSnapshot, Snapshot } from "@even-odds/game-sdk";
 import { SEATS } from "@even-odds/game-sdk/ui";
 import { cx } from "@even-odds/design-system/ui";
+import { aimedAt, seenBy } from "./perspective";
 import { BALL, PADDLE, TABLE } from "../src/types";
 import type { PongAction, PongState } from "../src/types";
 
@@ -89,8 +90,9 @@ export const PongBoard = ({
     const place = (node: HTMLDivElement | null, x: number, y: number): void => {
       if (node === null) return;
       const { width, height } = size.current;
-      const px = (x / TABLE.width) * width;
-      const py = (y / TABLE.height) * height;
+      const on = seenBy(seat, { x, y });
+      const px = (on.x / TABLE.width) * width;
+      const py = (on.y / TABLE.height) * height;
       node.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
     };
 
@@ -160,7 +162,8 @@ export const PongBoard = ({
       if (element === null) return;
       const rect = element.getBoundingClientRect();
       if (rect.width === 0) return;
-      const x = ((event.clientX - rect.left) / rect.width) * TABLE.width;
+      const along = ((event.clientX - rect.left) / rect.width) * TABLE.width;
+      const x = aimedAt(seat, along);
       aim.current = Math.min(Math.max(x, MIN_X), MAX_X);
     };
 
