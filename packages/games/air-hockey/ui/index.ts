@@ -1,0 +1,1 @@
+export { AirHockeyBoard } from "./AirHockeyBoard";
