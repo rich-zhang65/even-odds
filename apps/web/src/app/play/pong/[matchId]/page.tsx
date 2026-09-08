@@ -79,9 +79,9 @@ const MatchPage = ({ params }: PageProps<"/play/pong/[matchId]">) => {
         {snapshot !== null && snapshot.phase !== "waiting" && (
           <>
             <PongBoard seat={seat} subscribe={store.onSnapshot} onAction={send} />
-            <p className="mt-4 text-center font-eo-body text-eo-body-s text-eo-muted">
-              {seat === null ? "Watching" : "Move your mouse"}
-            </p>
+            {seat === null && (
+              <p className="mt-4 text-center font-eo-body text-eo-body-s text-eo-muted">Watching</p>
+            )}
           </>
         )}
       </PageContainer>
