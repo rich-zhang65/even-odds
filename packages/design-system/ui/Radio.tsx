@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { ChangeEvent, ReactNode } from "react";
-import { cx } from "./cx";
+import type { ChangeEvent, ReactNode } from 'react';
+import { cx } from './cx';
 
 export const Radio = ({
   name,
@@ -22,8 +22,8 @@ export const Radio = ({
 }) => (
   <label
     className={cx(
-      "flex items-center gap-3",
-      disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+      'flex items-center gap-3',
+      disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
       className,
     )}
   >
@@ -39,8 +39,8 @@ export const Radio = ({
     />
     <span
       className={cx(
-        "grid size-6 shrink-0 place-items-center rounded-full border-2 bg-eo-card peer-focus-visible:shadow-eo-focus",
-        checked ? "border-eo-blue-line" : "border-eo-control-line",
+        'grid size-6 shrink-0 place-items-center rounded-full border-2 bg-eo-card peer-focus-visible:shadow-eo-focus',
+        checked ? 'border-eo-blue-line' : 'border-eo-control-line',
       )}
     >
       {checked && <span className="size-3 rounded-full bg-eo-blue-solid" />}

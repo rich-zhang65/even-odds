@@ -1,4 +1,4 @@
-import type { AssetManifest } from "@even-odds/game-sdk";
+import type { AssetManifest } from '@even-odds/game-sdk';
 
 export const assets: AssetManifest = {
   icon: null,

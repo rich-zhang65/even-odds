@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import type { PlayerId, RealtimeSnapshot, Snapshot } from "@even-odds/game-sdk";
-import { aimedAt, SEATS, seenBy } from "@even-odds/game-sdk/ui";
-import { cx } from "@even-odds/design-system/ui";
-import { BALL, PADDLE, TABLE } from "../src/types";
-import type { PongAction, PongState } from "../src/types";
+import { useEffect, useRef } from 'react';
+import { cx } from '@even-odds/design-system/ui';
+import type { PlayerId, RealtimeSnapshot, Snapshot } from '@even-odds/game-sdk';
+import { aimedAt, SEATS, seenBy } from '@even-odds/game-sdk/ui';
+import { BALL, PADDLE, TABLE } from '../src/types';
+import type { PongAction, PongState } from '../src/types';
 
 /* Draw this far behind the server. Snapshots arrive every 50ms, so a frame
    almost always has two to sit between; without the delay every frame would be
@@ -23,8 +23,9 @@ type Frame = { received: number; tick: number; state: PongState };
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
-const isRealtimePong = (snapshot: Snapshot<unknown>): snapshot is RealtimeSnapshot<PongState> =>
-  snapshot.mode === "realtime";
+const isRealtimePong = (
+  snapshot: Snapshot<unknown>,
+): snapshot is RealtimeSnapshot<PongState> => snapshot.mode === 'realtime';
 
 export const PongBoard = ({
   seat,
@@ -37,7 +38,10 @@ export const PongBoard = ({
 }) => {
   const table = useRef<HTMLDivElement>(null);
   const ball = useRef<HTMLDivElement>(null);
-  const paddleRefs = useRef<Record<PlayerId, HTMLDivElement | null>>({ p0: null, p1: null });
+  const paddleRefs = useRef<Record<PlayerId, HTMLDivElement | null>>({
+    p0: null,
+    p1: null,
+  });
 
   /* All of this is deliberately outside React. The loop below runs sixty times a
      second; putting any of it in state would re-render the tree to move three
@@ -52,7 +56,11 @@ export const PongBoard = ({
 
       const buffered = frames.current;
       // Socket.IO delivers in order, but a stale frame would rewind the render.
-      if (buffered.length > 0 && snapshot.tick <= buffered[buffered.length - 1].tick) return;
+      if (
+        buffered.length > 0 &&
+        snapshot.tick <= buffered[buffered.length - 1].tick
+      )
+        return;
 
       buffered.push({
         received: performance.now(),
@@ -115,7 +123,8 @@ export const PongBoard = ({
       }
 
       const span = newer.received - older.received;
-      const t = span > 0 ? Math.min(Math.max((at - older.received) / span, 0), 1) : 1;
+      const t =
+        span > 0 ? Math.min(Math.max((at - older.received) / span, 0), 1) : 1;
 
       place(
         ball.current,
@@ -123,7 +132,7 @@ export const PongBoard = ({
         lerp(older.state.ball.at.y, newer.state.ball.at.y, t),
       );
 
-      for (const player of ["p0", "p1"] as const) {
+      for (const player of ['p0', 'p1'] as const) {
         /* Your own paddle is drawn from the pointer, never from the snapshot.
            Everything else renders DELAY_MS behind the server, and a hand that
            lags its own cursor by a tenth of a second is the one delay nobody
@@ -131,8 +140,9 @@ export const PongBoard = ({
         const own = player === seat ? aim.current : null;
         place(
           paddleRefs.current[player],
-          own ?? lerp(older.state.paddles[player], newer.state.paddles[player], t),
-          player === "p0" ? TABLE.height - PADDLE.inset : PADDLE.inset,
+          own ??
+            lerp(older.state.paddles[player], newer.state.paddles[player], t),
+          player === 'p0' ? TABLE.height - PADDLE.inset : PADDLE.inset,
         );
       }
     };
@@ -144,7 +154,7 @@ export const PongBoard = ({
       const wanted = aim.current;
       if (wanted === null || Math.abs(wanted - sent) < AIM_EPSILON) return;
       sent = wanted;
-      onAction({ type: "AIM", x: wanted });
+      onAction({ type: 'AIM', x: wanted });
     };
 
     // One loop, so the position drawn this frame is exactly the one sent.
@@ -166,11 +176,11 @@ export const PongBoard = ({
       aim.current = Math.min(Math.max(x, MIN_X), MAX_X);
     };
 
-    if (seat !== null) window.addEventListener("pointermove", track);
+    if (seat !== null) window.addEventListener('pointermove', track);
     running = requestAnimationFrame(frame);
 
     return () => {
-      window.removeEventListener("pointermove", track);
+      window.removeEventListener('pointermove', track);
       cancelAnimationFrame(running);
     };
   }, [seat, onAction]);
@@ -183,13 +193,13 @@ export const PongBoard = ({
     >
       <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-eo-on-inverse/20" />
 
-      {(["p0", "p1"] as const).map((player) => (
+      {(['p0', 'p1'] as const).map((player) => (
         <div
           key={player}
           className={cx(
-            "absolute top-0 left-0 rounded-eo-xs will-change-transform",
+            'absolute top-0 left-0 rounded-eo-xs will-change-transform',
             SEATS[player].solid,
-            seat === player && "ring-2 ring-eo-on-inverse/60",
+            seat === player && 'ring-2 ring-eo-on-inverse/60',
           )}
           style={{
             width: `${(PADDLE.width / TABLE.width) * 100}%`,
@@ -205,7 +215,7 @@ export const PongBoard = ({
         className="absolute top-0 left-0 rounded-full bg-eo-on-inverse will-change-transform"
         style={{
           width: `${((BALL.radius * 2) / TABLE.width) * 100}%`,
-          aspectRatio: "1",
+          aspectRatio: '1',
         }}
         ref={ball}
       />

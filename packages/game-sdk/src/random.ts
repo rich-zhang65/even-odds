@@ -1,4 +1,4 @@
-import type { RandomAPI } from "./types";
+import type { RandomAPI } from './types';
 
 const mulberry32 = (seed: number): (() => number) => {
   return () => {
@@ -18,7 +18,10 @@ export const createRandom = (seed: number): RandomAPI => {
       return min + Math.floor(next() * (max - min + 1));
     },
     dice(count, sides) {
-      return Array.from({ length: count }, () => 1 + Math.floor(next() * sides));
+      return Array.from(
+        { length: count },
+        () => 1 + Math.floor(next() * sides),
+      );
     },
     shuffle<T>(items: readonly T[]): T[] {
       const arr = [...items];

@@ -1,8 +1,17 @@
-import type { PlayerId } from "@even-odds/game-sdk";
+import type { PlayerId } from '@even-odds/game-sdk';
 
 export type Category =
-  | "ones" | "twos" | "threes" | "fours" | "fives" | "sixes"
-  | "threeOfAKind" | "fourOfAKind" | "fullHouse" | "straight" | "yazy";
+  | 'ones'
+  | 'twos'
+  | 'threes'
+  | 'fours'
+  | 'fives'
+  | 'sixes'
+  | 'threeOfAKind'
+  | 'fourOfAKind'
+  | 'fullHouse'
+  | 'straight'
+  | 'yazy';
 
 export type YazyState = {
   dice: number[];
@@ -14,6 +23,6 @@ export type YazyState = {
 };
 
 export type YazyAction =
-  | { type: "ROLL" }
-  | { type: "TOGGLE_HOLD"; index: number }
-  | { type: "SCORE"; category: Category };
+  | { type: 'ROLL' }
+  | { type: 'TOGGLE_HOLD'; index: number }
+  | { type: 'SCORE'; category: Category };

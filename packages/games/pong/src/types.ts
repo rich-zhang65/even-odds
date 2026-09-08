@@ -1,4 +1,4 @@
-import type { PlayerId } from "@even-odds/game-sdk";
+import type { PlayerId } from '@even-odds/game-sdk';
 
 /* Abstract units, never pixels: the table is 100 wide by 200 tall whatever the
    viewport is, and the client scales it at render. Coupling the simulation to a
@@ -6,7 +6,12 @@ import type { PlayerId } from "@even-odds/game-sdk";
 export const TABLE = { width: 100, height: 200 } as const;
 
 export const PADDLE = { width: 20, thickness: 3, inset: 5 } as const;
-export const BALL = { radius: 2, speed: 90, speedUp: 1.04, maxSpeed: 170 } as const;
+export const BALL = {
+  radius: 2,
+  speed: 90,
+  speedUp: 1.04,
+  maxSpeed: 170,
+} as const;
 
 export const SERVE_DELAY_MS = 900;
 export const TARGET_SCORE = 7;
@@ -27,4 +32,4 @@ export type PongState = {
   serve: { inMs: number; toward: PlayerId };
 };
 
-export type PongAction = { type: "AIM"; x: number };
+export type PongAction = { type: 'AIM'; x: number };

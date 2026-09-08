@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 const ROLL_MS = 700;
 export const STAGGER_MS = 50;
@@ -13,7 +13,10 @@ const SHUFFLE_MS = 70;
    away. An effect is the only way in: the roll that has to animate is just as
    often the opponent's, arriving over the socket with no local event to hang a
    timer on. */
-export const useRoll = (rollsLeft: number, count: number): { rolling: boolean; tick: number } => {
+export const useRoll = (
+  rollsLeft: number,
+  count: number,
+): { rolling: boolean; tick: number } => {
   const [seen, setSeen] = useState(rollsLeft);
   const [rolls, setRolls] = useState(0);
   const [settled, setSettled] = useState(0);
@@ -29,8 +32,10 @@ export const useRoll = (rollsLeft: number, count: number): { rolling: boolean; t
   useEffect(() => {
     if (!rolling) return;
 
-    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const shuffle = still ? null : setInterval(() => setTick((t) => t + 1), SHUFFLE_MS);
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const shuffle = still
+      ? null
+      : setInterval(() => setTick((t) => t + 1), SHUFFLE_MS);
     const settle = setTimeout(
       () => setSettled(rolls),
       still ? 0 : ROLL_MS + (count - 1) * STAGGER_MS,

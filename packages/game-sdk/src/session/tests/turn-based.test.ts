@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createTurnBasedSession } from "../turn-based";
-import { createSession } from "../index";
-import type { SessionEvent, Snapshot, TurnBasedSnapshot } from "../types";
-import type { TurnBasedGame, PlayerId } from "../../types";
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { TurnBasedGame, PlayerId } from '../../types';
+import { createSession } from '../index';
+import { createTurnBasedSession } from '../turn-based';
+import type { SessionEvent, Snapshot, TurnBasedSnapshot } from '../types';
 
 type RaceState = {
   scores: Record<PlayerId, number>;
@@ -10,17 +10,17 @@ type RaceState = {
   turn: PlayerId;
 };
 
-type RaceAction = { type: "INC" };
+type RaceAction = { type: 'INC' };
 
 const TARGET = 3;
 
 // Minimal stand-in game — game-sdk must not depend on a game package.
 const Race: TurnBasedGame<RaceState, RaceAction> = {
-  mode: "turn-based",
+  mode: 'turn-based',
   meta: {
-    id: "race",
-    name: "Race",
-    tagline: "First to three",
+    id: 'race',
+    name: 'Race',
+    tagline: 'First to three',
     estimatedMinutes: 1,
     assets: { icon: null, sprites: {}, sounds: {} },
   },
@@ -30,20 +30,20 @@ const Race: TurnBasedGame<RaceState, RaceAction> = {
     turn: ctx.players[0],
   }),
   currentPlayer: (state) => state.turn,
-  isLegal: (_state, action) => action.type === "INC",
+  isLegal: (_state, action) => action.type === 'INC',
   reduce: (state, _action, by) => ({
     ...state,
     scores: { ...state.scores, [by]: state.scores[by] + 1 },
-    turn: by === "p0" ? "p1" : "p0",
+    turn: by === 'p0' ? 'p1' : 'p0',
   }),
   isTerminal: (state) => {
-    if (state.scores.p0 >= TARGET) return { winner: "p0" };
-    if (state.scores.p1 >= TARGET) return { winner: "p1" };
+    if (state.scores.p0 >= TARGET) return { winner: 'p0' };
+    if (state.scores.p1 >= TARGET) return { winner: 'p1' };
     return null;
   },
   playerView: (state, viewer) => ({
     ...state,
-    secret: { ...state.secret, [viewer === "p0" ? "p1" : "p0"]: 0 },
+    secret: { ...state.secret, [viewer === 'p0' ? 'p1' : 'p0']: 0 },
   }),
 };
 
@@ -52,7 +52,7 @@ type Emitted = { to: PlayerId; event: SessionEvent<RaceState> };
 const newSession = (graceMs = 60_000) => {
   const emitted: Emitted[] = [];
   const session = createTurnBasedSession(Race, {
-    matchId: "m1",
+    matchId: 'm1',
     seed: 1,
     graceMs,
     emit: (to, event) => emitted.push({ to, event }),
@@ -60,182 +60,205 @@ const newSession = (graceMs = 60_000) => {
   return { session, emitted };
 };
 
-const inc = (): RaceAction => ({ type: "INC" });
+const inc = (): RaceAction => ({ type: 'INC' });
 
 // Session hands back the union; a turn-based session only ever builds one arm.
-const turnBased = (snapshot: Snapshot<RaceState>): TurnBasedSnapshot<RaceState> => {
-  if (snapshot.mode !== "turn-based") throw new Error(`unexpected ${snapshot.mode} snapshot`);
+const turnBased = (
+  snapshot: Snapshot<RaceState>,
+): TurnBasedSnapshot<RaceState> => {
+  if (snapshot.mode !== 'turn-based')
+    throw new Error(`unexpected ${snapshot.mode} snapshot`);
   return snapshot;
 };
 
-const eventsOfType = (emitted: Emitted[], type: SessionEvent<RaceState>["type"]) =>
-  emitted.filter((e) => e.event.type === type);
+const eventsOfType = (
+  emitted: Emitted[],
+  type: SessionEvent<RaceState>['type'],
+) => emitted.filter((e) => e.event.type === type);
 
-describe("TurnBasedSession — lifecycle", () => {
-  it("starts in waiting and reports it in the snapshot", () => {
+describe('TurnBasedSession — lifecycle', () => {
+  it('starts in waiting and reports it in the snapshot', () => {
     const { session, emitted } = newSession();
-    expect(session.snapshotFor("p0").phase).toBe("waiting");
+    expect(session.snapshotFor('p0').phase).toBe('waiting');
     expect(emitted).toHaveLength(0);
   });
 
-  it("start() moves to playing and pushes state to both players", () => {
+  it('start() moves to playing and pushes state to both players', () => {
     const { session, emitted } = newSession();
     session.start();
 
-    expect(session.snapshotFor("p0").phase).toBe("playing");
-    expect(emitted.map((e) => e.to)).toEqual(["p0", "p1"]);
-    expect(eventsOfType(emitted, "state")).toHaveLength(2);
+    expect(session.snapshotFor('p0').phase).toBe('playing');
+    expect(emitted.map((e) => e.to)).toEqual(['p0', 'p1']);
+    expect(eventsOfType(emitted, 'state')).toHaveLength(2);
   });
 
-  it("start() is idempotent", () => {
+  it('start() is idempotent', () => {
     const { session, emitted } = newSession();
     session.start();
     session.start();
     expect(emitted).toHaveLength(2);
   });
 
-  it("rejects actions before start", () => {
+  it('rejects actions before start', () => {
     const { session } = newSession();
-    const result = session.handleAction(inc(), "p0");
-    expect(result).toEqual({ ok: false, error: "match is waiting" });
+    const result = session.handleAction(inc(), 'p0');
+    expect(result).toEqual({ ok: false, error: 'match is waiting' });
   });
 });
 
-describe("TurnBasedSession — actions", () => {
-  it("broadcasts state to both players after a legal action", () => {
+describe('TurnBasedSession — actions', () => {
+  it('broadcasts state to both players after a legal action', () => {
     const { session, emitted } = newSession();
     session.start();
     emitted.length = 0;
 
-    expect(session.handleAction(inc(), "p0")).toEqual({ ok: true });
-    expect(emitted.map((e) => e.to)).toEqual(["p0", "p1"]);
-    expect(session.snapshotFor("p0").state.scores.p0).toBe(1);
-    expect(turnBased(session.snapshotFor("p0")).currentPlayer).toBe("p1");
+    expect(session.handleAction(inc(), 'p0')).toEqual({ ok: true });
+    expect(emitted.map((e) => e.to)).toEqual(['p0', 'p1']);
+    expect(session.snapshotFor('p0').state.scores.p0).toBe(1);
+    expect(turnBased(session.snapshotFor('p0')).currentPlayer).toBe('p1');
   });
 
-  it("rejects an out-of-turn action and emits nothing", () => {
+  it('rejects an out-of-turn action and emits nothing', () => {
     const { session, emitted } = newSession();
     session.start();
     emitted.length = 0;
 
-    const result = session.handleAction(inc(), "p1");
-    expect(result).toEqual({ ok: false, error: "not your turn" });
+    const result = session.handleAction(inc(), 'p1');
+    expect(result).toEqual({ ok: false, error: 'not your turn' });
     expect(emitted).toHaveLength(0);
   });
 
-  it("emits over to both players when the game ends", () => {
+  it('emits over to both players when the game ends', () => {
     const { session, emitted } = newSession();
     session.start();
     for (let i = 0; i < TARGET; i++) {
-      session.handleAction(inc(), "p0");
-      if (session.snapshotFor("p0").phase === "playing") session.handleAction(inc(), "p1");
+      session.handleAction(inc(), 'p0');
+      if (session.snapshotFor('p0').phase === 'playing')
+        session.handleAction(inc(), 'p1');
     }
 
-    const over = eventsOfType(emitted, "over");
+    const over = eventsOfType(emitted, 'over');
     expect(over).toHaveLength(2);
-    expect(over.map((e) => e.to)).toEqual(["p0", "p1"]);
-    expect(over[0].event).toEqual({ type: "over", result: { winner: "p0" } });
-    expect(session.snapshotFor("p0").phase).toBe("over");
+    expect(over.map((e) => e.to)).toEqual(['p0', 'p1']);
+    expect(over[0].event).toEqual({ type: 'over', result: { winner: 'p0' } });
+    expect(session.snapshotFor('p0').phase).toBe('over');
   });
 
-  it("rejects actions once the game is over", () => {
+  it('rejects actions once the game is over', () => {
     const { session } = newSession();
     session.start();
     for (let i = 0; i < TARGET; i++) {
-      session.handleAction(inc(), "p0");
-      if (session.snapshotFor("p0").phase === "playing") session.handleAction(inc(), "p1");
+      session.handleAction(inc(), 'p0');
+      if (session.snapshotFor('p0').phase === 'playing')
+        session.handleAction(inc(), 'p1');
     }
-    expect(session.handleAction(inc(), "p1")).toEqual({ ok: false, error: "match is over" });
+    expect(session.handleAction(inc(), 'p1')).toEqual({
+      ok: false,
+      error: 'match is over',
+    });
   });
 });
 
-describe("createSession — runtime selection", () => {
-  it("builds a turn-based session for a turn-based game", () => {
-    const session = createSession(Race, { matchId: "m1", seed: 1, emit: () => {} });
+describe('createSession — runtime selection', () => {
+  it('builds a turn-based session for a turn-based game', () => {
+    const session = createSession(Race, {
+      matchId: 'm1',
+      seed: 1,
+      emit: () => {},
+    });
     session.start();
-    expect(session.snapshotFor("p0").phase).toBe("playing");
+    expect(session.snapshotFor('p0').phase).toBe('playing');
   });
 
-  it("survives its methods being detached onto socket handlers", () => {
+  it('survives its methods being detached onto socket handlers', () => {
     const { session, emitted } = newSession();
     const { start, handleAction, onDisconnect } = session;
 
     start();
-    expect(handleAction(inc(), "p0")).toEqual({ ok: true });
-    onDisconnect("p1");
+    expect(handleAction(inc(), 'p0')).toEqual({ ok: true });
+    onDisconnect('p1');
 
-    expect(session.snapshotFor("p0").phase).toBe("paused");
-    expect(emitted.some((e) => e.event.type === "opponent")).toBe(true);
+    expect(session.snapshotFor('p0').phase).toBe('paused');
+    expect(emitted.some((e) => e.event.type === 'opponent')).toBe(true);
   });
 });
 
-describe("TurnBasedSession — player view", () => {
+describe('TurnBasedSession — player view', () => {
   it("masks the opponent's secret per viewer", () => {
     const { session } = newSession();
     session.start();
 
-    expect(session.snapshotFor("p0").state.secret).toEqual({ p0: 11, p1: 0 });
-    expect(session.snapshotFor("p1").state.secret).toEqual({ p0: 0, p1: 22 });
+    expect(session.snapshotFor('p0').state.secret).toEqual({ p0: 11, p1: 0 });
+    expect(session.snapshotFor('p1').state.secret).toEqual({ p0: 0, p1: 22 });
   });
 });
 
-describe("TurnBasedSession — disconnect", () => {
+describe('TurnBasedSession — disconnect', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it("pauses the match and tells the opponent", () => {
+  it('pauses the match and tells the opponent', () => {
     const { session, emitted } = newSession();
     session.start();
     emitted.length = 0;
 
-    session.onDisconnect("p0");
-    expect(session.snapshotFor("p0").phase).toBe("paused");
-    expect(emitted[0]).toEqual({ to: "p1", event: { type: "opponent", connected: false } });
+    session.onDisconnect('p0');
+    expect(session.snapshotFor('p0').phase).toBe('paused');
+    expect(emitted[0]).toEqual({
+      to: 'p1',
+      event: { type: 'opponent', connected: false },
+    });
   });
 
-  it("rejects actions while paused", () => {
+  it('rejects actions while paused', () => {
     const { session } = newSession();
     session.start();
-    session.onDisconnect("p1");
-    expect(session.handleAction(inc(), "p0")).toEqual({ ok: false, error: "match is paused" });
+    session.onDisconnect('p1');
+    expect(session.handleAction(inc(), 'p0')).toEqual({
+      ok: false,
+      error: 'match is paused',
+    });
   });
 
-  it("resumes on reconnect within the grace window", () => {
+  it('resumes on reconnect within the grace window', () => {
     const { session, emitted } = newSession();
     session.start();
-    session.onDisconnect("p0");
+    session.onDisconnect('p0');
     emitted.length = 0;
 
     vi.advanceTimersByTime(59_000);
-    session.onReconnect("p0");
+    session.onReconnect('p0');
 
-    expect(session.snapshotFor("p0").phase).toBe("playing");
-    expect(emitted[0]).toEqual({ to: "p1", event: { type: "opponent", connected: true } });
+    expect(session.snapshotFor('p0').phase).toBe('playing');
+    expect(emitted[0]).toEqual({
+      to: 'p1',
+      event: { type: 'opponent', connected: true },
+    });
 
     vi.advanceTimersByTime(60_000);
-    expect(session.snapshotFor("p0").phase).toBe("playing");
+    expect(session.snapshotFor('p0').phase).toBe('playing');
   });
 
-  it("forfeits to the opponent once the grace window expires", () => {
+  it('forfeits to the opponent once the grace window expires', () => {
     const { session, emitted } = newSession();
     session.start();
-    session.onDisconnect("p0");
+    session.onDisconnect('p0');
     emitted.length = 0;
 
     vi.advanceTimersByTime(60_000);
 
-    expect(session.snapshotFor("p0").phase).toBe("over");
-    expect(session.snapshotFor("p0").result).toEqual({
-      winner: "p1",
-      reason: "opponent disconnected",
+    expect(session.snapshotFor('p0').phase).toBe('over');
+    expect(session.snapshotFor('p0').result).toEqual({
+      winner: 'p1',
+      reason: 'opponent disconnected',
     });
-    expect(eventsOfType(emitted, "over")).toHaveLength(2);
+    expect(eventsOfType(emitted, 'over')).toHaveLength(2);
   });
 
-  it("does not forfeit a match that already ended", () => {
+  it('does not forfeit a match that already ended', () => {
     const { session, emitted } = newSession();
     session.start();
-    session.onDisconnect("p0");
+    session.onDisconnect('p0');
     session.stop();
     emitted.length = 0;
 
@@ -243,18 +266,18 @@ describe("TurnBasedSession — disconnect", () => {
     expect(emitted).toHaveLength(0);
   });
 
-  it("honours a custom grace window", () => {
+  it('honours a custom grace window', () => {
     const { session } = newSession(5_000);
     session.start();
-    session.onDisconnect("p1");
+    session.onDisconnect('p1');
 
     vi.advanceTimersByTime(4_999);
-    expect(session.snapshotFor("p0").phase).toBe("paused");
+    expect(session.snapshotFor('p0').phase).toBe('paused');
 
     vi.advanceTimersByTime(1);
-    expect(session.snapshotFor("p0").result).toEqual({
-      winner: "p0",
-      reason: "opponent disconnected",
+    expect(session.snapshotFor('p0').result).toEqual({
+      winner: 'p0',
+      reason: 'opponent disconnected',
     });
   });
 });

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useSyncExternalStore } from "react";
-import type { GameAction, Snapshot } from "@even-odds/game-sdk";
-import { EMPTY_MATCH, getMatchStore } from "./matchStore";
-import type { MatchState } from "./matchStore";
+import { useSyncExternalStore } from 'react';
+import type { GameAction, Snapshot } from '@even-odds/game-sdk';
+import { EMPTY_MATCH, getMatchStore } from './matchStore';
+import type { MatchState } from './matchStore';
 
 const serverState = (): MatchState => EMPTY_MATCH;
 
@@ -11,7 +11,11 @@ const serverState = (): MatchState => EMPTY_MATCH;
    showing; the socket and the store, shared across every match, cannot. */
 export const useMatch = <S, A extends GameAction>(matchId: string) => {
   const store = getMatchStore(matchId);
-  const state = useSyncExternalStore(store.subscribe, store.getState, serverState);
+  const state = useSyncExternalStore(
+    store.subscribe,
+    store.getState,
+    serverState,
+  );
 
   /* Handed straight through rather than wrapped. Stores are cached per match, so
      this is the same reference every render — a wrapper here would be a new

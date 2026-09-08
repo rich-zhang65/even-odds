@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import { Info, TriangleAlert, Trophy, X, type LucideIcon } from "lucide-react";
-import { cx } from "./cx";
-import { Icon } from "./Icon";
+import { Info, TriangleAlert, Trophy, X, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { cx } from './cx';
+import { Icon } from './Icon';
 
-export type ToastTone = "neutral" | "win" | "alert";
+export type ToastTone = 'neutral' | 'win' | 'alert';
 
 const TONES: Record<ToastTone, { className: string; icon: LucideIcon }> = {
-  neutral: { className: "bg-eo-inverse text-eo-on-inverse", icon: Info },
-  win: { className: "bg-eo-blue-600", icon: Trophy },
-  alert: { className: "bg-eo-red-500", icon: TriangleAlert },
+  neutral: { className: 'bg-eo-inverse text-eo-on-inverse', icon: Info },
+  win: { className: 'bg-eo-blue-600', icon: Trophy },
+  alert: { className: 'bg-eo-red-500', icon: TriangleAlert },
 };
 
 export const Toast = ({
-  tone = "neutral",
+  tone = 'neutral',
   message,
   action,
   onDismiss,
@@ -28,7 +28,7 @@ export const Toast = ({
 }) => (
   <div
     className={cx(
-      "inline-flex animate-eo-rise items-center gap-3 rounded-eo-pill px-4 py-3 font-eo-body text-eo-body-s font-semibold text-eo-on-color shadow-eo-lg",
+      'inline-flex animate-eo-rise items-center gap-3 rounded-eo-pill px-4 py-3 font-eo-body text-eo-body-s font-semibold text-eo-on-color shadow-eo-lg',
       TONES[tone].className,
       className,
     )}

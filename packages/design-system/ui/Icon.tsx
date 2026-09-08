@@ -1,5 +1,5 @@
-import type { LucideIcon } from "lucide-react";
-import { cx } from "./cx";
+import type { LucideIcon } from 'lucide-react';
+import { cx } from './cx';
 
 export const Icon = ({
   icon: Glyph,
@@ -9,4 +9,6 @@ export const Icon = ({
   icon: LucideIcon;
   size?: number;
   className?: string;
-}) => <Glyph className={cx("shrink-0", className)} aria-hidden="true" size={size} />;
+}) => (
+  <Glyph className={cx('shrink-0', className)} aria-hidden="true" size={size} />
+);

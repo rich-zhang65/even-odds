@@ -1,16 +1,22 @@
-import { createRandom } from "../random";
-import type { EngineContext, GameAction, GameResult, PlayerId, RealtimeGame } from "../types";
-import { systemScheduler } from "./scheduler";
-import type { Cancel } from "./scheduler";
+import { createRandom } from '../random';
+import type {
+  EngineContext,
+  GameAction,
+  GameResult,
+  PlayerId,
+  RealtimeGame,
+} from '../types';
+import { systemScheduler } from './scheduler';
+import type { Cancel } from './scheduler';
 import type {
   RealtimeSnapshot,
   Session,
   SessionEvent,
   SessionOptions,
   SessionPhase,
-} from "./types";
+} from './types';
 
-const OPPONENT: Record<PlayerId, PlayerId> = { p0: "p1", p1: "p0" };
+const OPPONENT: Record<PlayerId, PlayerId> = { p0: 'p1', p1: 'p0' };
 
 const DEFAULT_GRACE_MS = 60_000;
 const BROADCAST_HZ = 20;
@@ -33,13 +39,13 @@ export const createRealtimeSession = <S, A extends GameAction>(
 
   const ctx: EngineContext = {
     matchId: opts.matchId,
-    players: ["p0", "p1"],
+    players: ['p0', 'p1'],
     random: createRandom(opts.seed),
     now: opts.now ?? clock.now(),
   };
 
   let state = def.setup(ctx);
-  let phase: SessionPhase = "waiting";
+  let phase: SessionPhase = 'waiting';
   let forfeit: GameResult | null = null;
   let tick = 0;
   let accumulator = 0;
@@ -55,7 +61,7 @@ export const createRealtimeSession = <S, A extends GameAction>(
   const pending: Record<PlayerId, A[]> = { p0: [], p1: [] };
 
   const snapshotFor = (viewer: PlayerId): RealtimeSnapshot<S> => ({
-    mode: "realtime",
+    mode: 'realtime',
     matchId: ctx.matchId,
     phase,
     state: def.playerView?.(state, viewer) ?? state,
@@ -70,7 +76,7 @@ export const createRealtimeSession = <S, A extends GameAction>(
 
   const broadcastState = (): void => {
     for (const player of ctx.players) {
-      opts.emit(player, { type: "state", snapshot: snapshotFor(player) });
+      opts.emit(player, { type: 'state', snapshot: snapshotFor(player) });
     }
   };
 
@@ -89,9 +95,9 @@ export const createRealtimeSession = <S, A extends GameAction>(
   const finish = (result: GameResult): void => {
     halt();
     clearGrace();
-    phase = "over";
+    phase = 'over';
     broadcastState();
-    broadcast({ type: "over", result });
+    broadcast({ type: 'over', result });
   };
 
   const step = (): void => {
@@ -124,13 +130,13 @@ export const createRealtimeSession = <S, A extends GameAction>(
      simulation therefore sees the same dt every time regardless of jitter, which
      is what makes a replay of the same inputs land in the same place. */
   const frame = (): void => {
-    if (phase !== "playing") return;
+    if (phase !== 'playing') return;
 
     const now = clock.now();
     accumulator += now - last;
     last = now;
 
-    while (accumulator >= stepMs - SLACK_MS && phase === "playing") {
+    while (accumulator >= stepMs - SLACK_MS && phase === 'playing') {
       accumulator -= stepMs;
       step();
     }
@@ -138,17 +144,17 @@ export const createRealtimeSession = <S, A extends GameAction>(
 
   const forfeitBy = (player: PlayerId): void => {
     stopGrace = null;
-    if (phase === "over") return;
-    forfeit = { winner: OPPONENT[player], reason: "opponent disconnected" };
+    if (phase === 'over') return;
+    forfeit = { winner: OPPONENT[player], reason: 'opponent disconnected' };
     finish(forfeit);
   };
 
   return {
     start: () => {
-      if (phase !== "waiting") return;
+      if (phase !== 'waiting') return;
       connected.p0 = true;
       connected.p1 = true;
-      phase = "playing";
+      phase = 'playing';
       last = clock.now();
       accumulator = 0;
       broadcastState();
@@ -156,33 +162,33 @@ export const createRealtimeSession = <S, A extends GameAction>(
     },
 
     handleAction: (action, by) => {
-      if (phase !== "playing") return { ok: false, error: `match is ${phase}` };
+      if (phase !== 'playing') return { ok: false, error: `match is ${phase}` };
       pending[by].push(action);
       // Receipt, not application. The next tick decides whether it was legal.
       return { ok: true };
     },
 
     onDisconnect: (player) => {
-      if (phase === "over") return;
+      if (phase === 'over') return;
       connected[player] = false;
-      opts.emit(OPPONENT[player], { type: "opponent", connected: false });
+      opts.emit(OPPONENT[player], { type: 'opponent', connected: false });
 
-      if (phase !== "playing") return;
-      phase = "paused";
+      if (phase !== 'playing') return;
+      phase = 'paused';
       halt();
       broadcastState();
       stopGrace = clock.after(graceMs, () => forfeitBy(player));
     },
 
     onReconnect: (player) => {
-      if (phase === "over") return;
+      if (phase === 'over') return;
       connected[player] = true;
       clearGrace();
 
-      opts.emit(OPPONENT[player], { type: "opponent", connected: true });
+      opts.emit(OPPONENT[player], { type: 'opponent', connected: true });
 
-      if (phase === "paused" && connected.p0 && connected.p1) {
-        phase = "playing";
+      if (phase === 'paused' && connected.p0 && connected.p1) {
+        phase = 'playing';
         // Time passed while paused is not simulated: the match resumes, it does
         // not fast-forward through the seconds nobody was playing.
         last = clock.now();
@@ -197,7 +203,7 @@ export const createRealtimeSession = <S, A extends GameAction>(
     stop: () => {
       halt();
       clearGrace();
-      phase = "over";
+      phase = 'over';
     },
   };
 };

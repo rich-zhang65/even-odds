@@ -1,9 +1,9 @@
-import type { PlayerId } from "@even-odds/game-sdk";
-import { SEATS } from "@even-odds/game-sdk/ui";
-import { cx } from "@even-odds/design-system/ui";
-import type { Category, YazyState } from "../src/types";
-import { previewScore } from "../src/logic";
-import { CATEGORY_INFO } from "../src/scoring";
+import { cx } from '@even-odds/design-system/ui';
+import type { PlayerId } from '@even-odds/game-sdk';
+import { SEATS } from '@even-odds/game-sdk/ui';
+import { previewScore } from '../src/logic';
+import { CATEGORY_INFO } from '../src/scoring';
+import type { Category, YazyState } from '../src/types';
 
 export const ScoreCell = ({
   player,
@@ -39,16 +39,16 @@ export const ScoreCell = ({
   return (
     <button
       className={cx(
-        "min-h-14 border-l border-eo-hairline font-eo-body text-base tabular-nums transition-colors duration-(--eo-duration-fast) ease-eo-out",
+        'min-h-14 border-l border-eo-hairline font-eo-body text-base tabular-nums transition-colors duration-(--eo-duration-fast) ease-eo-out',
         recorded !== undefined
-          ? cx(seat.soft, seat.ink, "font-extrabold")
+          ? cx(seat.soft, seat.ink, 'font-extrabold')
           : open
             ? cx(
-                "font-semibold text-eo-faint",
+                'font-semibold text-eo-faint',
                 seat.pick,
-                actionable ? "cursor-pointer" : "pointer-events-none",
+                actionable ? 'cursor-pointer' : 'pointer-events-none',
               )
-            : "bg-eo-card",
+            : 'bg-eo-card',
       )}
       type="button"
       disabled={!actionable}

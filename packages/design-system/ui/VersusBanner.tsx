@@ -1,9 +1,9 @@
-import { cx } from "./cx";
-import { Flex } from "./Flex";
+import { cx } from './cx';
+import { Flex } from './Flex';
 
 export const VersusBanner = ({
-  redName = "Red",
-  blueName = "Blue",
+  redName = 'Red',
+  blueName = 'Blue',
   label,
   className,
 }: {
@@ -12,7 +12,12 @@ export const VersusBanner = ({
   label?: string;
   className?: string;
 }) => (
-  <div className={cx("relative grid h-33 grid-cols-2 overflow-hidden rounded-eo-lg", className)}>
+  <div
+    className={cx(
+      'relative grid h-33 grid-cols-2 overflow-hidden rounded-eo-lg',
+      className,
+    )}
+  >
     <Flex className="bg-eo-red-solid px-8" align="center" justify="start">
       <span className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-on-color">
         {redName}

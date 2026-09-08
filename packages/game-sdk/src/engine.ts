@@ -1,11 +1,20 @@
-import type { EngineContext, GameAction, GameResult, PlayerId, TurnBasedGame } from "./types";
-import { createRandom } from "./random";
+import { createRandom } from './random';
+import type {
+  EngineContext,
+  GameAction,
+  GameResult,
+  PlayerId,
+  TurnBasedGame,
+} from './types';
 
 // Turn-based only: dispatch enforces whose move it is, which realtime has no answer to.
 export type Engine<S, A extends GameAction> = {
   state: S;
   context: EngineContext;
-  dispatch(action: A, by: PlayerId): { ok: true; state: S } | { ok: false; error: string };
+  dispatch(
+    action: A,
+    by: PlayerId,
+  ): { ok: true; state: S } | { ok: false; error: string };
   result(): GameResult | null;
 };
 
@@ -15,7 +24,7 @@ export const createEngine = <S, A extends GameAction>(
 ): Engine<S, A> => {
   const ctx: EngineContext = {
     matchId: opts.matchId,
-    players: ["p0", "p1"],
+    players: ['p0', 'p1'],
     random: createRandom(opts.seed),
     now: opts.now ?? Date.now(),
   };
@@ -30,9 +39,11 @@ export const createEngine = <S, A extends GameAction>(
     },
     dispatch(action, by) {
       const terminal = def.isTerminal(state);
-      if (terminal) return { ok: false, error: "match is over" };
-      if (def.currentPlayer(state) !== by) return { ok: false, error: "not your turn" };
-      if (!def.isLegal(state, action, by, ctx)) return { ok: false, error: "illegal action" };
+      if (terminal) return { ok: false, error: 'match is over' };
+      if (def.currentPlayer(state) !== by)
+        return { ok: false, error: 'not your turn' };
+      if (!def.isLegal(state, action, by, ctx))
+        return { ok: false, error: 'illegal action' };
       state = def.reduce(state, action, by, ctx);
       return { ok: true, state };
     },

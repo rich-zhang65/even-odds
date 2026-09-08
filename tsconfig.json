@@ -13,6 +13,12 @@
     "types": ["node"],
     "paths": { "@/*": ["./apps/web/src/*"] }
   },
-  "include": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts", "packages/**/*.tsx", "vitest.config.ts"],
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "vitest.config.ts"
+  ],
   "exclude": ["node_modules", "**/.next"]
 }

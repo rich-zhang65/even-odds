@@ -1,25 +1,28 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { use, useState } from "react";
-import { Button, Card, Dialog, Toast } from "@even-odds/design-system/ui";
-import { totalScore } from "@even-odds/yazy";
-import type { YazyAction, YazyState } from "@even-odds/yazy";
-import { YazyBoard } from "@even-odds/yazy/ui";
-import { MatchHeader } from "@/components/MatchHeader";
-import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
-import { useMatch } from "@/lib/useMatch";
+import { useRouter } from 'next/navigation';
+import { use, useState } from 'react';
+import { Button, Card, Dialog, Toast } from '@even-odds/design-system/ui';
+import { totalScore } from '@even-odds/yazy';
+import type { YazyAction, YazyState } from '@even-odds/yazy';
+import { YazyBoard } from '@even-odds/yazy/ui';
+import { MatchHeader } from '@/components/MatchHeader';
+import { PageContainer } from '@/components/PageContainer';
+import { PageHeader } from '@/components/PageHeader';
+import { useMatch } from '@/lib/useMatch';
 
 const MESSAGES: Record<string, string> = {
-  full: "This match already has two players.",
-  notfound: "That match no longer exists.",
+  full: 'This match already has two players.',
+  notfound: 'That match no longer exists.',
 };
 
-const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
+const MatchPage = ({ params }: PageProps<'/play/yazy/[matchId]'>) => {
   const { matchId } = use(params);
   const router = useRouter();
-  const { snapshot, seat, seats, error, send } = useMatch<YazyState, YazyAction>(matchId);
+  const { snapshot, seat, seats, error, send } = useMatch<
+    YazyState,
+    YazyAction
+  >(matchId);
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -47,17 +50,19 @@ const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
           />
         )}
 
-        {snapshot?.phase === "paused" && (
+        {snapshot?.phase === 'paused' && (
           <Card className="mb-6 text-center font-eo-body text-eo-body-s text-eo-muted">
             Opponent disconnected — waiting for them to come back.
           </Card>
         )}
 
         {snapshot === null && error === null && (
-          <p className="py-24 text-center font-eo-body text-eo-body-m text-eo-muted">Connecting…</p>
+          <p className="py-24 text-center font-eo-body text-eo-body-m text-eo-muted">
+            Connecting…
+          </p>
         )}
 
-        {snapshot?.phase === "waiting" && (
+        {snapshot?.phase === 'waiting' && (
           <Card className="mx-auto max-w-md text-center" tone="outlined">
             <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
               Waiting for an opponent
@@ -66,15 +71,16 @@ const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
               Send this link to whoever you want to play against.
             </p>
             <Button fullWidth onClick={copyLink}>
-              {copied ? "Copied to clipboard" : "Copy match link"}
+              {copied ? 'Copied to clipboard' : 'Copy match link'}
             </Button>
             <p className="mt-4 font-eo-body text-eo-caption text-eo-muted">
-              Seats · Red {seats.p0 ? "ready" : "—"} · Blue {seats.p1 ? "ready" : "—"}
+              Seats · Red {seats.p0 ? 'ready' : '—'} · Blue{' '}
+              {seats.p1 ? 'ready' : '—'}
             </p>
           </Card>
         )}
 
-        {snapshot !== null && snapshot.phase !== "waiting" && (
+        {snapshot !== null && snapshot.phase !== 'waiting' && (
           <YazyBoard snapshot={snapshot} seat={seat} onAction={send} />
         )}
       </PageContainer>
@@ -89,7 +95,7 @@ const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
             <Button variant="ghost" onClick={() => setLeaving(false)}>
               Keep playing
             </Button>
-            <Button variant="red" onClick={() => router.push("/")}>
+            <Button variant="red" onClick={() => router.push('/')}>
               Leave match
             </Button>
           </>

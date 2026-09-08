@@ -1,10 +1,18 @@
-import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, type LucideIcon } from "lucide-react";
-import type { PlayerId } from "@even-odds/game-sdk";
-import { SEATS, SEAT_ORDER, YouTag } from "@even-odds/game-sdk/ui";
-import { Flex, Icon, cx } from "@even-odds/design-system/ui";
-import type { Category, YazyState } from "../src/types";
-import { LOWER_CATEGORIES, UPPER_CATEGORIES } from "../src/scoring";
-import { ScoreCell } from "./ScoreCell";
+import {
+  Dice1,
+  Dice2,
+  Dice3,
+  Dice4,
+  Dice5,
+  Dice6,
+  type LucideIcon,
+} from 'lucide-react';
+import { Flex, Icon, cx } from '@even-odds/design-system/ui';
+import type { PlayerId } from '@even-odds/game-sdk';
+import { SEATS, SEAT_ORDER, YouTag } from '@even-odds/game-sdk/ui';
+import { ScoreCell } from './ScoreCell';
+import { LOWER_CATEGORIES, UPPER_CATEGORIES } from '../src/scoring';
+import type { Category, YazyState } from '../src/types';
 
 const CATEGORY_ICONS: Record<Category, LucideIcon[]> = {
   ones: [Dice1],
@@ -20,7 +28,8 @@ const CATEGORY_ICONS: Record<Category, LucideIcon[]> = {
   yazy: [Dice5, Dice5, Dice5, Dice5, Dice5],
 };
 
-const ROW_GRID = "grid grid-cols-[minmax(0,1fr)_clamp(76px,18vw,110px)_clamp(76px,18vw,110px)]";
+const ROW_GRID =
+  'grid grid-cols-[minmax(0,1fr)_clamp(76px,18vw,110px)_clamp(76px,18vw,110px)]';
 
 export const Scorecard = ({
   state,
@@ -44,12 +53,16 @@ export const Scorecard = ({
       key={category}
       className={cx(
         ROW_GRID,
-        divider ? "border-t-2 border-eo-strong" : "border-t border-eo-hairline",
+        divider ? 'border-t-2 border-eo-strong' : 'border-t border-eo-hairline',
       )}
     >
       <Flex className="min-w-0 px-4 py-2 text-eo-body" align="center" gap="4px">
         {CATEGORY_ICONS[category].map((glyph, index) => (
-          <Icon key={index} icon={glyph} size={CATEGORY_ICONS[category].length === 1 ? 28 : 22} />
+          <Icon
+            key={index}
+            icon={glyph}
+            size={CATEGORY_ICONS[category].length === 1 ? 28 : 22}
+          />
         ))}
       </Flex>
       {SEAT_ORDER.map((player) => {
@@ -80,12 +93,16 @@ export const Scorecard = ({
           <div
             key={player}
             className={cx(
-              "grid min-h-13 place-items-center border-l border-b-[3px] border-eo-hairline",
+              'grid min-h-13 place-items-center border-l border-b-[3px] border-eo-hairline',
               SEATS[player].soft,
-              live && player === currentPlayer ? SEATS[player].underline : "border-b-transparent",
+              live && player === currentPlayer
+                ? SEATS[player].underline
+                : 'border-b-transparent',
             )}
           >
-            {player === seat && <YouTag className={cx(SEATS[player].solid, "text-eo-on-color")} />}
+            {player === seat && (
+              <YouTag className={cx(SEATS[player].solid, 'text-eo-on-color')} />
+            )}
           </div>
         ))}
       </div>

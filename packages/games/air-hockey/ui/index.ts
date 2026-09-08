@@ -1,1 +1,1 @@
-export { AirHockeyBoard } from "./AirHockeyBoard";
+export { AirHockeyBoard } from './AirHockeyBoard';

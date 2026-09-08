@@ -12,15 +12,19 @@
     "dev:server": "npm run dev --workspace apps/server",
     "test": "vitest run",
     "typecheck": "tsgo",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "concurrently": "^10.0.5",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.2",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "prettier": "3.9.6",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.68.0",
     "vitest": "^3.2.4"

@@ -1,13 +1,13 @@
-import type { GameAction, GameResult, PlayerId } from "../types";
-import type { Scheduler } from "./scheduler";
+import type { GameAction, GameResult, PlayerId } from '../types';
+import type { Scheduler } from './scheduler';
 
-export type SessionPhase = "waiting" | "playing" | "paused" | "over";
+export type SessionPhase = 'waiting' | 'playing' | 'paused' | 'over';
 
 /* Two runtimes, two shapes, discriminated by the same `mode` GameMeta already
    uses. Spelled out in full rather than a shared base intersected with the
    differences -- which are more than one, and go both ways. */
 export type TurnBasedSnapshot<S> = {
-  mode: "turn-based";
+  mode: 'turn-based';
   matchId: string;
   phase: SessionPhase;
   state: S;
@@ -23,7 +23,7 @@ export type TurnBasedSnapshot<S> = {
    neither: it pushes once per action down an ordered connection, and has
    nothing to interpolate between. */
 export type RealtimeSnapshot<S> = {
-  mode: "realtime";
+  mode: 'realtime';
   matchId: string;
   phase: SessionPhase;
   state: S;
@@ -35,9 +35,9 @@ export type RealtimeSnapshot<S> = {
 export type Snapshot<S> = TurnBasedSnapshot<S> | RealtimeSnapshot<S>;
 
 export type SessionEvent<S> =
-  | { type: "state"; snapshot: Snapshot<S> }
-  | { type: "over"; result: GameResult }
-  | { type: "opponent"; connected: boolean };
+  | { type: 'state'; snapshot: Snapshot<S> }
+  | { type: 'over'; result: GameResult }
+  | { type: 'opponent'; connected: boolean };
 
 export type SessionEmit<S> = (to: PlayerId, event: SessionEvent<S>) => void;
 

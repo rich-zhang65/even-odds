@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "@even-odds/design-system/styles.css";
+@import 'tailwindcss';
+@import '@even-odds/design-system/styles.css';
 
 /* Game and design-system UI live outside apps/web, so Tailwind has to be told to
    scan them — without these, every class they do not share with a page is dropped. */
@@ -10,8 +10,8 @@
 /* next/font generates its own family names, so the theme has to point at the
    variables layout.tsx binds rather than at "Fredoka" and "Nunito" literally. */
 @theme inline {
-  --font-eo-display: var(--font-fredoka), "Fredoka", system-ui, sans-serif;
-  --font-eo-body: var(--font-nunito), "Nunito", system-ui, sans-serif;
+  --font-eo-display: var(--font-fredoka), 'Fredoka', system-ui, sans-serif;
+  --font-eo-body: var(--font-nunito), 'Nunito', system-ui, sans-serif;
 }
 
 *,
@@ -33,7 +33,7 @@ body {
    peeling the image out of the page, and Firefox ignores it, so the elements
    themselves also carry draggable={false}. */
 button,
-[role="button"],
+[role='button'],
 label,
 summary {
   user-select: none;

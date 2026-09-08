@@ -1,4 +1,4 @@
-export type PlayerId = "p0" | "p1";
+export type PlayerId = 'p0' | 'p1';
 
 export type RandomAPI = {
   int(min: number, max: number): number;
@@ -32,7 +32,8 @@ export type GameAction = {
   type: string;
 };
 
-export type GameResult = { winner: PlayerId; reason?: string } | { draw: true; reason?: string };
+export type GameResult =
+  { winner: PlayerId; reason?: string } | { draw: true; reason?: string };
 
 /* Two runtimes, two contracts, discriminated by `mode` on the definition itself
    rather than inside meta -- TypeScript narrows a union by its own properties,
@@ -46,7 +47,7 @@ export type GameResult = { winner: PlayerId; reason?: string } | { draw: true; r
    to check for at runtime. Spelled out in full rather than a shared base
    intersected with the differences. */
 export type TurnBasedGame<S, A extends GameAction> = {
-  mode: "turn-based";
+  mode: 'turn-based';
   meta: GameMeta;
   setup(ctx: EngineContext): S;
   currentPlayer(state: S): PlayerId;
@@ -59,7 +60,7 @@ export type TurnBasedGame<S, A extends GameAction> = {
 };
 
 export type RealtimeGame<S, A extends GameAction> = {
-  mode: "realtime";
+  mode: 'realtime';
   meta: GameMeta;
   tickRateHz: number;
   setup(ctx: EngineContext): S;
@@ -72,4 +73,5 @@ export type RealtimeGame<S, A extends GameAction> = {
   ai?(state: S, me: PlayerId, ctx: EngineContext): A;
 };
 
-export type GameDefinition<S, A extends GameAction> = TurnBasedGame<S, A> | RealtimeGame<S, A>;
+export type GameDefinition<S, A extends GameAction> =
+  TurnBasedGame<S, A> | RealtimeGame<S, A>;

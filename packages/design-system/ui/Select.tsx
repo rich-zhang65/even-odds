@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import type { ChangeEvent } from "react";
-import { ChevronDown } from "lucide-react";
-import { cx } from "./cx";
+import { ChevronDown } from 'lucide-react';
+import type { ChangeEvent } from 'react';
+import { cx } from './cx';
 
 export type SelectOption = { value: string; label: string };
 
@@ -21,14 +21,16 @@ export const Select = ({
   disabled?: boolean;
   className?: string;
 }) => (
-  <label className={cx("block", className)}>
+  <label className={cx('block', className)}>
     {label !== undefined && (
-      <span className="mb-2 block font-eo-display text-eo-label text-eo-strong">{label}</span>
+      <span className="mb-2 block font-eo-display text-eo-label text-eo-strong">
+        {label}
+      </span>
     )}
     <span
       className={cx(
-        "relative flex h-(--eo-control-md) items-center rounded-eo-md border-2 border-eo-control-line focus-within:border-eo-focus focus-within:shadow-eo-focus",
-        disabled ? "bg-eo-sunken" : "bg-eo-card",
+        'relative flex h-(--eo-control-md) items-center rounded-eo-md border-2 border-eo-control-line focus-within:border-eo-focus focus-within:shadow-eo-focus',
+        disabled ? 'bg-eo-sunken' : 'bg-eo-card',
       )}
     >
       <select
@@ -39,7 +41,9 @@ export const Select = ({
       >
         {options.map((option) => {
           const { value: optionValue, label: optionLabel } =
-            typeof option === "string" ? { value: option, label: option } : option;
+            typeof option === 'string'
+              ? { value: option, label: option }
+              : option;
           return (
             <option key={optionValue} value={optionValue}>
               {optionLabel}

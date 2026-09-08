@@ -1,6 +1,6 @@
-export type Theme = "light" | "dark";
+export type Theme = 'light' | 'dark';
 
-const STORAGE_KEY = "eo-theme";
+const STORAGE_KEY = 'eo-theme';
 
 // Inlined into the document head and run before first paint, so the page never
 // flashes light before the stored choice lands. It has to be a string: nothing
@@ -15,11 +15,11 @@ export const THEME_BOOT_SCRIPT = `try{var t;try{t=localStorage.getItem(${JSON.st
 export const resolveTheme = (): Theme => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "dark" || stored === "light") return stored;
+    if (stored === 'dark' || stored === 'light') return stored;
   } catch {
     // fall through to the OS preference
   }
-  return matchMedia("(prefers-color-scheme:dark)").matches ? "dark" : "light";
+  return matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
 };
 
 export const applyTheme = (theme: Theme) => {
@@ -27,7 +27,8 @@ export const applyTheme = (theme: Theme) => {
 };
 
 export const toggleTheme = () => {
-  const next: Theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  const next: Theme =
+    document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   applyTheme(next);
   try {
     localStorage.setItem(STORAGE_KEY, next);

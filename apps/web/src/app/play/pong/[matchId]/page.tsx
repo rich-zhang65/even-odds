@@ -1,25 +1,28 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { use, useState } from "react";
-import { Button, Card, Dialog, Toast } from "@even-odds/design-system/ui";
-import type { PongAction, PongState } from "@even-odds/pong";
-import { PongBoard } from "@even-odds/pong/ui";
-import { MatchHeader } from "@/components/MatchHeader";
-import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
-import { getMatchStore } from "@/lib/matchStore";
-import { useMatch } from "@/lib/useMatch";
+import { useRouter } from 'next/navigation';
+import { use, useState } from 'react';
+import { Button, Card, Dialog, Toast } from '@even-odds/design-system/ui';
+import type { PongAction, PongState } from '@even-odds/pong';
+import { PongBoard } from '@even-odds/pong/ui';
+import { MatchHeader } from '@/components/MatchHeader';
+import { PageContainer } from '@/components/PageContainer';
+import { PageHeader } from '@/components/PageHeader';
+import { getMatchStore } from '@/lib/matchStore';
+import { useMatch } from '@/lib/useMatch';
 
 const MESSAGES: Record<string, string> = {
-  full: "This match already has two players.",
-  notfound: "That match no longer exists.",
+  full: 'This match already has two players.',
+  notfound: 'That match no longer exists.',
 };
 
-const MatchPage = ({ params }: PageProps<"/play/pong/[matchId]">) => {
+const MatchPage = ({ params }: PageProps<'/play/pong/[matchId]'>) => {
   const { matchId } = use(params);
   const router = useRouter();
-  const { snapshot, seat, seats, error, send } = useMatch<PongState, PongAction>(matchId);
+  const { snapshot, seat, seats, error, send } = useMatch<
+    PongState,
+    PongAction
+  >(matchId);
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -42,24 +45,29 @@ const MatchPage = ({ params }: PageProps<"/play/pong/[matchId]">) => {
         {snapshot !== null && (
           <MatchHeader
             title="Pong"
-            totals={{ p0: snapshot.state.scores.p0, p1: snapshot.state.scores.p1 }}
+            totals={{
+              p0: snapshot.state.scores.p0,
+              p1: snapshot.state.scores.p1,
+            }}
             seat={seat}
             result={snapshot.result}
             onExit={() => setLeaving(true)}
           />
         )}
 
-        {snapshot?.phase === "paused" && (
+        {snapshot?.phase === 'paused' && (
           <Card className="mb-6 text-center font-eo-body text-eo-body-s text-eo-muted">
             Opponent disconnected — waiting for them to come back.
           </Card>
         )}
 
         {snapshot === null && error === null && (
-          <p className="py-24 text-center font-eo-body text-eo-body-m text-eo-muted">Connecting…</p>
+          <p className="py-24 text-center font-eo-body text-eo-body-m text-eo-muted">
+            Connecting…
+          </p>
         )}
 
-        {snapshot?.phase === "waiting" && (
+        {snapshot?.phase === 'waiting' && (
           <Card className="mx-auto max-w-md text-center" tone="outlined">
             <h1 className="font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
               Waiting for an opponent
@@ -68,19 +76,26 @@ const MatchPage = ({ params }: PageProps<"/play/pong/[matchId]">) => {
               Send this link to whoever you want to play against.
             </p>
             <Button fullWidth onClick={copyLink}>
-              {copied ? "Copied to clipboard" : "Copy match link"}
+              {copied ? 'Copied to clipboard' : 'Copy match link'}
             </Button>
             <p className="mt-4 font-eo-body text-eo-caption text-eo-muted">
-              Seats · Red {seats.p0 ? "ready" : "—"} · Blue {seats.p1 ? "ready" : "—"}
+              Seats · Red {seats.p0 ? 'ready' : '—'} · Blue{' '}
+              {seats.p1 ? 'ready' : '—'}
             </p>
           </Card>
         )}
 
-        {snapshot !== null && snapshot.phase !== "waiting" && (
+        {snapshot !== null && snapshot.phase !== 'waiting' && (
           <>
-            <PongBoard seat={seat} subscribe={store.onSnapshot} onAction={send} />
+            <PongBoard
+              seat={seat}
+              subscribe={store.onSnapshot}
+              onAction={send}
+            />
             {seat === null && (
-              <p className="mt-4 text-center font-eo-body text-eo-body-s text-eo-muted">Watching</p>
+              <p className="mt-4 text-center font-eo-body text-eo-body-s text-eo-muted">
+                Watching
+              </p>
             )}
           </>
         )}
@@ -96,7 +111,7 @@ const MatchPage = ({ params }: PageProps<"/play/pong/[matchId]">) => {
             <Button variant="ghost" onClick={() => setLeaving(false)}>
               Keep playing
             </Button>
-            <Button variant="red" onClick={() => router.push("/")}>
+            <Button variant="red" onClick={() => router.push('/')}>
               Leave match
             </Button>
           </>
