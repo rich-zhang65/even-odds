@@ -29,7 +29,7 @@ const inMouth = (x: number): boolean => Math.abs(x - TABLE.width / 2) <= GOAL.wi
 
 /* Every player owns a rectangle: the full width, their own half, inset by the
    paddle's radius so its edge stops on the line rather than over it. */
-const penned = (player: PlayerId, at: Vec): Vec => ({
+export const penned = (player: PlayerId, at: Vec): Vec => ({
   x: clamp(at.x, PADDLE.radius, TABLE.width - PADDLE.radius),
   y:
     player === "p0"

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GameCard, Toast, cx } from "@even-odds/design-system/ui";
+import { AirHockey } from "@even-odds/air-hockey";
 import { Pong } from "@even-odds/pong";
 import { Yazy } from "@even-odds/yazy";
 import { PageContainer } from "@/components/PageContainer";
@@ -27,6 +28,11 @@ const PLAYABLE: PlayableGame[] = [
     id: Pong.meta.id,
     name: Pong.meta.name,
     art: Pong.meta.assets.icon,
+  },
+  {
+    id: AirHockey.meta.id,
+    name: AirHockey.meta.name,
+    art: AirHockey.meta.assets.icon,
   },
 ];
 
