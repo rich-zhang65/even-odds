@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTurnBasedSession } from "../turn-based";
 import { createSession } from "../index";
 import type { SessionEvent, Snapshot, TurnBasedSnapshot } from "../types";
-import type { GameDefinition, PlayerId } from "../../types";
+import type { TurnBasedGame, PlayerId } from "../../types";
 
 type RaceState = {
   scores: Record<PlayerId, number>;
@@ -15,13 +15,13 @@ type RaceAction = { type: "INC" };
 const TARGET = 3;
 
 // Minimal stand-in game — game-sdk must not depend on a game package.
-const Race: GameDefinition<RaceState, RaceAction> = {
+const Race: TurnBasedGame<RaceState, RaceAction> = {
+  mode: "turn-based",
   meta: {
     id: "race",
     name: "Race",
     tagline: "First to three",
     estimatedMinutes: 1,
-    mode: "turn-based",
     assets: { icon: null, sprites: {}, sounds: {} },
   },
   setup: (ctx) => ({
@@ -154,16 +154,6 @@ describe("createSession — runtime selection", () => {
     const session = createSession(Race, { matchId: "m1", seed: 1, emit: () => {} });
     session.start();
     expect(session.snapshotFor("p0").phase).toBe("playing");
-  });
-
-  it("refuses a realtime game that cannot be ticked", () => {
-    const realtimeRace: GameDefinition<RaceState, RaceAction> = {
-      ...Race,
-      meta: { ...Race.meta, id: "race-rt", mode: "realtime" },
-    };
-    expect(() => createSession(realtimeRace, { matchId: "m1", seed: 1, emit: () => {} })).toThrow(
-      /realtime game "race-rt" has no tick/,
-    );
   });
 
   it("survives its methods being detached onto socket handlers", () => {

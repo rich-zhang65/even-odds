@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createEngine } from "../engine";
-import type { GameDefinition, GameAction, PlayerId } from "../types";
+import type { TurnBasedGame, GameAction, PlayerId } from "../types";
 
 type CountState = { count: number; turn: PlayerId; done: boolean };
 type CountAction = GameAction & { type: "INCREMENT" };
 
-const countGame: GameDefinition<CountState, CountAction> = {
+const countGame: TurnBasedGame<CountState, CountAction> = {
+  mode: "turn-based",
   meta: {
     id: "count",
     name: "Count",
     tagline: "",
     estimatedMinutes: 1,
-    mode: "turn-based",
     assets: { icon: null, sprites: {}, sounds: {} },
   },
   setup: (): CountState => ({ count: 0, turn: "p0", done: false }),

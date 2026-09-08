@@ -7,6 +7,8 @@ export type {
   GameAction,
   GameResult,
   GameDefinition,
+  TurnBasedGame,
+  RealtimeGame,
 } from "./types";
 
 export { resolveSprite } from "./assets";

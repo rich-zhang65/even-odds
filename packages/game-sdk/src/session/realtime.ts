@@ -1,5 +1,5 @@
 import { createRandom } from "../random";
-import type { EngineContext, GameAction, GameDefinition, GameResult, PlayerId } from "../types";
+import type { EngineContext, GameAction, GameResult, PlayerId, RealtimeGame } from "../types";
 import { systemScheduler } from "./scheduler";
 import type { Cancel } from "./scheduler";
 import type {
@@ -13,7 +13,6 @@ import type {
 const OPPONENT: Record<PlayerId, PlayerId> = { p0: "p1", p1: "p0" };
 
 const DEFAULT_GRACE_MS = 60_000;
-const DEFAULT_TICK_HZ = 60;
 const BROADCAST_HZ = 20;
 
 /* 1000/60 has no exact float representation, so subtracting it off an accumulator
@@ -23,17 +22,12 @@ const BROADCAST_HZ = 20;
 const SLACK_MS = 1e-6;
 
 export const createRealtimeSession = <S, A extends GameAction>(
-  def: GameDefinition<S, A>,
+  def: RealtimeGame<S, A>,
   opts: SessionOptions<S>,
 ): Session<S, A> => {
-  const advance = def.tick;
-  if (advance === undefined) {
-    throw new Error(`realtime game "${def.meta.id}" has no tick()`);
-  }
-
   const clock = opts.scheduler ?? systemScheduler;
   const graceMs = opts.graceMs ?? DEFAULT_GRACE_MS;
-  const hz = def.tickRateHz ?? DEFAULT_TICK_HZ;
+  const hz = def.tickRateHz;
   const stepMs = 1000 / hz;
   const broadcastEvery = Math.max(1, Math.round(hz / BROADCAST_HZ));
 
@@ -114,7 +108,7 @@ export const createRealtimeSession = <S, A extends GameAction>(
       }
     }
 
-    state = advance(state, stepMs, ctx);
+    state = def.tick(state, stepMs, ctx);
 
     const terminal = def.isTerminal(state);
     if (terminal) {

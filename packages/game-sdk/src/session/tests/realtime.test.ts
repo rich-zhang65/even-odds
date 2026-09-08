@@ -3,7 +3,7 @@ import { createRealtimeSession } from "../realtime";
 import { createSession } from "../index";
 import type { Cancel, Scheduler } from "../scheduler";
 import type { RealtimeSnapshot, SessionEvent, Snapshot } from "../types";
-import type { GameDefinition, PlayerId } from "../../types";
+import type { RealtimeGame, PlayerId } from "../../types";
 
 /* A scheduler with no clock behind it. Time only moves when a test says so, so a
    whole match runs in microseconds and never waits on a real timer. */
@@ -51,18 +51,17 @@ const STEP_MS = 1000 / 60;
 
 /* Drifts right at a fixed rate until it passes 100, so position is a pure
    function of how many ticks have run and a wrong count is obvious. */
-const Drift: GameDefinition<DriftState, DriftAction> = {
+const Drift: RealtimeGame<DriftState, DriftAction> = {
+  mode: "realtime",
   meta: {
     id: "drift",
     name: "Drift",
     tagline: "Moves on its own",
     estimatedMinutes: 1,
-    mode: "realtime",
     assets: { icon: null, sprites: {}, sounds: {} },
   },
   tickRateHz: 60,
   setup: () => ({ x: 0, vx: 1, nudges: { p0: 0, p1: 0 } }),
-  currentPlayer: () => "p0",
   // One nudge per player per match, so a second one queued alongside the first is
   // legal on arrival and illegal by the time the tick reaches it.
   isLegal: (state, _action, by) => state.nudges[by] === 0,

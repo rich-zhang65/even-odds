@@ -1,5 +1,5 @@
 import { createEngine } from "../engine";
-import type { GameAction, GameDefinition, GameResult, PlayerId } from "../types";
+import type { GameAction, GameResult, PlayerId, TurnBasedGame } from "../types";
 import type {
   Session,
   SessionEvent,
@@ -13,7 +13,7 @@ const OPPONENT: Record<PlayerId, PlayerId> = { p0: "p1", p1: "p0" };
 const DEFAULT_GRACE_MS = 60_000;
 
 export const createTurnBasedSession = <S, A extends GameAction>(
-  def: GameDefinition<S, A>,
+  def: TurnBasedGame<S, A>,
   opts: SessionOptions<S>,
 ): Session<S, A> => {
   const engine = createEngine(def, {

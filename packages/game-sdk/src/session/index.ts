@@ -7,11 +7,13 @@ export const createSession = <S, A extends GameAction>(
   def: GameDefinition<S, A>,
   opts: SessionOptions<S>,
 ): Session<S, A> => {
-  switch (def.meta.mode) {
+  switch (def.mode) {
     case "turn-based":
       return createTurnBasedSession(def, opts);
     case "realtime":
       return createRealtimeSession(def, opts);
+    default:
+      return def satisfies never;
   }
 };
 

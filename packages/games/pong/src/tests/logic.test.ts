@@ -7,12 +7,7 @@ import type { Direction, PongState } from "../types";
 
 const STEP_MS = 1000 / 60;
 
-/* GameDefinition makes tick optional because turn-based games have none. A
-   realtime one without it would never advance, so assert it here rather than
-   reach past the type at every call site. */
-const advance = Pong.tick;
-if (advance === undefined) throw new Error("Pong must define tick()");
-const tick = advance;
+const tick = Pong.tick;
 
 const context = (seed = 1): EngineContext => ({
   matchId: "m1",

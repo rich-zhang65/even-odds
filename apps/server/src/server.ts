@@ -9,7 +9,7 @@ export type SocketServer = Server<ClientToServerEvents, ServerToClientEvents<unk
 
 export const attachSocketServer = (
   http: HttpServer,
-  opts: { graceMs?: number } = {}
+  opts: { graceMs?: number } = {},
 ): SocketServer => {
   const io: SocketServer = new Server(http, { cors: { origin: "*" } });
 
@@ -26,6 +26,8 @@ export const attachSocketServer = (
       case "opponent":
         socket.emit("match:opponent", { connected: event.connected });
         return;
+      default:
+        return event satisfies never;
     }
   }, opts);
 
