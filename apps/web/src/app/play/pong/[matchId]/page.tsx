@@ -80,7 +80,7 @@ const MatchPage = ({ params }: PageProps<"/play/pong/[matchId]">) => {
           <>
             <PongBoard seat={seat} subscribe={store.onSnapshot} onAction={send} />
             <p className="mt-4 text-center font-eo-body text-eo-body-s text-eo-muted">
-              {seat === null ? "Watching" : "Up and down arrows, or W and S"}
+              {seat === null ? "Watching" : "Move your mouse"}
             </p>
           </>
         )}
