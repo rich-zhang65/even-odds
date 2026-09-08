@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GameCard, Toast, cx } from "@even-odds/design-system/ui";
+import { Pong } from "@even-odds/pong";
 import { Yazy } from "@even-odds/yazy";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
@@ -21,6 +22,11 @@ const PLAYABLE: PlayableGame[] = [
     id: Yazy.meta.id,
     name: Yazy.meta.name,
     art: Yazy.meta.assets.icon,
+  },
+  {
+    id: Pong.meta.id,
+    name: Pong.meta.name,
+    art: Pong.meta.assets.icon,
   },
 ];
 
