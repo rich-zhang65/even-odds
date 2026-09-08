@@ -1,4 +1,5 @@
 import type { GameAction, GameResult, PlayerId } from "../types";
+import type { Scheduler } from "./scheduler";
 
 export type SessionPhase = "waiting" | "playing" | "paused" | "over";
 
@@ -48,6 +49,10 @@ export type SessionOptions<S> = {
   now?: number;
   graceMs?: number;
   emit: SessionEmit<S>;
+
+  /* Only realtime reads this, and only so tests can drive ticks by hand.
+     Defaults to real timers. */
+  scheduler?: Scheduler;
 };
 
 export type Session<S, A extends GameAction> = {

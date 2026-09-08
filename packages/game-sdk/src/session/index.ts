@@ -1,4 +1,5 @@
 import type { GameAction, GameDefinition } from "../types";
+import { createRealtimeSession } from "./realtime";
 import { createTurnBasedSession } from "./turn-based";
 import type { Session, SessionOptions } from "./types";
 
@@ -10,11 +11,14 @@ export const createSession = <S, A extends GameAction>(
     case "turn-based":
       return createTurnBasedSession(def, opts);
     case "realtime":
-      throw new Error(`realtime sessions are not implemented yet (game: ${def.meta.id})`);
+      return createRealtimeSession(def, opts);
   }
 };
 
+export { createRealtimeSession } from "./realtime";
 export { createTurnBasedSession } from "./turn-based";
+export { systemScheduler } from "./scheduler";
+export type { Cancel, Scheduler } from "./scheduler";
 export type {
   ActionResult,
   Session,

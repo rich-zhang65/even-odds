@@ -24,7 +24,12 @@ export type {
   ClientToServerEvents,
 } from "./protocol";
 
-export { createSession, createTurnBasedSession } from "./session";
+export {
+  createRealtimeSession,
+  createSession,
+  createTurnBasedSession,
+  systemScheduler,
+} from "./session";
 export type {
   ActionResult,
   Session,
@@ -32,7 +37,9 @@ export type {
   SessionEvent,
   SessionOptions,
   SessionPhase,
+  Cancel,
   RealtimeSnapshot,
+  Scheduler,
   Snapshot,
   TurnBasedSnapshot,
 } from "./session";

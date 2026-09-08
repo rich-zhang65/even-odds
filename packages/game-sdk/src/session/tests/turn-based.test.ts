@@ -156,13 +156,13 @@ describe("createSession — runtime selection", () => {
     expect(session.snapshotFor("p0").phase).toBe("playing");
   });
 
-  it("refuses a realtime game until that runtime exists", () => {
+  it("refuses a realtime game that cannot be ticked", () => {
     const realtimeRace: GameDefinition<RaceState, RaceAction> = {
       ...Race,
       meta: { ...Race.meta, id: "race-rt", mode: "realtime" },
     };
     expect(() => createSession(realtimeRace, { matchId: "m1", seed: 1, emit: () => {} })).toThrow(
-      /realtime sessions are not implemented yet \(game: race-rt\)/,
+      /realtime game "race-rt" has no tick/,
     );
   });
 
