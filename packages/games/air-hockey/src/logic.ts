@@ -108,6 +108,49 @@ const strike = (
   };
 };
 
+/* Two paddles can face each other across the halfway line fourteen units apart,
+   and the puck wants twelve of clearance from each. Twenty-four does not fit in
+   fourteen, so a puck caught between two converging paddles cannot satisfy both
+   and is pushed out sideways instead — which is what it does on a real table.
+   Without this the second paddle resolved wins and leaves the puck buried in
+   the first. */
+const freed = (at: Vec, first: Vec, second: Vec): Vec => {
+  /* Resolving one paddle then the other leaves the puck exactly a contact away
+     from whichever went last, so the tell is that it is still buried in the
+     other one. */
+  const buried =
+    Math.hypot(at.x - first.x, at.y - first.y) < TOUCHING - 1e-9 ||
+    Math.hypot(at.x - second.x, at.y - second.y) < TOUCHING - 1e-9;
+  if (!buried) return at;
+
+  const between = { x: first.x - second.x, y: first.y - second.y };
+  const apart = Math.hypot(between.x, between.y);
+  const sideways = apart === 0 ? { x: 1, y: 0 } : { x: -between.y / apart, y: between.x / apart };
+  const middle = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
+
+  // Far enough along the escape that both paddles are exactly a contact away.
+  const clear = Math.sqrt(Math.max(0, TOUCHING * TOUCHING - (apart / 2) * (apart / 2)));
+  const escape = (sign: number): Vec => ({
+    x: middle.x + sideways.x * clear * sign,
+    y: middle.y + sideways.y * clear * sign,
+  });
+
+  const onTable = (p: Vec): boolean =>
+    p.x >= PUCK.radius &&
+    p.x <= TABLE.width - PUCK.radius &&
+    p.y >= PUCK.radius &&
+    p.y <= TABLE.height - PUCK.radius;
+
+  // Leave by the side it is already on, unless that side is into a wall.
+  const nearer = (at.x - middle.x) * sideways.x + (at.y - middle.y) * sideways.y < 0 ? -1 : 1;
+  const out = onTable(escape(nearer)) ? escape(nearer) : escape(-nearer);
+
+  return {
+    x: clamp(out.x, PUCK.radius, TABLE.width - PUCK.radius),
+    y: clamp(out.y, PUCK.radius, TABLE.height - PUCK.radius),
+  };
+};
+
 const advance = (
   state: AirHockeyState,
   dt: number,
@@ -147,6 +190,11 @@ const advance = (
     const struck = strike(moved.puck, swept[player].from, swept[player].to, hands[player]);
     if (struck !== null) moved = { ...moved, puck: struck };
   }
+
+  moved = {
+    ...moved,
+    puck: { ...moved.puck, at: freed(moved.puck.at, swept.p0.to, swept.p1.to) },
+  };
 
   if (moved.puck.at.y <= 0) return concede(moved, "p0");
   if (moved.puck.at.y >= TABLE.height) return concede(moved, "p1");

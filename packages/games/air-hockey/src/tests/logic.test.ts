@@ -249,6 +249,58 @@ describe("Air Hockey — striking", () => {
   });
 });
 
+describe("Air Hockey — the pinch", () => {
+  /* Both paddles on the halfway line sit fourteen apart, and the puck wants
+     twelve from each. It cannot have both, so it leaves sideways. */
+  it("squeezes the puck out sideways instead of burying it in a paddle", () => {
+    const top = { x: MID_X, y: HALFWAY - PADDLE.radius };
+    const bottom = { x: MID_X, y: HALFWAY + PADDLE.radius };
+    const pinched = board({
+      puck: { at: { x: MID_X, y: HALFWAY + 0.5 }, velocity: { x: 0, y: 0 } },
+      paddles: { p0: still(bottom), p1: still(top) },
+    });
+
+    const out = run(pinched, 1).puck.at;
+
+    expect(Math.hypot(out.x - top.x, out.y - top.y)).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+    expect(Math.hypot(out.x - bottom.x, out.y - bottom.y)).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+  });
+
+  it("leaves a puck touching only one paddle where that paddle put it", () => {
+    const centre = { x: MID_X, y: HALFWAY + 30 };
+    const single = board({
+      puck: { at: { x: MID_X, y: centre.y - TOUCHING + 1 }, velocity: { x: 0, y: 30 } },
+      paddles: { p0: still(centre), p1: still({ x: PADDLE.radius, y: PADDLE.radius }) },
+    });
+
+    const out = run(single, 1).puck.at;
+
+    expect(out.x).toBe(MID_X);
+    expect(Math.hypot(out.x - centre.x, out.y - centre.y)).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+  });
+
+  it("keeps the squeezed puck on the table", () => {
+    const against = { x: PUCK.radius, y: HALFWAY };
+    const cornered = board({
+      puck: { at: against, velocity: { x: 0, y: 0 } },
+      paddles: {
+        p0: still({ x: PUCK.radius, y: HALFWAY + PADDLE.radius }),
+        p1: still({ x: PUCK.radius, y: HALFWAY - PADDLE.radius }),
+      },
+    });
+
+    const out = run(cornered, 1).puck.at;
+    const top = { x: PUCK.radius, y: HALFWAY - PADDLE.radius };
+    const bottom = { x: PUCK.radius, y: HALFWAY + PADDLE.radius };
+
+    expect(out.x).toBeGreaterThanOrEqual(PUCK.radius);
+    expect(out.x).toBeLessThanOrEqual(TABLE.width - PUCK.radius);
+    // Escaping into the wall is not an escape; it has to leave the other way.
+    expect(Math.hypot(out.x - top.x, out.y - top.y)).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+    expect(Math.hypot(out.x - bottom.x, out.y - bottom.y)).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+  });
+});
+
 describe("Air Hockey — scoring", () => {
   it("ends the match at the target score", () => {
     expect(AirHockey.isTerminal(board())).toBeNull();
