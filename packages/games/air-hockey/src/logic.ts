@@ -114,6 +114,21 @@ const strike = (
    and is pushed out sideways instead — which is what it does on a real table.
    Without this the second paddle resolved wins and leaves the puck buried in
    the first. */
+/* The puck sitting on the edge of a paddle rather than inside it. Exported
+   because the client has to draw by exactly this rule: it puts your own paddle
+   under your cursor a tenth of a second before the server's puck catches up,
+   and without it your paddle would be drawn over the puck for that long. */
+export const clearOfPaddle = (at: Vec, centre: Vec): Vec => {
+  const dx = at.x - centre.x;
+  const dy = at.y - centre.y;
+  const distance = Math.hypot(dx, dy);
+  if (distance >= TOUCHING) return at;
+
+  // Dead centre leaves no direction to leave by; up the table is as good as any.
+  if (distance === 0) return { x: centre.x, y: centre.y + TOUCHING };
+  return { x: centre.x + (dx / distance) * TOUCHING, y: centre.y + (dy / distance) * TOUCHING };
+};
+
 const freed = (at: Vec, first: Vec, second: Vec): Vec => {
   /* Resolving one paddle then the other leaves the puck exactly a contact away
      from whichever went last, so the tell is that it is still buried in the
@@ -125,6 +140,13 @@ const freed = (at: Vec, first: Vec, second: Vec): Vec => {
 
   const between = { x: first.x - second.x, y: first.y - second.y };
   const apart = Math.hypot(between.x, between.y);
+
+  /* Only a genuine pinch needs this. Once the paddles are two contacts apart
+     there is room for a point that clears both, so pushing off each in turn has
+     already found it — and the escape below would be a teleport to the midpoint
+     rather than a slide off an edge. */
+  if (apart >= TOUCHING * 2) return at;
+
   const sideways = apart === 0 ? { x: 1, y: 0 } : { x: -between.y / apart, y: between.x / apart };
   const middle = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
 
@@ -149,6 +171,86 @@ const freed = (at: Vec, first: Vec, second: Vec): Vec => {
     x: clamp(out.x, PUCK.radius, TABLE.width - PUCK.radius),
     y: clamp(out.y, PUCK.radius, TABLE.height - PUCK.radius),
   };
+};
+
+const EDGE = PUCK.radius;
+
+/* Inside the boards. The goal mouth is not a wall, so a puck on its way in is
+   not "inside" anything and must be left alone to cross the line. */
+const inWall = (at: Vec): boolean =>
+  at.x < EDGE ||
+  at.x > TABLE.width - EDGE ||
+  ((at.y < EDGE || at.y > TABLE.height - EDGE) && !inMouth(at.x));
+
+const clears = (at: Vec, centre: Vec): boolean =>
+  Math.hypot(at.x - centre.x, at.y - centre.y) >= TOUCHING - 1e-9;
+
+/* Slid along the face of a wall until it is off a paddle: around the paddle
+   rather than through the boards. Either side of the paddle will do, so it
+   takes the nearer one that is still on the table — picking the nearer one
+   blindly and clamping would slide it straight back into the paddle. */
+const slideAlong = (at: Vec, centre: Vec, alongX: boolean): Vec => {
+  if (clears(at, centre)) return at;
+
+  const pinned = alongX ? at.y - centre.y : at.x - centre.x;
+  const room = TOUCHING * TOUCHING - pinned * pinned;
+  if (room <= 0) return at;
+
+  const reach = Math.sqrt(room);
+  const free = alongX ? at.x : at.y;
+  const from = alongX ? centre.x : centre.y;
+  const limit = alongX ? TABLE.width - EDGE : TABLE.height - EDGE;
+
+  const sides = [from - reach, from + reach]
+    .filter((side) => side >= EDGE && side <= limit)
+    .sort((one, other) => Math.abs(free - one) - Math.abs(free - other));
+  if (sides.length === 0) return at;
+
+  return alongX ? { x: sides[0], y: at.y } : { x: at.x, y: sides[0] };
+};
+
+/* Somewhere the puck is actually allowed to be. */
+const legal = (at: Vec, first: Vec, second: Vec): boolean =>
+  clears(at, first) && clears(at, second) && !inWall(at);
+
+/* Points on the edge of a paddle, for when no straight push works. Sixteen is
+   plenty: the legal area is most of the table, so a gap is never narrow. */
+const RING = Array.from({ length: 16 }, (_, step) => (step / 16) * Math.PI * 2);
+
+const around = (centre: Vec): Vec[] =>
+  RING.map((angle) => ({
+    x: centre.x + Math.cos(angle) * TOUCHING,
+    y: centre.y + Math.sin(angle) * TOUCHING,
+  }));
+
+/* No tick may end with the puck inside a paddle or inside a wall, so it goes to
+   the nearest place that is neither. Pushing straight off each paddle settles
+   open play and is the only path most ticks take. The rest is for a puck with
+   nowhere obvious to go — squeezed between two paddles, or held against the
+   boards by one, where a straight push would drive it through a wall. */
+const clearOf = (at: Vec, first: Vec, second: Vec): Vec => {
+  const pushed = freed(clearOfPaddle(clearOfPaddle(at, first), second), first, second);
+  if (legal(pushed, first, second)) return pushed;
+
+  const onWall: Vec = {
+    x: clamp(pushed.x, EDGE, TABLE.width - EDGE),
+    y: inMouth(pushed.x) ? pushed.y : clamp(pushed.y, EDGE, TABLE.height - EDGE),
+  };
+
+  const slid = [true, false].map((alongX) => {
+    let out = onWall;
+    for (const centre of [first, second]) out = slideAlong(out, centre, alongX);
+    return out;
+  });
+
+  const nearest = [...slid, ...around(first), ...around(second)]
+    .filter((option) => legal(option, first, second))
+    .sort(
+      (one, other) =>
+        Math.hypot(one.x - at.x, one.y - at.y) - Math.hypot(other.x - at.x, other.y - at.y),
+    );
+
+  return nearest[0] ?? pushed;
 };
 
 const advance = (
@@ -193,7 +295,7 @@ const advance = (
 
   moved = {
     ...moved,
-    puck: { ...moved.puck, at: freed(moved.puck.at, swept.p0.to, swept.p1.to) },
+    puck: { ...moved.puck, at: clearOf(moved.puck.at, swept.p0.to, swept.p1.to) },
   };
 
   if (moved.puck.at.y <= 0) return concede(moved, "p0");
@@ -271,14 +373,23 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
       },
     };
 
+    /* A waiting puck is still solid. Parking a paddle on the spot slides it out
+       from underneath rather than swallowing it, and it stays at rest. */
+    const waiting = (at: Vec): Vec => clearOf(at, to.p0, to.p1);
+
     if (settled.faceOff.inMs > 0) {
       const inMs = settled.faceOff.inMs - dtMs;
       if (inMs > SLACK_MS) {
-        return { ...settled, faceOff: { ...settled.faceOff, inMs } };
+        return {
+          ...settled,
+          puck: { ...settled.puck, at: waiting(settled.puck.at) },
+          faceOff: { ...settled.faceOff, inMs },
+        };
       }
+      const dropped = restingPuck(settled.faceOff.toward);
       return {
         ...settled,
-        puck: restingPuck(settled.faceOff.toward),
+        puck: { ...dropped, at: waiting(dropped.at) },
         faceOff: { ...settled.faceOff, inMs: 0 },
       };
     }

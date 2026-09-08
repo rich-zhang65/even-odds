@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { PlayerId, RealtimeSnapshot, Snapshot } from "@even-odds/game-sdk";
 import { SEATS, seenBy } from "@even-odds/game-sdk/ui";
 import { cx } from "@even-odds/design-system/ui";
-import { penned } from "../src/logic";
+import { clearOfPaddle, penned } from "../src/logic";
 import { GOAL, PADDLE, PUCK, TABLE } from "../src/types";
 import type { AirHockeyAction, AirHockeyState, Vec } from "../src/types";
 
@@ -111,10 +111,19 @@ export const AirHockeyBoard = ({
       const span = newer.received - older.received;
       const t = span > 0 ? Math.min(Math.max((at - older.received) / span, 0), 1) : 1;
 
-      place(puck.current, {
+      const drifting = {
         x: lerp(older.state.puck.at.x, newer.state.puck.at.x, t),
         y: lerp(older.state.puck.at.y, newer.state.puck.at.y, t),
-      });
+      };
+
+      /* Your paddle is drawn from the cursor and the puck from a snapshot a
+         tenth of a second old, so left alone the two would overlap on screen
+         every time you moved onto the puck — the server has already pushed it
+         away, that frame just has not arrived. Nothing here changes the game:
+         the next snapshot overrides it, and only your own paddle counts,
+         because the opponent's and the puck come from the same frame and the
+         server has already settled them against each other. */
+      place(puck.current, aim.current === null ? drifting : clearOfPaddle(drifting, aim.current));
 
       for (const player of ["p0", "p1"] as const) {
         /* Your own paddle is drawn from the pointer, never from the snapshot.
