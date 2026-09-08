@@ -301,6 +301,175 @@ describe("Air Hockey — the pinch", () => {
   });
 });
 
+describe("Air Hockey — nothing ever ends inside a paddle", () => {
+  it("slides a waiting puck out from under a paddle parked on the spot", () => {
+    const spot = { x: MID_X, y: TABLE.height * 0.75 };
+    const camped = board({
+      puck: { at: spot, velocity: { x: 0, y: 0 } },
+      faceOff: { inMs: FACE_OFF_MS, toward: "p0" },
+      paddles: { p0: still(spot), p1: still({ x: PADDLE.radius, y: PADDLE.radius }) },
+    });
+
+    const after = run(camped, 1);
+
+    /* Exactly a contact away, not merely somewhere legal: the puck slides off
+       the edge it was under, it does not get teleported clear. */
+    expect(Math.hypot(after.puck.at.x - spot.x, after.puck.at.y - spot.y)).toBeCloseTo(TOUCHING, 9);
+    // Slid aside, but the face-off has not started it moving.
+    expect(after.puck.velocity).toEqual({ x: 0, y: 0 });
+  });
+
+  it("drops the puck clear even if someone is already standing on the spot", () => {
+    const spot = { x: MID_X, y: TABLE.height * 0.75 };
+    const camped = board({
+      faceOff: { inMs: STEP_MS / 2, toward: "p0" },
+      paddles: { p0: still(spot), p1: still({ x: PADDLE.radius, y: PADDLE.radius }) },
+    });
+
+    const dropped = run(camped, 1);
+
+    expect(dropped.faceOff.inMs).toBe(0);
+    expect(Math.hypot(dropped.puck.at.x - spot.x, dropped.puck.at.y - spot.y)).toBeCloseTo(
+      TOUCHING,
+      9,
+    );
+  });
+
+  /* The cases above are the ones worth naming. This one is the actual promise:
+     whatever the paddles and puck were doing, a tick never leaves them
+     overlapping — so the puck always meets the edge of a paddle, never its
+     inside. Seeded, so a failure is reproducible. */
+  it("slides the puck around a paddle pinning it to the end wall, not into it", () => {
+    const against = { x: 80, y: TABLE.height - PADDLE.radius };
+    const pinned = board({
+      puck: { at: { x: 80, y: TABLE.height - PUCK.radius }, velocity: { x: 0, y: 0 } },
+      paddles: { p0: still(against), p1: still({ x: PADDLE.radius, y: PADDLE.radius }) },
+    });
+
+    const out = run(pinned, 1).puck.at;
+
+    expect(out.y).toBeLessThanOrEqual(TABLE.height - PUCK.radius + 1e-9);
+    expect(Math.hypot(out.x - against.x, out.y - against.y)).toBeGreaterThanOrEqual(
+      TOUCHING - 1e-9,
+    );
+  });
+
+  it("holds across a sweep of positions, speeds and paddle lunges", () => {
+    const random = createRandom(20260907);
+    const spread = (low: number, high: number): number =>
+      low + (random.int(0, 10_000) / 10_000) * (high - low);
+    const inHalf = (player: PlayerId): Vec => ({
+      x: spread(PADDLE.radius, TABLE.width - PADDLE.radius),
+      y:
+        player === "p0"
+          ? spread(HALFWAY + PADDLE.radius, TABLE.height - PADDLE.radius)
+          : spread(PADDLE.radius, HALFWAY - PADDLE.radius),
+    });
+
+    let worst = Infinity;
+    let inBoards = 0;
+    for (let trial = 0; trial < 3_000; trial++) {
+      const before = board({
+        puck: {
+          at: {
+            x: spread(PUCK.radius, TABLE.width - PUCK.radius),
+            y: spread(PUCK.radius, TABLE.height - PUCK.radius),
+          },
+          velocity: {
+            x: spread(-PUCK.maxSpeed, PUCK.maxSpeed),
+            y: spread(-PUCK.maxSpeed, PUCK.maxSpeed),
+          },
+        },
+        paddles: {
+          p0: { at: inHalf("p0"), target: inHalf("p0") },
+          p1: { at: inHalf("p1"), target: inHalf("p1") },
+        },
+        faceOff: { inMs: trial % 4 === 0 ? FACE_OFF_MS : 0, toward: trial % 2 === 0 ? "p0" : "p1" },
+      });
+
+      const after = tick(before, STEP_MS, context());
+      for (const player of ["p0", "p1"] as const) {
+        const centre = after.paddles[player].at;
+        worst = Math.min(worst, Math.hypot(after.puck.at.x - centre.x, after.puck.at.y - centre.y));
+      }
+
+      /* Being shoved through the boards is worse than being overlapped, so the
+         same sweep watches for it. The mouth is not a wall: a puck on its way in
+         is allowed past the line. */
+      const { x, y } = after.puck.at;
+      const inMouth = Math.abs(x - MID_X) <= GOAL.width / 2;
+      const buried =
+        x < PUCK.radius - 1e-9 ||
+        x > TABLE.width - PUCK.radius + 1e-9 ||
+        ((y < PUCK.radius - 1e-9 || y > TABLE.height - PUCK.radius + 1e-9) && !inMouth);
+      if (buried) inBoards += 1;
+    }
+
+    expect(worst).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+    expect(inBoards).toBe(0);
+  });
+});
+
+describe("Air Hockey — camped against the boards", () => {
+  /* The sweep above starts the puck anywhere, which almost never reproduces a
+     paddle that has already driven it into a corner. This one starts every
+     trial from exactly that: a paddle on a wall with the puck under it. */
+  it("clears the puck off a paddle pinned to any wall, without burying it in the boards", () => {
+    const random = createRandom(9070);
+    const spread = (low: number, high: number): number =>
+      low + (random.int(0, 10_000) / 10_000) * (high - low);
+
+    let worst = Infinity;
+    let inBoards = 0;
+    const edges = [PADDLE.radius, TABLE.width - PADDLE.radius];
+
+    for (let trial = 0; trial < 2_000; trial++) {
+      // A paddle jammed into a wall, or a corner of its own half.
+      const p0At = {
+        x: trial % 3 === 0 ? edges[trial % 2] : spread(PADDLE.radius, TABLE.width - PADDLE.radius),
+        y: trial % 2 === 0 ? TABLE.height - PADDLE.radius : HALFWAY + PADDLE.radius,
+      };
+      const p1At = {
+        x: trial % 5 === 0 ? edges[trial % 2] : spread(PADDLE.radius, TABLE.width - PADDLE.radius),
+        y: trial % 2 === 0 ? PADDLE.radius : HALFWAY - PADDLE.radius,
+      };
+      // The puck starting right under one of them, which is what camping does.
+      const under = trial % 2 === 0 ? p0At : p1At;
+
+      const after = tick(
+        board({
+          puck: {
+            at: { x: under.x + spread(-3, 3), y: under.y + spread(-3, 3) },
+            velocity: { x: spread(-40, 40), y: spread(-40, 40) },
+          },
+          paddles: { p0: still(p0At), p1: still(p1At) },
+          faceOff: { inMs: trial % 4 === 0 ? FACE_OFF_MS : 0, toward: "p0" },
+        }),
+        STEP_MS,
+        context(),
+      );
+
+      const { x, y } = after.puck.at;
+      for (const player of ["p0", "p1"] as const) {
+        const centre = after.paddles[player].at;
+        worst = Math.min(worst, Math.hypot(x - centre.x, y - centre.y));
+      }
+
+      const mouth = Math.abs(x - MID_X) <= GOAL.width / 2;
+      if (
+        x < PUCK.radius - 1e-9 ||
+        x > TABLE.width - PUCK.radius + 1e-9 ||
+        ((y < PUCK.radius - 1e-9 || y > TABLE.height - PUCK.radius + 1e-9) && !mouth)
+      ) {
+        inBoards += 1;
+      }
+    }
+
+    expect(worst).toBeGreaterThanOrEqual(TOUCHING - 1e-9);
+    expect(inBoards).toBe(0);
+  });
+});
+
 describe("Air Hockey — scoring", () => {
   it("ends the match at the target score", () => {
     expect(AirHockey.isTerminal(board())).toBeNull();
