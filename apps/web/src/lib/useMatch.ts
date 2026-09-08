@@ -1,21 +1,23 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import type { GameAction, Snapshot } from "@even-odds/game-sdk";
 import { EMPTY_MATCH, getMatchStore } from "./matchStore";
 import type { MatchState } from "./matchStore";
-import type { YazyAction } from "@even-odds/yazy";
 
 const serverState = (): MatchState => EMPTY_MATCH;
 
-export const useMatch = (matchId: string) => {
+/* The one place the wire stops being unknown. A page knows which game it is
+   showing; the socket and the store, shared across every match, cannot. */
+export const useMatch = <S, A extends GameAction>(matchId: string) => {
   const store = getMatchStore(matchId);
   const state = useSyncExternalStore(store.subscribe, store.getState, serverState);
 
   return {
-    snapshot: state.snapshot,
+    snapshot: state.snapshot as Snapshot<S> | null,
     seat: state.seat,
     seats: state.seats,
     error: state.error,
-    send: (action: YazyAction) => store.send(action),
+    send: (action: A) => store.send(action),
   };
 };

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { Button, Card, Dialog, Toast } from "@even-odds/design-system/ui";
 import { totalScore } from "@even-odds/yazy";
+import type { YazyAction, YazyState } from "@even-odds/yazy";
 import { YazyBoard } from "@even-odds/yazy/ui";
 import { MatchHeader } from "@/components/MatchHeader";
 import { PageContainer } from "@/components/PageContainer";
@@ -18,7 +19,7 @@ const MESSAGES: Record<string, string> = {
 const MatchPage = ({ params }: PageProps<"/play/yazy/[matchId]">) => {
   const { matchId } = use(params);
   const router = useRouter();
-  const { snapshot, seat, seats, error, send } = useMatch(matchId);
+  const { snapshot, seat, seats, error, send } = useMatch<YazyState, YazyAction>(matchId);
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
