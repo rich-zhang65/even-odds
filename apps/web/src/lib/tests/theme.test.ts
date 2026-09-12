@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { THEME_BOOT_SCRIPT, resolveTheme, toggleTheme } from "../theme";
+import { beforeEach, describe, expect, it } from 'vitest';
+import { THEME_BOOT_SCRIPT, resolveTheme, toggleTheme } from '../theme';
 
 const stored: Record<string, string> = {};
 
@@ -21,10 +21,10 @@ const theme = () => (globalThis as any).document.documentElement.dataset.theme;
 const denyStorage = () => {
   (globalThis as any).localStorage = {
     getItem: () => {
-      throw new Error("denied");
+      throw new Error('denied');
     },
     setItem: () => {
-      throw new Error("denied");
+      throw new Error('denied');
     },
   };
 };
@@ -40,46 +40,46 @@ beforeEach(() => {
   };
 });
 
-describe("theme", () => {
-  it("follows the OS on a first visit", () => {
+describe('theme', () => {
+  it('follows the OS on a first visit', () => {
     boot(true);
-    expect(theme()).toBe("dark");
+    expect(theme()).toBe('dark');
   });
 
-  it("lands on light when the OS does not ask for dark", () => {
+  it('lands on light when the OS does not ask for dark', () => {
     boot(false);
-    expect(theme()).toBe("light");
+    expect(theme()).toBe('light');
   });
 
-  it("lets a stored choice beat the OS", () => {
-    stored["eo-theme"] = "light";
+  it('lets a stored choice beat the OS', () => {
+    stored['eo-theme'] = 'light';
     boot(true);
-    expect(theme()).toBe("light");
+    expect(theme()).toBe('light');
   });
 
-  it("flips the attribute and survives the next boot", () => {
+  it('flips the attribute and survives the next boot', () => {
     boot(false);
     toggleTheme();
-    expect(theme()).toBe("dark");
+    expect(theme()).toBe('dark');
 
     freshDocument();
     boot(false);
-    expect(theme()).toBe("dark");
+    expect(theme()).toBe('dark');
   });
 
-  it("still switches when storage throws", () => {
+  it('still switches when storage throws', () => {
     boot(false);
     (globalThis as any).localStorage.setItem = () => {
-      throw new Error("denied");
+      throw new Error('denied');
     };
     toggleTheme();
-    expect(theme()).toBe("dark");
+    expect(theme()).toBe('dark');
   });
 
-  it("keeps the OS preference when storage access throws", () => {
+  it('keeps the OS preference when storage access throws', () => {
     denyStorage();
     boot(true);
-    expect(theme()).toBe("dark");
+    expect(theme()).toBe('dark');
   });
 
   // The dev-remount repair in ThemeToggle re-derives the theme in TS rather than
@@ -87,16 +87,16 @@ describe("theme", () => {
   it.each([
     { stored: null, prefersDark: false },
     { stored: null, prefersDark: true },
-    { stored: "light", prefersDark: true },
-    { stored: "dark", prefersDark: false },
-    { stored: "chartreuse", prefersDark: true },
-    { stored: "chartreuse", prefersDark: false },
+    { stored: 'light', prefersDark: true },
+    { stored: 'dark', prefersDark: false },
+    { stored: 'chartreuse', prefersDark: true },
+    { stored: 'chartreuse', prefersDark: false },
     { stored: null, prefersDark: true, denied: true },
     { stored: null, prefersDark: false, denied: true },
   ])(
-    "resolveTheme agrees with the boot script (%j)",
+    'resolveTheme agrees with the boot script (%j)',
     ({ stored: value, prefersDark, denied }) => {
-      if (value !== null) stored["eo-theme"] = value;
+      if (value !== null) stored['eo-theme'] = value;
       if (denied === true) denyStorage();
       boot(prefersDark);
       expect(theme()).toMatch(/^(light|dark)$/);

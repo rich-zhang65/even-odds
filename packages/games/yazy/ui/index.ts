@@ -1,1 +1,1 @@
-export { YazyBoard } from "./YazyBoard";
+export { YazyBoard } from './YazyBoard';

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import type { PlayerId, RealtimeSnapshot, Snapshot } from "@even-odds/game-sdk";
-import { SEATS, seenBy } from "@even-odds/game-sdk/ui";
-import { cx } from "@even-odds/design-system/ui";
-import { clearOfPaddle, penned } from "../src/logic";
-import { GOAL, PADDLE, PUCK, TABLE } from "../src/types";
-import type { AirHockeyAction, AirHockeyState, Vec } from "../src/types";
+import { useEffect, useRef } from 'react';
+import { cx } from '@even-odds/design-system/ui';
+import type { PlayerId, RealtimeSnapshot, Snapshot } from '@even-odds/game-sdk';
+import { SEATS, seenBy } from '@even-odds/game-sdk/ui';
+import { clearOfPaddle, penned } from '../src/logic';
+import { GOAL, PADDLE, PUCK, TABLE } from '../src/types';
+import type { AirHockeyAction, AirHockeyState, Vec } from '../src/types';
 
 /* Draw this far behind the server. Snapshots arrive every 50ms, so a frame
    almost always has two to sit between; without the delay every frame would be
@@ -23,7 +23,7 @@ const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 const isRealtimeAirHockey = (
   snapshot: Snapshot<unknown>,
-): snapshot is RealtimeSnapshot<AirHockeyState> => snapshot.mode === "realtime";
+): snapshot is RealtimeSnapshot<AirHockeyState> => snapshot.mode === 'realtime';
 
 const percent = (value: number, of: number): string => `${(value / of) * 100}%`;
 
@@ -38,7 +38,10 @@ export const AirHockeyBoard = ({
 }) => {
   const table = useRef<HTMLDivElement>(null);
   const puck = useRef<HTMLDivElement>(null);
-  const paddleRefs = useRef<Record<PlayerId, HTMLDivElement | null>>({ p0: null, p1: null });
+  const paddleRefs = useRef<Record<PlayerId, HTMLDivElement | null>>({
+    p0: null,
+    p1: null,
+  });
 
   /* All of this is deliberately outside React. The loop below runs sixty times a
      second; putting any of it in state would re-render the tree to move three
@@ -53,9 +56,17 @@ export const AirHockeyBoard = ({
 
       const buffered = frames.current;
       // Socket.IO delivers in order, but a stale frame would rewind the render.
-      if (buffered.length > 0 && snapshot.tick <= buffered[buffered.length - 1].tick) return;
+      if (
+        buffered.length > 0 &&
+        snapshot.tick <= buffered[buffered.length - 1].tick
+      )
+        return;
 
-      buffered.push({ received: performance.now(), tick: snapshot.tick, state: snapshot.state });
+      buffered.push({
+        received: performance.now(),
+        tick: snapshot.tick,
+        state: snapshot.state,
+      });
       // Two frames span the render delay; a few more absorb a late arrival.
       if (buffered.length > 8) buffered.splice(0, buffered.length - 8);
     });
@@ -68,7 +79,10 @@ export const AirHockeyBoard = ({
     if (element === null) return;
 
     const observer = new ResizeObserver(([entry]) => {
-      size.current = { width: entry.contentRect.width, height: entry.contentRect.height };
+      size.current = {
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      };
     });
     observer.observe(element);
 
@@ -109,7 +123,8 @@ export const AirHockeyBoard = ({
       }
 
       const span = newer.received - older.received;
-      const t = span > 0 ? Math.min(Math.max((at - older.received) / span, 0), 1) : 1;
+      const t =
+        span > 0 ? Math.min(Math.max((at - older.received) / span, 0), 1) : 1;
 
       const drifting = {
         x: lerp(older.state.puck.at.x, newer.state.puck.at.x, t),
@@ -123,9 +138,12 @@ export const AirHockeyBoard = ({
          the next snapshot overrides it, and only your own paddle counts,
          because the opponent's and the puck come from the same frame and the
          server has already settled them against each other. */
-      place(puck.current, aim.current === null ? drifting : clearOfPaddle(drifting, aim.current));
+      place(
+        puck.current,
+        aim.current === null ? drifting : clearOfPaddle(drifting, aim.current),
+      );
 
-      for (const player of ["p0", "p1"] as const) {
+      for (const player of ['p0', 'p1'] as const) {
         /* Your own paddle is drawn from the pointer, never from the snapshot.
            Everything else renders DELAY_MS behind the server, and a hand that
            lags its own cursor by a tenth of a second is the one delay nobody
@@ -135,8 +153,16 @@ export const AirHockeyBoard = ({
         place(
           paddleRefs.current[player],
           own ?? {
-            x: lerp(older.state.paddles[player].at.x, newer.state.paddles[player].at.x, t),
-            y: lerp(older.state.paddles[player].at.y, newer.state.paddles[player].at.y, t),
+            x: lerp(
+              older.state.paddles[player].at.x,
+              newer.state.paddles[player].at.x,
+              t,
+            ),
+            y: lerp(
+              older.state.paddles[player].at.y,
+              newer.state.paddles[player].at.y,
+              t,
+            ),
           },
         );
       }
@@ -148,9 +174,13 @@ export const AirHockeyBoard = ({
     const flush = (): void => {
       const wanted = aim.current;
       if (wanted === null) return;
-      if (sent !== null && Math.hypot(wanted.x - sent.x, wanted.y - sent.y) < AIM_EPSILON) return;
+      if (
+        sent !== null &&
+        Math.hypot(wanted.x - sent.x, wanted.y - sent.y) < AIM_EPSILON
+      )
+        return;
       sent = wanted;
-      onAction({ type: "AIM", x: wanted.x, y: wanted.y });
+      onAction({ type: 'AIM', x: wanted.x, y: wanted.y });
     };
 
     // One loop, so the position drawn this frame is exactly the one sent.
@@ -176,11 +206,11 @@ export const AirHockeyBoard = ({
       aim.current = penned(seat, seenBy(seat, onScreen, TABLE));
     };
 
-    if (seat !== null) window.addEventListener("pointermove", track);
+    if (seat !== null) window.addEventListener('pointermove', track);
     running = requestAnimationFrame(frame);
 
     return () => {
-      window.removeEventListener("pointermove", track);
+      window.removeEventListener('pointermove', track);
       cancelAnimationFrame(running);
     };
   }, [seat, onAction]);
@@ -195,15 +225,20 @@ export const AirHockeyBoard = ({
 
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-eo-on-inverse/20"
-        style={{ width: percent(PADDLE.radius * 4, TABLE.width), aspectRatio: "1" }}
+        style={{
+          width: percent(PADDLE.radius * 4, TABLE.width),
+          aspectRatio: '1',
+        }}
       />
 
-      {(["top", "bottom"] as const).map((end) => (
+      {(['top', 'bottom'] as const).map((end) => (
         <div
           key={end}
           className={cx(
-            "absolute left-1/2 -translate-x-1/2 bg-eo-on-inverse/15",
-            end === "top" ? "top-0 rounded-b-eo-xs" : "bottom-0 rounded-t-eo-xs",
+            'absolute left-1/2 -translate-x-1/2 bg-eo-on-inverse/15',
+            end === 'top'
+              ? 'top-0 rounded-b-eo-xs'
+              : 'bottom-0 rounded-t-eo-xs',
           )}
           style={{
             width: percent(GOAL.width, TABLE.width),
@@ -212,15 +247,18 @@ export const AirHockeyBoard = ({
         />
       ))}
 
-      {(["p0", "p1"] as const).map((player) => (
+      {(['p0', 'p1'] as const).map((player) => (
         <div
           key={player}
           className={cx(
-            "absolute top-0 left-0 rounded-full will-change-transform",
+            'absolute top-0 left-0 rounded-full will-change-transform',
             SEATS[player].solid,
-            seat === player && "ring-2 ring-eo-on-inverse/60",
+            seat === player && 'ring-2 ring-eo-on-inverse/60',
           )}
-          style={{ width: percent(PADDLE.radius * 2, TABLE.width), aspectRatio: "1" }}
+          style={{
+            width: percent(PADDLE.radius * 2, TABLE.width),
+            aspectRatio: '1',
+          }}
           ref={(node) => {
             paddleRefs.current[player] = node;
           }}
@@ -229,7 +267,10 @@ export const AirHockeyBoard = ({
 
       <div
         className="absolute top-0 left-0 rounded-full bg-eo-on-inverse will-change-transform"
-        style={{ width: percent(PUCK.radius * 2, TABLE.width), aspectRatio: "1" }}
+        style={{
+          width: percent(PUCK.radius * 2, TABLE.width),
+          aspectRatio: '1',
+        }}
         ref={puck}
       />
     </div>

@@ -1,9 +1,14 @@
-import type { EngineContext, PlayerId, RandomAPI, RealtimeGame } from "@even-odds/game-sdk";
-import { assets } from "./assets";
-import { BALL, PADDLE, SERVE_DELAY_MS, TABLE, TARGET_SCORE } from "./types";
-import type { PongAction, PongState, Vec } from "./types";
+import type {
+  EngineContext,
+  PlayerId,
+  RandomAPI,
+  RealtimeGame,
+} from '@even-odds/game-sdk';
+import { assets } from './assets';
+import { BALL, PADDLE, SERVE_DELAY_MS, TABLE, TARGET_SCORE } from './types';
+import type { PongAction, PongState, Vec } from './types';
 
-const OPPONENT: Record<PlayerId, PlayerId> = { p0: "p1", p1: "p0" };
+const OPPONENT: Record<PlayerId, PlayerId> = { p0: 'p1', p1: 'p0' };
 
 /* p0 defends the near edge, p1 the far one. Both are planes rather than boxes:
    the ball is tested against a half-space, which is why nothing here can tunnel
@@ -35,11 +40,11 @@ const serveVelocity = (random: RandomAPI, toward: PlayerId): Vec => {
   const steepness = (random.int(-45, 45) / 100) * BALL.speed;
   return {
     x: steepness,
-    y: toward === "p1" ? -BALL.speed : BALL.speed,
+    y: toward === 'p1' ? -BALL.speed : BALL.speed,
   };
 };
 
-const restingBall = (): PongState["ball"] => ({
+const restingBall = (): PongState['ball'] => ({
   at: { ...CENTRE },
   velocity: { x: 0, y: 0 },
 });
@@ -62,14 +67,18 @@ const deflect = (velocity: Vec, offset: number): Vec => {
   return { x: (heading.x / length) * speed, y: (heading.y / length) * speed };
 };
 
-const bounceOffPaddle = (state: PongState, player: PlayerId): PongState | null => {
+const bounceOffPaddle = (
+  state: PongState,
+  player: PlayerId,
+): PongState | null => {
   const plane = PADDLE_Y[player];
-  const heading = player === "p1" ? -1 : 1;
+  const heading = player === 'p1' ? -1 : 1;
   const { at, velocity } = state.ball;
 
   if (Math.sign(velocity.y) !== heading) return null;
 
-  const reached = player === "p1" ? at.y - BALL.radius <= plane : at.y + BALL.radius >= plane;
+  const reached =
+    player === 'p1' ? at.y - BALL.radius <= plane : at.y + BALL.radius >= plane;
   if (!reached) return null;
 
   const offset = (at.x - state.paddles[player]) / HALF_PADDLE;
@@ -100,22 +109,22 @@ const moveBall = (state: PongState, dt: number): PongState => {
 
   const moved: PongState = { ...state, ball: { at: next, velocity: heading } };
 
-  const struck = bounceOffPaddle(moved, "p0") ?? bounceOffPaddle(moved, "p1");
+  const struck = bounceOffPaddle(moved, 'p0') ?? bounceOffPaddle(moved, 'p1');
   if (struck !== null) return struck;
 
-  if (next.y < 0) return concede(moved, "p0");
-  if (next.y > TABLE.height) return concede(moved, "p1");
+  if (next.y < 0) return concede(moved, 'p0');
+  if (next.y > TABLE.height) return concede(moved, 'p1');
 
   return moved;
 };
 
 export const Pong: RealtimeGame<PongState, PongAction> = {
-  mode: "realtime",
+  mode: 'realtime',
 
   meta: {
-    id: "pong",
-    name: "Pong",
-    tagline: "Keep it off your wall",
+    id: 'pong',
+    name: 'Pong',
+    tagline: 'Keep it off your wall',
     estimatedMinutes: 3,
     assets,
   },
@@ -126,7 +135,10 @@ export const Pong: RealtimeGame<PongState, PongAction> = {
     ball: restingBall(),
     paddles: { p0: TABLE.width / 2, p1: TABLE.width / 2 },
     scores: { p0: 0, p1: 0 },
-    serve: { inMs: SERVE_DELAY_MS, toward: ctx.random.int(0, 1) === 0 ? "p0" : "p1" },
+    serve: {
+      inMs: SERVE_DELAY_MS,
+      toward: ctx.random.int(0, 1) === 0 ? 'p0' : 'p1',
+    },
   }),
 
   isLegal: (_state, action) => Number.isFinite(action.x),
@@ -158,8 +170,8 @@ export const Pong: RealtimeGame<PongState, PongAction> = {
   },
 
   isTerminal: (state) => {
-    if (state.scores.p0 >= TARGET_SCORE) return { winner: "p0" };
-    if (state.scores.p1 >= TARGET_SCORE) return { winner: "p1" };
+    if (state.scores.p0 >= TARGET_SCORE) return { winner: 'p0' };
+    if (state.scores.p1 >= TARGET_SCORE) return { winner: 'p1' };
     return null;
   },
 };

@@ -8,19 +8,19 @@ Even Odds brand tokens and UI components.
 property and a utility class:
 
 ```css
-@import "tailwindcss";
-@import "@even-odds/design-system/styles.css";
+@import 'tailwindcss';
+@import '@even-odds/design-system/styles.css';
 ```
 
-| Group     | Example token             | Utility                  |
-| --------- | ------------------------- | ------------------------ |
-| Colour    | `--color-eo-red-400`      | `bg-eo-red-400`          |
-| Semantic  | `--color-eo-muted`        | `text-eo-muted`          |
-| Type      | `--text-eo-display-l`     | `text-eo-display-l`      |
-| Family    | `--font-eo-display`       | `font-eo-display`        |
-| Radius    | `--radius-eo-md`          | `rounded-eo-md`          |
-| Elevation | `--shadow-eo-edge-blue`   | `shadow-eo-edge-blue`    |
-| Motion    | `--animate-eo-pop`        | `animate-eo-pop`         |
+| Group     | Example token           | Utility               |
+| --------- | ----------------------- | --------------------- |
+| Colour    | `--color-eo-red-400`    | `bg-eo-red-400`       |
+| Semantic  | `--color-eo-muted`      | `text-eo-muted`       |
+| Type      | `--text-eo-display-l`   | `text-eo-display-l`   |
+| Family    | `--font-eo-display`     | `font-eo-display`     |
+| Radius    | `--radius-eo-md`        | `rounded-eo-md`       |
+| Elevation | `--shadow-eo-edge-blue` | `shadow-eo-edge-blue` |
+| Motion    | `--animate-eo-pop`      | `animate-eo-pop`      |
 
 Type tokens carry their line height and weight, so `text-eo-display-l` sets all three.
 
@@ -36,17 +36,17 @@ Set `data-theme="dark"` on `<html>`. Only the semantic aliases repoint; the raw 
 are identical in both themes, so **a component that reaches past a semantic token into
 a ramp step will not flip**. Reach for the semantic every time:
 
-| Instead of              | Use                    |
-| ----------------------- | ---------------------- |
-| `bg-eo-paper`           | `bg-eo-card`           |
-| `bg-eo-ink-100`         | `bg-eo-sunken`         |
-| `border-eo-ink-900`     | `border-eo-strong`     |
-| `border-eo-ink-300`     | `border-eo-control-line` |
-| `bg-eo-red-50`          | `bg-eo-red-soft`       |
-| `bg-eo-red-400`         | `bg-eo-red-solid`      |
-| `text-eo-red-600`       | `text-eo-red-ink`      |
-| `border-eo-red-500`     | `border-eo-red-line`   |
-| `border-eo-red-200`     | `border-eo-red-hairline` |
+| Instead of          | Use                      |
+| ------------------- | ------------------------ |
+| `bg-eo-paper`       | `bg-eo-card`             |
+| `bg-eo-ink-100`     | `bg-eo-sunken`           |
+| `border-eo-ink-900` | `border-eo-strong`       |
+| `border-eo-ink-300` | `border-eo-control-line` |
+| `bg-eo-red-50`      | `bg-eo-red-soft`         |
+| `bg-eo-red-400`     | `bg-eo-red-solid`        |
+| `text-eo-red-600`   | `text-eo-red-ink`        |
+| `border-eo-red-500` | `border-eo-red-line`     |
+| `border-eo-red-200` | `border-eo-red-hairline` |
 
 Each player colour carries the same five slots: `solid` and `soft` for fills, `ink` for
 text, `line` and `hairline` for the strong and soft edge. A filled surface keeps
@@ -68,17 +68,17 @@ holds no state — it reads and flips the attribute, and swaps its own glyph wit
 ## Components
 
 ```ts
-import { Button, GameCard, ScoreBoard } from "@even-odds/design-system/ui";
+import { Button, GameCard, ScoreBoard } from '@even-odds/design-system/ui';
 ```
 
 | Group      | Components                                          |
 | ---------- | --------------------------------------------------- |
-| Core       | `Button` `Card` `Badge` `Tag` `Icon` `IconButton`     |
-| Forms      | `Input` `Checkbox` `Radio` `Select` `Switch`          |
-| Feedback   | `Dialog` `Toast` `Tooltip`                            |
-| Game       | `GameCard` `PlayerChip` `ScoreBoard` `VersusBanner`   |
-| Navigation | `Tabs`                                                |
-| Layout     | `Flex` `Typography`                                   |
+| Core       | `Button` `Card` `Badge` `Tag` `Icon` `IconButton`   |
+| Forms      | `Input` `Checkbox` `Radio` `Select` `Switch`        |
+| Feedback   | `Dialog` `Toast` `Tooltip`                          |
+| Game       | `GameCard` `PlayerChip` `ScoreBoard` `VersusBanner` |
+| Navigation | `Tabs`                                              |
+| Layout     | `Flex` `Typography`                                 |
 
 `Flex` is the layout primitive: it maps its props to Tailwind utilities and
 appends `className` last, so callers keep responsive overrides.

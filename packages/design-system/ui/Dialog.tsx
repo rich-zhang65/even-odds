@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 export const Dialog = ({
   open = false,
@@ -47,11 +47,15 @@ export const Dialog = ({
           </h2>
         )}
         {description !== undefined && (
-          <p className="mt-2 font-eo-body text-eo-body-m text-eo-muted">{description}</p>
+          <p className="mt-2 font-eo-body text-eo-body-m text-eo-muted">
+            {description}
+          </p>
         )}
       </div>
       {children}
-      {footer !== undefined && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
+      {footer !== undefined && (
+        <div className="mt-6 flex justify-end gap-3">{footer}</div>
+      )}
     </dialog>
   );
 };

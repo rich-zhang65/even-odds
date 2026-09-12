@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { GameCard, Toast, cx } from "@even-odds/design-system/ui";
-import { AirHockey } from "@even-odds/air-hockey";
-import { Pong } from "@even-odds/pong";
-import { Yazy } from "@even-odds/yazy";
-import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
-import { getSocket, tokenKey } from "@/lib/socket";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { AirHockey } from '@even-odds/air-hockey';
+import { GameCard, Toast, cx } from '@even-odds/design-system/ui';
+import { Pong } from '@even-odds/pong';
+import { Yazy } from '@even-odds/yazy';
+import { PageContainer } from '@/components/PageContainer';
+import { PageHeader } from '@/components/PageHeader';
+import { getSocket, tokenKey } from '@/lib/socket';
 
 type PlayableGame = {
   id: string;
@@ -40,8 +40,9 @@ const PLAYABLE: PlayableGame[] = [
    never re-crops the art. 214px is not arbitrary: it tiles five across the 1200px
    page max with 2px to spare. Any fixed width leaves a remainder at other widths --
    that is the cost of not using 1fr, and it only shows once a row fills. */
-const GRID = "grid grid-cols-[repeat(auto-fill,214px)] gap-5";
-const HEADING = "font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong";
+const GRID = 'grid grid-cols-[repeat(auto-fill,214px)] gap-5';
+const HEADING =
+  'font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong';
 
 const Home = () => {
   const router = useRouter();
@@ -51,8 +52,8 @@ const Home = () => {
   const start = (gameId: string) => {
     setPending(gameId);
     setError(null);
-    getSocket().emit("match:create", { gameId }, (res) => {
-      if ("error" in res) {
+    getSocket().emit('match:create', { gameId }, (res) => {
+      if ('error' in res) {
         setPending(null);
         setError(res.error);
         return;
@@ -80,12 +81,12 @@ const Home = () => {
         <h1 className="sr-only">Even Odds</h1>
 
         <section className="mb-14 max-md:mb-8">
-          <h2 className={cx(HEADING, "mb-5")}>Recently played</h2>
+          <h2 className={cx(HEADING, 'mb-5')}>Recently played</h2>
           <div className={GRID}>{playable}</div>
         </section>
 
         <section>
-          <h2 className={cx(HEADING, "mb-5")}>All games</h2>
+          <h2 className={cx(HEADING, 'mb-5')}>All games</h2>
           <div className={GRID}>{playable}</div>
         </section>
       </PageContainer>

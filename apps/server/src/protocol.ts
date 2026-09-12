@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Envelope validation only. Action semantics are the game's job, via isLegal.
 export const matchCreateSchema = z.object({ gameId: z.string().min(1) });
@@ -18,4 +18,4 @@ export type {
   ActionAck,
   ClientToServerEvents,
   ServerToClientEvents,
-} from "@even-odds/game-sdk";
+} from '@even-odds/game-sdk';

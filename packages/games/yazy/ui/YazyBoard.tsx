@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import type { PlayerId, Snapshot } from "@even-odds/game-sdk";
-import { SEATS } from "@even-odds/game-sdk/ui";
-import { Button, Card, Flex } from "@even-odds/design-system/ui";
-import type { YazyAction, YazyState } from "../src/types";
-import { legalScoringCategories } from "../src/logic";
-import { DiceRow } from "./DiceRow";
-import { RollPips } from "./RollPips";
-import { Scorecard } from "./Scorecard";
-import { useRoll } from "./useRoll";
+import { Button, Card, Flex } from '@even-odds/design-system/ui';
+import type { PlayerId, Snapshot } from '@even-odds/game-sdk';
+import { SEATS } from '@even-odds/game-sdk/ui';
+import { DiceRow } from './DiceRow';
+import { RollPips } from './RollPips';
+import { Scorecard } from './Scorecard';
+import { useRoll } from './useRoll';
+import { legalScoringCategories } from '../src/logic';
+import type { YazyAction, YazyState } from '../src/types';
 
 export const YazyBoard = ({
   snapshot,
@@ -25,7 +25,7 @@ export const YazyBoard = ({
      shares the type, and reaching past it costs nothing here. */
   const turn = state.turn;
   const result = snapshot.result;
-  const live = snapshot.phase === "playing";
+  const live = snapshot.phase === 'playing';
   const yourTurn = seat !== null && turn === seat;
   const myTurn = live && yourTurn;
   const rollsUsed = 3 - state.rollsLeft;
@@ -39,20 +39,21 @@ export const YazyBoard = ({
      lights up its own available rows for both people the moment it starts. Acting
      on one still needs the seat and a roll -- SCORE is illegal at rollsLeft 3. */
   const { rolling, tick } = useRoll(state.rollsLeft, state.dice.length);
-  const selectable = live && result === null ? legalScoringCategories(state, turn) : [];
+  const selectable =
+    live && result === null ? legalScoringCategories(state, turn) : [];
   const revealed = rollsUsed > 0 && !rolling;
 
   const current = SEATS[turn];
 
-  const rollLabel = yourTurn && result === null ? "Roll" : null;
+  const rollLabel = yourTurn && result === null ? 'Roll' : null;
 
-  const rollButton = (size: "md" | "lg") => (
+  const rollButton = (size: 'md' | 'lg') => (
     <Button
       fullWidth
       size={size}
       variant={current.button}
       disabled={!myTurn || rolling || state.rollsLeft === 0}
-      onClick={() => onAction({ type: "ROLL" })}
+      onClick={() => onAction({ type: 'ROLL' })}
       iconRight={<RollPips used={rollsUsed} spentText={current.accent} />}
     >
       {rollLabel}
@@ -70,7 +71,7 @@ export const YazyBoard = ({
             live={live}
             selectable={selectable}
             revealed={revealed}
-            onScore={(category) => onAction({ type: "SCORE", category })}
+            onScore={(category) => onAction({ type: 'SCORE', category })}
           />
         </div>
 
@@ -91,7 +92,7 @@ export const YazyBoard = ({
               tick={tick}
               onAction={onAction}
             />
-            {rollButton("lg")}
+            {rollButton('lg')}
           </Card>
         </div>
       </Flex>
@@ -109,7 +110,7 @@ export const YazyBoard = ({
             tick={tick}
             onAction={onAction}
           />
-          {rollButton("md")}
+          {rollButton('md')}
         </div>
       </div>
     </div>

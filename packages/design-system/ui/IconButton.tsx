@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { MouseEvent, ReactNode } from "react";
-import { cx } from "./cx";
+import type { MouseEvent, ReactNode } from 'react';
+import { cx } from './cx';
 import {
   CONTROL_DISABLED,
   CONTROL_HEIGHTS,
@@ -10,27 +10,27 @@ import {
   CONTROL_VARIANTS,
   type ControlSize,
   type ControlVariant,
-} from "./tokens";
+} from './tokens';
 
 const WIDTHS: Record<ControlSize, string> = {
-  sm: "w-(--eo-control-sm)",
-  md: "w-(--eo-control-md)",
-  lg: "w-(--eo-control-lg)",
+  sm: 'w-(--eo-control-sm)',
+  md: 'w-(--eo-control-md)',
+  lg: 'w-(--eo-control-lg)',
 };
 
 // Sized here rather than on the glyph so the icon can be a plain node and
 // still cross a server/client boundary.
 const GLYPHS: Record<ControlSize, string> = {
-  sm: "[&_svg]:size-4.5",
-  md: "[&_svg]:size-5.5",
-  lg: "[&_svg]:size-5.5",
+  sm: '[&_svg]:size-4.5',
+  md: '[&_svg]:size-5.5',
+  lg: '[&_svg]:size-5.5',
 };
 
 export const IconButton = ({
   icon,
   label,
-  size = "md",
-  variant = "outline",
+  size = 'md',
+  variant = 'outline',
   disabled = false,
   onClick,
   className,
@@ -45,7 +45,7 @@ export const IconButton = ({
 }) => (
   <button
     className={cx(
-      "inline-flex cursor-pointer items-center justify-center rounded-eo-md",
+      'inline-flex cursor-pointer items-center justify-center rounded-eo-md',
       CONTROL_VARIANTS[variant],
       CONTROL_HEIGHTS[size],
       WIDTHS[size],

@@ -1,4 +1,4 @@
-import type { PlayerId } from "@even-odds/game-sdk";
+import type { PlayerId } from '@even-odds/game-sdk';
 
 /* Abstract units, never pixels: the table is 100 wide by 200 tall whatever the
    viewport is, and the client scales it at render. Coupling the simulation to a
@@ -37,4 +37,4 @@ export type AirHockeyState = {
   faceOff: { inMs: number; toward: PlayerId };
 };
 
-export type AirHockeyAction = { type: "AIM"; x: number; y: number };
+export type AirHockeyAction = { type: 'AIM'; x: number; y: number };

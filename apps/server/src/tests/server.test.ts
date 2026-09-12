@@ -1,14 +1,19 @@
-import { createServer } from "node:http";
-import { afterEach, describe, expect, it } from "vitest";
-import { io as connectClient } from "socket.io-client";
-import type { Socket } from "socket.io-client";
-import { ALL_CATEGORIES } from "@even-odds/yazy";
-import type { YazyState } from "@even-odds/yazy";
-import type { GameResult, PlayerId, Snapshot } from "@even-odds/game-sdk";
-import { attachSocketServer } from "../server";
+import { createServer } from 'node:http';
+import { io as connectClient } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import { afterEach, describe, expect, it } from 'vitest';
+import type { GameResult, PlayerId, Snapshot } from '@even-odds/game-sdk';
+import { ALL_CATEGORIES } from '@even-odds/yazy';
+import type { YazyState } from '@even-odds/yazy';
+import { attachSocketServer } from '../server';
 
 type CreateOk = { matchId: string; you: PlayerId; token: string };
-type JoinOk = { matchId: string; you: PlayerId; token: string; reconnected: boolean };
+type JoinOk = {
+  matchId: string;
+  you: PlayerId;
+  token: string;
+  reconnected: boolean;
+};
 type ErrAck = { error: string };
 type ActionAck = { ok: true } | ErrAck;
 type StatePayload = { snapshot: Snapshot<YazyState> };
@@ -26,37 +31,47 @@ afterEach(async () => {
 const startServer = async (graceMs?: number): Promise<string> => {
   const http = createServer();
   const io = attachSocketServer(http, { graceMs });
-  await new Promise<void>(resolve => http.listen(0, () => resolve()));
+  await new Promise<void>((resolve) => http.listen(0, () => resolve()));
 
   const address = http.address();
-  if (address === null || typeof address === "string") throw new Error("no port bound");
+  if (address === null || typeof address === 'string')
+    throw new Error('no port bound');
 
-  teardowns.push(() => new Promise<void>(resolve => io.close(() => resolve())));
+  teardowns.push(
+    () => new Promise<void>((resolve) => io.close(() => resolve())),
+  );
   return `http://127.0.0.1:${address.port}`;
 };
 
 const connect = async (url: string): Promise<Socket> => {
-  const socket = connectClient(url, { transports: ["websocket"], forceNew: true });
+  const socket = connectClient(url, {
+    transports: ['websocket'],
+    forceNew: true,
+  });
   clients.push(socket);
   await new Promise<void>((resolve, reject) => {
-    socket.once("connect", () => resolve());
-    socket.once("connect_error", reject);
+    socket.once('connect', () => resolve());
+    socket.once('connect_error', reject);
   });
   return socket;
 };
 
 const ask = <T>(socket: Socket, event: string, payload?: unknown): Promise<T> =>
-  new Promise<T>(resolve => {
+  new Promise<T>((resolve) => {
     socket.emit(event, payload, (res: T) => resolve(res));
   });
 
 const waitFor = <T>(socket: Socket, event: string): Promise<T> =>
-  new Promise<T>(resolve => {
+  new Promise<T>((resolve) => {
     socket.once(event, (payload: T) => resolve(payload));
   });
 
-const waitUntil = <T>(socket: Socket, event: string, matches: (payload: T) => boolean): Promise<T> =>
-  new Promise<T>(resolve => {
+const waitUntil = <T>(
+  socket: Socket,
+  event: string,
+  matches: (payload: T) => boolean,
+): Promise<T> =>
+  new Promise<T>((resolve) => {
     const handler = (payload: T) => {
       if (!matches(payload)) return;
       socket.off(event, handler);
@@ -66,134 +81,169 @@ const waitUntil = <T>(socket: Socket, event: string, matches: (payload: T) => bo
   });
 
 const waitForPhase = (socket: Socket, phase: string): Promise<StatePayload> =>
-  waitUntil<StatePayload>(socket, "game:state", p => p.snapshot.phase === phase);
+  waitUntil<StatePayload>(
+    socket,
+    'game:state',
+    (p) => p.snapshot.phase === phase,
+  );
 
 const openMatch = async (url: string) => {
   const a = await connect(url);
-  const created = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
+  const created = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
 
   const b = await connect(url);
   // Both seats must settle on "playing" — awaiting only one leaves the other's
   // opening snapshot in flight, where it can satisfy a later phase listener.
-  const started = Promise.all([waitForPhase(a, "playing"), waitForPhase(b, "playing")]);
-  const joined = await ask<JoinOk>(b, "match:join", { matchId: created.matchId });
+  const started = Promise.all([
+    waitForPhase(a, 'playing'),
+    waitForPhase(b, 'playing'),
+  ]);
+  const joined = await ask<JoinOk>(b, 'match:join', {
+    matchId: created.matchId,
+  });
   await started;
 
   return { a, b, created, joined };
 };
 
-describe("server — match lifecycle", () => {
-  it("seats two players and starts the match", async () => {
+describe('server — match lifecycle', () => {
+  it('seats two players and starts the match', async () => {
     const url = await startServer();
     const { created, joined } = await openMatch(url);
 
-    expect(created.you).toBe("p0");
+    expect(created.you).toBe('p0');
     expect(created.matchId).toHaveLength(10);
-    expect(joined.you).toBe("p1");
+    expect(joined.you).toBe('p1');
     expect(joined.reconnected).toBe(false);
   });
 
-  it("pushes match:state naming the occupied seats", async () => {
+  it('pushes match:state naming the occupied seats', async () => {
     const url = await startServer();
     const a = await connect(url);
-    const created = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
+    const created = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
 
     const b = await connect(url);
-    const seated = waitFor<{ seats: { p0: boolean; p1: boolean } }>(a, "match:state");
-    await ask<JoinOk>(b, "match:join", { matchId: created.matchId });
+    const seated = waitFor<{ seats: { p0: boolean; p1: boolean } }>(
+      a,
+      'match:state',
+    );
+    await ask<JoinOk>(b, 'match:join', { matchId: created.matchId });
 
     expect(await seated).toMatchObject({ seats: { p0: true, p1: true } });
   });
 
-  it("re-seats a socket into the seat it already holds, even with no token", async () => {
+  it('re-seats a socket into the seat it already holds, even with no token', async () => {
     const url = await startServer();
     const a = await connect(url);
-    const created = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
+    const created = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
 
-    const rejoined = await ask<JoinOk>(a, "match:join", { matchId: created.matchId });
-    expect(rejoined).toMatchObject({ you: "p0", reconnected: true });
+    const rejoined = await ask<JoinOk>(a, 'match:join', {
+      matchId: created.matchId,
+    });
+    expect(rejoined).toMatchObject({ you: 'p0', reconnected: true });
 
     const b = await connect(url);
-    const joined = await ask<JoinOk>(b, "match:join", { matchId: created.matchId });
-    expect(joined.you).toBe("p1");
+    const joined = await ask<JoinOk>(b, 'match:join', {
+      matchId: created.matchId,
+    });
+    expect(joined.you).toBe('p1');
   });
 
-  it("opens a fresh match for a socket whose previous match has finished", async () => {
+  it('opens a fresh match for a socket whose previous match has finished', async () => {
     const url = await startServer(100);
     const { a, b, created } = await openMatch(url);
 
-    const finished = waitForPhase(a, "over");
+    const finished = waitForPhase(a, 'over');
     b.disconnect();
     await finished;
 
-    const second = await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
-    const waiting = waitForPhase(a, "waiting");
-    await ask<JoinOk>(a, "match:join", { matchId: second.matchId });
+    const second = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
+    const waiting = waitForPhase(a, 'waiting');
+    await ask<JoinOk>(a, 'match:join', { matchId: second.matchId });
 
     expect(second.matchId).not.toBe(created.matchId);
     expect((await waiting).snapshot.matchId).toBe(second.matchId);
   });
 
-  it("refuses a third player gracefully", async () => {
+  it('refuses a third player gracefully', async () => {
     const url = await startServer();
     const { created } = await openMatch(url);
 
     const c = await connect(url);
-    const result = await ask<ErrAck>(c, "match:join", { matchId: created.matchId });
-    expect(result).toEqual({ error: "full" });
+    const result = await ask<ErrAck>(c, 'match:join', {
+      matchId: created.matchId,
+    });
+    expect(result).toEqual({ error: 'full' });
   });
 
-  it("reports an unknown match and an unknown game", async () => {
+  it('reports an unknown match and an unknown game', async () => {
     const url = await startServer();
     const a = await connect(url);
 
-    expect(await ask<ErrAck>(a, "match:join", { matchId: "nope" })).toEqual({ error: "notfound" });
-    expect(await ask<ErrAck>(a, "match:create", { gameId: "chess" })).toEqual({
-      error: "unknown-game",
+    expect(await ask<ErrAck>(a, 'match:join', { matchId: 'nope' })).toEqual({
+      error: 'notfound',
+    });
+    expect(await ask<ErrAck>(a, 'match:create', { gameId: 'chess' })).toEqual({
+      error: 'unknown-game',
     });
   });
 
-  it("rejects malformed payloads before they reach a game", async () => {
+  it('rejects malformed payloads before they reach a game', async () => {
     const url = await startServer();
     const a = await connect(url);
 
-    expect(await ask<ErrAck>(a, "match:create", {})).toEqual({ error: "bad-payload" });
-    expect(await ask<ErrAck>(a, "match:join", { matchId: 42 })).toEqual({ error: "bad-payload" });
-    expect(await ask<ErrAck>(a, "game:action", { nope: true })).toEqual({ error: "bad-payload" });
+    expect(await ask<ErrAck>(a, 'match:create', {})).toEqual({
+      error: 'bad-payload',
+    });
+    expect(await ask<ErrAck>(a, 'match:join', { matchId: 42 })).toEqual({
+      error: 'bad-payload',
+    });
+    expect(await ask<ErrAck>(a, 'game:action', { nope: true })).toEqual({
+      error: 'bad-payload',
+    });
   });
 });
 
-describe("server — play", () => {
-  it("rejects an action from the player who is not on turn", async () => {
+describe('server — play', () => {
+  it('rejects an action from the player who is not on turn', async () => {
     const url = await startServer();
     const { b } = await openMatch(url);
-    expect(await ask<ActionAck>(b, "game:action", { type: "ROLL" })).toEqual({
-      error: "not your turn",
+    expect(await ask<ActionAck>(b, 'game:action', { type: 'ROLL' })).toEqual({
+      error: 'not your turn',
     });
   });
 
-  it("rejects an action from a socket with no seat", async () => {
+  it('rejects an action from a socket with no seat', async () => {
     const url = await startServer();
     await openMatch(url);
     const stranger = await connect(url);
-    expect(await ask<ActionAck>(stranger, "game:action", { type: "ROLL" })).toEqual({
-      error: "not in a match",
+    expect(
+      await ask<ActionAck>(stranger, 'game:action', { type: 'ROLL' }),
+    ).toEqual({
+      error: 'not in a match',
     });
   });
 
-  it("plays a full match between two clients and declares a winner", async () => {
+  it('plays a full match between two clients and declares a winner', async () => {
     const url = await startServer();
     const { a, b } = await openMatch(url);
 
-    const overA = waitFor<OverPayload>(a, "game:over");
-    const overB = waitFor<OverPayload>(b, "game:over");
+    const overA = waitFor<OverPayload>(a, 'game:over');
+    const overB = waitFor<OverPayload>(b, 'game:over');
     const seats: Record<PlayerId, Socket> = { p0: a, p1: b };
 
     for (const category of ALL_CATEGORIES) {
-      for (const player of ["p0", "p1"] as const) {
+      for (const player of ['p0', 'p1'] as const) {
         const socket = seats[player];
-        expect(await ask<ActionAck>(socket, "game:action", { type: "ROLL" })).toEqual({ ok: true });
-        expect(await ask<ActionAck>(socket, "game:action", { type: "SCORE", category })).toEqual({
+        expect(
+          await ask<ActionAck>(socket, 'game:action', { type: 'ROLL' }),
+        ).toEqual({ ok: true });
+        expect(
+          await ask<ActionAck>(socket, 'game:action', {
+            type: 'SCORE',
+            category,
+          }),
+        ).toEqual({
           ok: true,
         });
       }
@@ -205,65 +255,67 @@ describe("server — play", () => {
   }, 20_000);
 });
 
-describe("server — disconnect and reconnect", () => {
-  it("pauses the match and restores it when the player returns with its token", async () => {
+describe('server — disconnect and reconnect', () => {
+  it('pauses the match and restores it when the player returns with its token', async () => {
     const url = await startServer();
     const { a, b, created, joined } = await openMatch(url);
 
-    const opponentGone = waitFor<OpponentPayload>(a, "match:opponent");
-    const paused = waitForPhase(a, "paused");
+    const opponentGone = waitFor<OpponentPayload>(a, 'match:opponent');
+    const paused = waitForPhase(a, 'paused');
     b.disconnect();
 
     expect(await opponentGone).toEqual({ connected: false });
-    expect((await paused).snapshot.phase).toBe("paused");
+    expect((await paused).snapshot.phase).toBe('paused');
 
     const c = await connect(url);
-    const resumed = waitForPhase(c, "playing");
-    const rejoined = await ask<JoinOk>(c, "match:join", {
+    const resumed = waitForPhase(c, 'playing');
+    const rejoined = await ask<JoinOk>(c, 'match:join', {
       matchId: created.matchId,
       token: joined.token,
     });
 
-    expect(rejoined).toMatchObject({ you: "p1", reconnected: true });
-    expect((await resumed).snapshot.phase).toBe("playing");
+    expect(rejoined).toMatchObject({ you: 'p1', reconnected: true });
+    expect((await resumed).snapshot.phase).toBe('playing');
   });
 
-  it("takes a player back to the match they walked away from", async () => {
+  it('takes a player back to the match they walked away from', async () => {
     const url = await startServer();
     const { a, created } = await openMatch(url);
-    await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
+    await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
 
-    const resumed = waitForPhase(a, "playing");
-    const back = await ask<JoinOk>(a, "match:join", {
+    const resumed = waitForPhase(a, 'playing');
+    const back = await ask<JoinOk>(a, 'match:join', {
       matchId: created.matchId,
       token: created.token,
     });
 
-    expect(back).toMatchObject({ you: "p0", reconnected: true });
+    expect(back).toMatchObject({ you: 'p0', reconnected: true });
     expect((await resumed).snapshot.matchId).toBe(created.matchId);
   });
 
-  it("tells the opponent when a player walks off to start another match", async () => {
+  it('tells the opponent when a player walks off to start another match', async () => {
     const url = await startServer(100);
     const { a, b } = await openMatch(url);
 
-    const dropped = waitFor<OpponentPayload>(b, "match:opponent");
-    const over = waitFor<OverPayload>(b, "game:over");
-    await ask<CreateOk>(a, "match:create", { gameId: "yazy" });
+    const dropped = waitFor<OpponentPayload>(b, 'match:opponent');
+    const over = waitFor<OverPayload>(b, 'game:over');
+    await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
 
     expect(await dropped).toEqual({ connected: false });
-    expect(await over).toEqual({ result: { winner: "p1", reason: "opponent disconnected" } });
+    expect(await over).toEqual({
+      result: { winner: 'p1', reason: 'opponent disconnected' },
+    });
   });
 
-  it("forfeits to the opponent when the grace window expires", async () => {
+  it('forfeits to the opponent when the grace window expires', async () => {
     const url = await startServer(100);
     const { a, b } = await openMatch(url);
 
-    const over = waitFor<OverPayload>(a, "game:over");
+    const over = waitFor<OverPayload>(a, 'game:over');
     b.disconnect();
 
     expect(await over).toEqual({
-      result: { winner: "p0", reason: "opponent disconnected" },
+      result: { winner: 'p0', reason: 'opponent disconnected' },
     });
   });
 });

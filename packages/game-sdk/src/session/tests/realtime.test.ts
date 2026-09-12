@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { createRealtimeSession } from "../realtime";
-import { createSession } from "../index";
-import type { Cancel, Scheduler } from "../scheduler";
-import type { RealtimeSnapshot, SessionEvent, Snapshot } from "../types";
-import type { RealtimeGame, PlayerId } from "../../types";
+import { describe, expect, it } from 'vitest';
+import type { RealtimeGame, PlayerId } from '../../types';
+import { createSession } from '../index';
+import { createRealtimeSession } from '../realtime';
+import type { Cancel, Scheduler } from '../scheduler';
+import type { RealtimeSnapshot, SessionEvent, Snapshot } from '../types';
 
 /* A scheduler with no clock behind it. Time only moves when a test says so, so a
    whole match runs in microseconds and never waits on a real timer. */
@@ -45,18 +45,18 @@ const manualScheduler = () => {
 };
 
 type DriftState = { x: number; vx: number; nudges: Record<PlayerId, number> };
-type DriftAction = { type: "NUDGE" };
+type DriftAction = { type: 'NUDGE' };
 
 const STEP_MS = 1000 / 60;
 
 /* Drifts right at a fixed rate until it passes 100, so position is a pure
    function of how many ticks have run and a wrong count is obvious. */
 const Drift: RealtimeGame<DriftState, DriftAction> = {
-  mode: "realtime",
+  mode: 'realtime',
   meta: {
-    id: "drift",
-    name: "Drift",
-    tagline: "Moves on its own",
+    id: 'drift',
+    name: 'Drift',
+    tagline: 'Moves on its own',
     estimatedMinutes: 1,
     assets: { icon: null, sprites: {}, sounds: {} },
   },
@@ -70,7 +70,7 @@ const Drift: RealtimeGame<DriftState, DriftAction> = {
     nudges: { ...state.nudges, [by]: state.nudges[by] + 1 },
   }),
   tick: (state) => ({ ...state, x: state.x + state.vx }),
-  isTerminal: (state) => (state.x > 100 ? { winner: "p0" } : null),
+  isTerminal: (state) => (state.x > 100 ? { winner: 'p0' } : null),
 };
 
 type Emitted = { to: PlayerId; event: SessionEvent<DriftState> };
@@ -79,7 +79,7 @@ const newSession = (graceMs = 60_000) => {
   const emitted: Emitted[] = [];
   const { scheduler, advance } = manualScheduler();
   const session = createRealtimeSession(Drift, {
-    matchId: "m1",
+    matchId: 'm1',
     seed: 1,
     graceMs,
     scheduler,
@@ -92,16 +92,19 @@ const newSession = (graceMs = 60_000) => {
   return { session, emitted, advance, steps };
 };
 
-const realtime = (snapshot: Snapshot<DriftState>): RealtimeSnapshot<DriftState> => {
-  if (snapshot.mode !== "realtime") throw new Error(`unexpected ${snapshot.mode} snapshot`);
+const realtime = (
+  snapshot: Snapshot<DriftState>,
+): RealtimeSnapshot<DriftState> => {
+  if (snapshot.mode !== 'realtime')
+    throw new Error(`unexpected ${snapshot.mode} snapshot`);
   return snapshot;
 };
 
-const look = (session: ReturnType<typeof newSession>["session"]) =>
-  realtime(session.snapshotFor("p0"));
+const look = (session: ReturnType<typeof newSession>['session']) =>
+  realtime(session.snapshotFor('p0'));
 
-describe("RealtimeSession — the loop", () => {
-  it("does not tick until it is started", () => {
+describe('RealtimeSession — the loop', () => {
+  it('does not tick until it is started', () => {
     const { session, advance } = newSession();
 
     advance(STEP_MS * 10);
@@ -110,7 +113,7 @@ describe("RealtimeSession — the loop", () => {
     expect(look(session).state.x).toBe(0);
   });
 
-  it("banks elapsed time and spends it in whole steps", () => {
+  it('banks elapsed time and spends it in whole steps', () => {
     const { session, advance } = newSession();
     session.start();
 
@@ -123,7 +126,7 @@ describe("RealtimeSession — the loop", () => {
     expect(look(session).tick).toBe(3);
   });
 
-  it("advances the same way whatever shape the elapsed time arrives in", () => {
+  it('advances the same way whatever shape the elapsed time arrives in', () => {
     const even = newSession();
     const jittery = newSession();
     even.session.start();
@@ -138,7 +141,7 @@ describe("RealtimeSession — the loop", () => {
     expect(look(jittery.session).state.x).toBe(look(even.session).state.x);
   });
 
-  it("broadcasts at a third of the tick rate, not on every tick", () => {
+  it('broadcasts at a third of the tick rate, not on every tick', () => {
     const { session, emitted, steps } = newSession();
     session.start();
     emitted.length = 0;
@@ -146,7 +149,7 @@ describe("RealtimeSession — the loop", () => {
     steps(6);
 
     // 6 ticks at 60Hz against a 20Hz broadcast is 2 rounds, to both players.
-    expect(emitted.filter((e) => e.event.type === "state")).toHaveLength(4);
+    expect(emitted.filter((e) => e.event.type === 'state')).toHaveLength(4);
   });
 
   it("stamps each snapshot from the scheduler's clock", () => {
@@ -159,93 +162,93 @@ describe("RealtimeSession — the loop", () => {
   });
 });
 
-describe("RealtimeSession — input", () => {
-  it("holds input for the next tick rather than applying it on arrival", () => {
+describe('RealtimeSession — input', () => {
+  it('holds input for the next tick rather than applying it on arrival', () => {
     const { session, advance } = newSession();
     session.start();
 
-    expect(session.handleAction({ type: "NUDGE" }, "p0")).toEqual({ ok: true });
+    expect(session.handleAction({ type: 'NUDGE' }, 'p0')).toEqual({ ok: true });
     expect(look(session).state.nudges.p0).toBe(0);
 
     advance(STEP_MS);
     expect(look(session).state.nudges.p0).toBe(1);
   });
 
-  it("takes input from both players in the same tick", () => {
+  it('takes input from both players in the same tick', () => {
     const { session, advance } = newSession();
     session.start();
 
-    session.handleAction({ type: "NUDGE" }, "p0");
-    session.handleAction({ type: "NUDGE" }, "p1");
+    session.handleAction({ type: 'NUDGE' }, 'p0');
+    session.handleAction({ type: 'NUDGE' }, 'p1');
     advance(STEP_MS);
 
     expect(look(session).state.nudges).toEqual({ p0: 1, p1: 1 });
   });
 
-  it("re-judges legality at the tick, against state the drain is moving", () => {
+  it('re-judges legality at the tick, against state the drain is moving', () => {
     const { session, steps } = newSession();
     session.start();
 
     // Both legal on arrival. The first makes the second illegal before it is read.
-    expect(session.handleAction({ type: "NUDGE" }, "p0")).toEqual({ ok: true });
-    expect(session.handleAction({ type: "NUDGE" }, "p0")).toEqual({ ok: true });
+    expect(session.handleAction({ type: 'NUDGE' }, 'p0')).toEqual({ ok: true });
+    expect(session.handleAction({ type: 'NUDGE' }, 'p0')).toEqual({ ok: true });
     steps(1);
 
     expect(look(session).state.nudges.p0).toBe(1);
   });
 
-  it("refuses input once the match is not playing", () => {
+  it('refuses input once the match is not playing', () => {
     const { session } = newSession();
 
-    expect(session.handleAction({ type: "NUDGE" }, "p0")).toEqual({
+    expect(session.handleAction({ type: 'NUDGE' }, 'p0')).toEqual({
       ok: false,
-      error: "match is waiting",
+      error: 'match is waiting',
     });
   });
 });
 
-describe("RealtimeSession — interruptions", () => {
-  it("stops simulating while a player is away", () => {
+describe('RealtimeSession — interruptions', () => {
+  it('stops simulating while a player is away', () => {
     const { session, advance } = newSession();
     session.start();
     advance(STEP_MS * 3);
     const frozen = look(session).state.x;
 
-    session.onDisconnect("p1");
+    session.onDisconnect('p1');
     advance(STEP_MS * 30);
 
-    expect(look(session).phase).toBe("paused");
+    expect(look(session).phase).toBe('paused');
     expect(look(session).state.x).toBe(frozen);
   });
 
-  it("resumes without fast-forwarding through the time nobody was playing", () => {
+  it('resumes without fast-forwarding through the time nobody was playing', () => {
     const { session, advance } = newSession();
     session.start();
-    session.onDisconnect("p1");
+    session.onDisconnect('p1');
     advance(STEP_MS * 100);
     const frozen = look(session).tick;
 
-    session.onReconnect("p1");
+    session.onReconnect('p1');
     advance(STEP_MS);
 
     expect(look(session).tick).toBe(frozen + 1);
   });
 
-  it("forfeits once the grace window runs out", () => {
+  it('forfeits once the grace window runs out', () => {
     const { session, emitted, advance } = newSession(1_000);
     session.start();
-    session.onDisconnect("p1");
+    session.onDisconnect('p1');
 
     advance(1_000);
 
     expect(look(session).result).toEqual({
-      winner: "p0",
-      reason: "opponent disconnected",
+      winner: 'p0',
+      reason: 'opponent disconnected',
     });
-    expect(emitted.some((e) => e.event.type === "over")).toBe(true);
+    expect(emitted.some((e) => e.event.type === 'over')).toBe(true);
   });
 
-  it("ends the match when the game says so, and stops ticking", () => {
+  it('ends the match when the game says so, and stops ticking', () => {
     const { session, emitted, steps } = newSession();
     session.start();
 
@@ -253,13 +256,13 @@ describe("RealtimeSession — interruptions", () => {
     const settled = look(session).tick;
     steps(50);
 
-    expect(look(session).phase).toBe("over");
-    expect(look(session).result).toEqual({ winner: "p0" });
+    expect(look(session).phase).toBe('over');
+    expect(look(session).result).toEqual({ winner: 'p0' });
     expect(look(session).tick).toBe(settled);
-    expect(emitted.filter((e) => e.event.type === "over")).toHaveLength(2);
+    expect(emitted.filter((e) => e.event.type === 'over')).toHaveLength(2);
   });
 
-  it("stops the loop when the session is stopped", () => {
+  it('stops the loop when the session is stopped', () => {
     const { session, advance } = newSession();
     session.start();
     advance(STEP_MS * 2);
@@ -272,10 +275,14 @@ describe("RealtimeSession — interruptions", () => {
   });
 });
 
-describe("createSession — realtime selection", () => {
-  it("builds a realtime session for a realtime game", () => {
-    const session = createSession(Drift, { matchId: "m1", seed: 1, emit: () => undefined });
-    expect(realtime(session.snapshotFor("p0")).mode).toBe("realtime");
+describe('createSession — realtime selection', () => {
+  it('builds a realtime session for a realtime game', () => {
+    const session = createSession(Drift, {
+      matchId: 'm1',
+      seed: 1,
+      emit: () => undefined,
+    });
+    expect(realtime(session.snapshotFor('p0')).mode).toBe('realtime');
     session.stop();
   });
 });

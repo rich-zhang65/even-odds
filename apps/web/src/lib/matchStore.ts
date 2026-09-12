@@ -1,5 +1,10 @@
-import type { GameAction, PlayerId, SeatFlags, Snapshot } from "@even-odds/game-sdk";
-import { getSocket, tokenKey } from "./socket";
+import type {
+  GameAction,
+  PlayerId,
+  SeatFlags,
+  Snapshot,
+} from '@even-odds/game-sdk';
+import { getSocket, tokenKey } from './socket';
 
 export type MatchState = {
   snapshot: Snapshot<unknown> | null;
@@ -41,20 +46,25 @@ const createMatchStore = (matchId: string): MatchStore => {
     set({ snapshot: payload.snapshot });
   };
 
-  const onMatchState = (payload: { seats: SeatFlags }): void => set({ seats: payload.seats });
+  const onMatchState = (payload: { seats: SeatFlags }): void =>
+    set({ seats: payload.seats });
 
   // Always re-join: the server reads a known token as a reconnect, so one path
   // covers the creator arriving, a refresh reclaiming a seat, and a dropped socket.
   const join = (): void => {
     const stored = sessionStorage.getItem(tokenKey(matchId));
-    getSocket().emit("match:join", { matchId, token: stored ?? undefined }, (res) => {
-      if ("error" in res) {
-        set({ error: res.error });
-        return;
-      }
-      sessionStorage.setItem(tokenKey(matchId), res.token);
-      set({ seat: res.you, error: null });
-    });
+    getSocket().emit(
+      'match:join',
+      { matchId, token: stored ?? undefined },
+      (res) => {
+        if ('error' in res) {
+          set({ error: res.error });
+          return;
+        }
+        sessionStorage.setItem(tokenKey(matchId), res.token);
+        set({ seat: res.you, error: null });
+      },
+    );
   };
 
   return {
@@ -62,9 +72,9 @@ const createMatchStore = (matchId: string): MatchStore => {
       listeners.add(listener);
       if (listeners.size === 1) {
         const socket = getSocket();
-        socket.on("game:state", onGameState);
-        socket.on("match:state", onMatchState);
-        socket.on("connect", join);
+        socket.on('game:state', onGameState);
+        socket.on('match:state', onMatchState);
+        socket.on('connect', join);
         if (socket.connected) join();
       }
 
@@ -72,9 +82,9 @@ const createMatchStore = (matchId: string): MatchStore => {
         listeners.delete(listener);
         if (listeners.size > 0) return;
         const socket = getSocket();
-        socket.off("game:state", onGameState);
-        socket.off("match:state", onMatchState);
-        socket.off("connect", join);
+        socket.off('game:state', onGameState);
+        socket.off('match:state', onMatchState);
+        socket.off('connect', join);
       };
     },
 
@@ -86,8 +96,8 @@ const createMatchStore = (matchId: string): MatchStore => {
     getState: () => state,
 
     send: (action) => {
-      getSocket().emit("game:action", action, (res) => {
-        if ("error" in res) set({ error: res.error });
+      getSocket().emit('game:action', action, (res) => {
+        if ('error' in res) set({ error: res.error });
       });
     },
   };

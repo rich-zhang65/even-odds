@@ -1,9 +1,21 @@
-import type { EngineContext, PlayerId, RealtimeGame } from "@even-odds/game-sdk";
-import { assets } from "./assets";
-import { FACE_OFF_MS, GOAL, PADDLE, PUCK, SUB_STEPS, TABLE, TARGET_SCORE } from "./types";
-import type { AirHockeyAction, AirHockeyState, Vec } from "./types";
+import type {
+  EngineContext,
+  PlayerId,
+  RealtimeGame,
+} from '@even-odds/game-sdk';
+import { assets } from './assets';
+import {
+  FACE_OFF_MS,
+  GOAL,
+  PADDLE,
+  PUCK,
+  SUB_STEPS,
+  TABLE,
+  TARGET_SCORE,
+} from './types';
+import type { AirHockeyAction, AirHockeyState, Vec } from './types';
 
-const OPPONENT: Record<PlayerId, PlayerId> = { p0: "p1", p1: "p0" };
+const OPPONENT: Record<PlayerId, PlayerId> = { p0: 'p1', p1: 'p0' };
 
 /* p0 defends the near end, p1 the far one, and neither may cross the halfway
    line. Their own half is the whole constraint on where a paddle can be. */
@@ -25,27 +37,34 @@ const lerp = (a: Vec, b: Vec, t: number): Vec => ({
   y: a.y + (b.y - a.y) * t,
 });
 
-const inMouth = (x: number): boolean => Math.abs(x - TABLE.width / 2) <= GOAL.width / 2;
+const inMouth = (x: number): boolean =>
+  Math.abs(x - TABLE.width / 2) <= GOAL.width / 2;
 
 /* Every player owns a rectangle: the full width, their own half, inset by the
    paddle's radius so its edge stops on the line rather than over it. */
 export const penned = (player: PlayerId, at: Vec): Vec => ({
   x: clamp(at.x, PADDLE.radius, TABLE.width - PADDLE.radius),
   y:
-    player === "p0"
+    player === 'p0'
       ? clamp(at.y, HALFWAY + PADDLE.radius, TABLE.height - PADDLE.radius)
       : clamp(at.y, PADDLE.radius, HALFWAY - PADDLE.radius),
 });
 
-const restingPuck = (toward: PlayerId): AirHockeyState["puck"] => ({
-  at: { x: TABLE.width / 2, y: toward === "p0" ? TABLE.height * 0.75 : TABLE.height * 0.25 },
+const restingPuck = (toward: PlayerId): AirHockeyState['puck'] => ({
+  at: {
+    x: TABLE.width / 2,
+    y: toward === 'p0' ? TABLE.height * 0.75 : TABLE.height * 0.25,
+  },
   velocity: { x: 0, y: 0 },
 });
 
 const capped = (velocity: Vec): Vec => {
   const speed = Math.hypot(velocity.x, velocity.y);
   if (speed <= PUCK.maxSpeed) return velocity;
-  return { x: (velocity.x / speed) * PUCK.maxSpeed, y: (velocity.y / speed) * PUCK.maxSpeed };
+  return {
+    x: (velocity.x / speed) * PUCK.maxSpeed,
+    y: (velocity.y / speed) * PUCK.maxSpeed,
+  };
 };
 
 const concede = (state: AirHockeyState, to: PlayerId): AirHockeyState => ({
@@ -70,13 +89,14 @@ const closestOn = (a: Vec, b: Vec, to: Vec): Vec => {
    two ticks — many times the puck's width — and a paddle tested only at its
    endpoints would step clean over the puck without ever touching it. */
 const strike = (
-  puck: AirHockeyState["puck"],
+  puck: AirHockeyState['puck'],
   from: Vec,
   to: Vec,
   hand: Vec,
-): AirHockeyState["puck"] | null => {
+): AirHockeyState['puck'] | null => {
   const contact = closestOn(from, to, puck.at);
-  if (Math.hypot(puck.at.x - contact.x, puck.at.y - contact.y) >= TOUCHING) return null;
+  if (Math.hypot(puck.at.x - contact.x, puck.at.y - contact.y) >= TOUCHING)
+    return null;
 
   const travel = { x: to.x - from.x, y: to.y - from.y };
   const travelled = Math.hypot(travel.x, travel.y);
@@ -88,13 +108,24 @@ const strike = (
      has swept past it there is no such direction to use, so it goes the way the
      hand was travelling — shoved ahead of the paddle rather than left behind. */
   const swept = distance < 1e-9 || distance >= TOUCHING;
-  const nx = swept ? (travelled === 0 ? 0 : travel.x / travelled) : dx / distance;
-  const ny = swept ? (travelled === 0 ? 1 : travel.y / travelled) : dy / distance;
+  const nx = swept
+    ? travelled === 0
+      ? 0
+      : travel.x / travelled
+    : dx / distance;
+  const ny = swept
+    ? travelled === 0
+      ? 1
+      : travel.y / travelled
+    : dy / distance;
 
   const closing = puck.velocity.x * nx + puck.velocity.y * ny;
   const bounced =
     closing < 0
-      ? { x: puck.velocity.x - 2 * closing * nx, y: puck.velocity.y - 2 * closing * ny }
+      ? {
+          x: puck.velocity.x - 2 * closing * nx,
+          y: puck.velocity.y - 2 * closing * ny,
+        }
       : puck.velocity;
 
   /* What a strike adds is capped. A pointer can cross the table between two
@@ -126,7 +157,10 @@ export const clearOfPaddle = (at: Vec, centre: Vec): Vec => {
 
   // Dead centre leaves no direction to leave by; up the table is as good as any.
   if (distance === 0) return { x: centre.x, y: centre.y + TOUCHING };
-  return { x: centre.x + (dx / distance) * TOUCHING, y: centre.y + (dy / distance) * TOUCHING };
+  return {
+    x: centre.x + (dx / distance) * TOUCHING,
+    y: centre.y + (dy / distance) * TOUCHING,
+  };
 };
 
 const freed = (at: Vec, first: Vec, second: Vec): Vec => {
@@ -147,11 +181,16 @@ const freed = (at: Vec, first: Vec, second: Vec): Vec => {
      rather than a slide off an edge. */
   if (apart >= TOUCHING * 2) return at;
 
-  const sideways = apart === 0 ? { x: 1, y: 0 } : { x: -between.y / apart, y: between.x / apart };
+  const sideways =
+    apart === 0
+      ? { x: 1, y: 0 }
+      : { x: -between.y / apart, y: between.x / apart };
   const middle = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
 
   // Far enough along the escape that both paddles are exactly a contact away.
-  const clear = Math.sqrt(Math.max(0, TOUCHING * TOUCHING - (apart / 2) * (apart / 2)));
+  const clear = Math.sqrt(
+    Math.max(0, TOUCHING * TOUCHING - (apart / 2) * (apart / 2)),
+  );
   const escape = (sign: number): Vec => ({
     x: middle.x + sideways.x * clear * sign,
     y: middle.y + sideways.y * clear * sign,
@@ -164,7 +203,10 @@ const freed = (at: Vec, first: Vec, second: Vec): Vec => {
     p.y <= TABLE.height - PUCK.radius;
 
   // Leave by the side it is already on, unless that side is into a wall.
-  const nearer = (at.x - middle.x) * sideways.x + (at.y - middle.y) * sideways.y < 0 ? -1 : 1;
+  const nearer =
+    (at.x - middle.x) * sideways.x + (at.y - middle.y) * sideways.y < 0
+      ? -1
+      : 1;
   const out = onTable(escape(nearer)) ? escape(nearer) : escape(-nearer);
 
   return {
@@ -229,12 +271,18 @@ const around = (centre: Vec): Vec[] =>
    nowhere obvious to go — squeezed between two paddles, or held against the
    boards by one, where a straight push would drive it through a wall. */
 const clearOf = (at: Vec, first: Vec, second: Vec): Vec => {
-  const pushed = freed(clearOfPaddle(clearOfPaddle(at, first), second), first, second);
+  const pushed = freed(
+    clearOfPaddle(clearOfPaddle(at, first), second),
+    first,
+    second,
+  );
   if (legal(pushed, first, second)) return pushed;
 
   const onWall: Vec = {
     x: clamp(pushed.x, EDGE, TABLE.width - EDGE),
-    y: inMouth(pushed.x) ? pushed.y : clamp(pushed.y, EDGE, TABLE.height - EDGE),
+    y: inMouth(pushed.x)
+      ? pushed.y
+      : clamp(pushed.y, EDGE, TABLE.height - EDGE),
   };
 
   const slid = [true, false].map((alongX) => {
@@ -247,7 +295,8 @@ const clearOf = (at: Vec, first: Vec, second: Vec): Vec => {
     .filter((option) => legal(option, first, second))
     .sort(
       (one, other) =>
-        Math.hypot(one.x - at.x, one.y - at.y) - Math.hypot(other.x - at.x, other.y - at.y),
+        Math.hypot(one.x - at.x, one.y - at.y) -
+        Math.hypot(other.x - at.x, other.y - at.y),
     );
 
   return nearest[0] ?? pushed;
@@ -281,43 +330,61 @@ const advance = (
   if (next.y - PUCK.radius <= 0 && heading.y < 0 && !inMouth(next.x)) {
     next = { ...next, y: PUCK.radius };
     heading = { ...heading, y: -heading.y };
-  } else if (next.y + PUCK.radius >= TABLE.height && heading.y > 0 && !inMouth(next.x)) {
+  } else if (
+    next.y + PUCK.radius >= TABLE.height &&
+    heading.y > 0 &&
+    !inMouth(next.x)
+  ) {
     next = { ...next, y: TABLE.height - PUCK.radius };
     heading = { ...heading, y: -heading.y };
   }
 
-  let moved: AirHockeyState = { ...state, puck: { at: next, velocity: heading } };
+  let moved: AirHockeyState = {
+    ...state,
+    puck: { at: next, velocity: heading },
+  };
 
-  for (const player of ["p0", "p1"] as const) {
-    const struck = strike(moved.puck, swept[player].from, swept[player].to, hands[player]);
+  for (const player of ['p0', 'p1'] as const) {
+    const struck = strike(
+      moved.puck,
+      swept[player].from,
+      swept[player].to,
+      hands[player],
+    );
     if (struck !== null) moved = { ...moved, puck: struck };
   }
 
   moved = {
     ...moved,
-    puck: { ...moved.puck, at: clearOf(moved.puck.at, swept.p0.to, swept.p1.to) },
+    puck: {
+      ...moved.puck,
+      at: clearOf(moved.puck.at, swept.p0.to, swept.p1.to),
+    },
   };
 
-  if (moved.puck.at.y <= 0) return concede(moved, "p0");
-  if (moved.puck.at.y >= TABLE.height) return concede(moved, "p1");
+  if (moved.puck.at.y <= 0) return concede(moved, 'p0');
+  if (moved.puck.at.y >= TABLE.height) return concede(moved, 'p1');
 
   const slowed = Math.max(0, 1 - PUCK.damping * dt);
   return {
     ...moved,
     puck: {
       at: moved.puck.at,
-      velocity: { x: moved.puck.velocity.x * slowed, y: moved.puck.velocity.y * slowed },
+      velocity: {
+        x: moved.puck.velocity.x * slowed,
+        y: moved.puck.velocity.y * slowed,
+      },
     },
   };
 };
 
 export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
-  mode: "realtime",
+  mode: 'realtime',
 
   meta: {
-    id: "air-hockey",
-    name: "Air Hockey",
-    tagline: "Rebound off the walls",
+    id: 'air-hockey',
+    name: 'Air Hockey',
+    tagline: 'Rebound off the walls',
     estimatedMinutes: 4,
     assets,
   },
@@ -337,22 +404,32 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
       },
     },
     scores: { p0: 0, p1: 0 },
-    faceOff: { inMs: FACE_OFF_MS, toward: ctx.random.int(0, 1) === 0 ? "p0" : "p1" },
+    faceOff: {
+      inMs: FACE_OFF_MS,
+      toward: ctx.random.int(0, 1) === 0 ? 'p0' : 'p1',
+    },
   }),
 
-  isLegal: (_state, action) => Number.isFinite(action.x) && Number.isFinite(action.y),
+  isLegal: (_state, action) =>
+    Number.isFinite(action.x) && Number.isFinite(action.y),
 
   reduce: (state, action, by) => ({
     ...state,
     paddles: {
       ...state.paddles,
-      [by]: { ...state.paddles[by], target: penned(by, { x: action.x, y: action.y }) },
+      [by]: {
+        ...state.paddles[by],
+        target: penned(by, { x: action.x, y: action.y }),
+      },
     },
   }),
 
   tick: (state, dtMs, _ctx: EngineContext) => {
     const dt = dtMs / 1000;
-    const from: Record<PlayerId, Vec> = { p0: state.paddles.p0.at, p1: state.paddles.p1.at };
+    const from: Record<PlayerId, Vec> = {
+      p0: state.paddles.p0.at,
+      p1: state.paddles.p1.at,
+    };
     const to: Record<PlayerId, Vec> = {
       p0: state.paddles.p0.target,
       p1: state.paddles.p1.target,
@@ -412,8 +489,8 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
   },
 
   isTerminal: (state) => {
-    if (state.scores.p0 >= TARGET_SCORE) return { winner: "p0" };
-    if (state.scores.p1 >= TARGET_SCORE) return { winner: "p1" };
+    if (state.scores.p0 >= TARGET_SCORE) return { winner: 'p0' };
+    if (state.scores.p1 >= TARGET_SCORE) return { winner: 'p1' };
     return null;
   },
 };

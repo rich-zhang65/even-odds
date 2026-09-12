@@ -1,7 +1,7 @@
-import type { PlayerId } from "@even-odds/game-sdk";
-import { GameAsset, SEATS } from "@even-odds/game-sdk/ui";
-import { cx } from "@even-odds/design-system/ui";
-import { assets } from "../src/assets";
+import { cx } from '@even-odds/design-system/ui';
+import type { PlayerId } from '@even-odds/game-sdk';
+import { GameAsset, SEATS } from '@even-odds/game-sdk/ui';
+import { assets } from '../src/assets';
 
 const PIPS: Record<number, number[]> = {
   1: [4],
@@ -17,7 +17,11 @@ const Pips = ({ value, dot }: { value: number; dot: string }) => (
     {Array.from({ length: 9 }, (_, cell) => (
       <span
         key={cell}
-        className={PIPS[value]?.includes(cell) === true ? cx("rounded-full bg-eo-strong", dot) : ""}
+        className={
+          PIPS[value]?.includes(cell) === true
+            ? cx('rounded-full bg-eo-strong', dot)
+            : ''
+        }
       />
     ))}
   </span>
@@ -46,17 +50,19 @@ export const Die = ({
 }) => (
   <button
     className={cx(
-      "grid shrink-0 place-items-center rounded-eo-md border-2 bg-eo-card transition-[transform,box-shadow,opacity] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:active:translate-y-0.5 enabled:active:shadow-none disabled:cursor-not-allowed",
-      large ? "size-16 p-2.5" : "size-14 p-[9px]",
-      held ? cx(SEATS[turn].border, SEATS[turn].edge) : "border-eo-strong shadow-eo-edge-ink",
-      dimmed && "opacity-45",
-      rolling && "animate-eo-dice-roll motion-reduce:animate-none",
+      'grid shrink-0 place-items-center rounded-eo-md border-2 bg-eo-card transition-[transform,box-shadow,opacity] duration-(--eo-duration-fast) ease-eo-out enabled:cursor-pointer enabled:active:translate-y-0.5 enabled:active:shadow-none disabled:cursor-not-allowed',
+      large ? 'size-16 p-2.5' : 'size-14 p-[9px]',
+      held
+        ? cx(SEATS[turn].border, SEATS[turn].edge)
+        : 'border-eo-strong shadow-eo-edge-ink',
+      dimmed && 'opacity-45',
+      rolling && 'animate-eo-dice-roll motion-reduce:animate-none',
     )}
     style={rolling ? { animationDelay: `${delayMs}ms` } : undefined}
     type="button"
     disabled={disabled}
     onClick={onToggle}
-    aria-label={`Die showing ${value}${held ? ", held" : ""}`}
+    aria-label={`Die showing ${value}${held ? ', held' : ''}`}
     aria-pressed={held}
   >
     <GameAsset
@@ -64,7 +70,7 @@ export const Die = ({
       manifest={assets}
       slot={`die-${value}`}
       alt={`Die showing ${value}`}
-      fallback={<Pips value={value} dot={large ? "size-2.5" : "size-2"} />}
+      fallback={<Pips value={value} dot={large ? 'size-2.5' : 'size-2'} />}
     />
   </button>
 );

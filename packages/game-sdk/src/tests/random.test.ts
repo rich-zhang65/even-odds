@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { createRandom } from "../random";
+import { describe, expect, it } from 'vitest';
+import { createRandom } from '../random';
 
-describe("createRandom", () => {
-  it("produces identical sequences from the same seed", () => {
+describe('createRandom', () => {
+  it('produces identical sequences from the same seed', () => {
     const a = createRandom(42);
     const b = createRandom(42);
     const rollsA = Array.from({ length: 20 }, () => a.int(1, 6));
@@ -10,7 +10,7 @@ describe("createRandom", () => {
     expect(rollsA).toEqual(rollsB);
   });
 
-  it("produces different sequences from different seeds", () => {
+  it('produces different sequences from different seeds', () => {
     const a = createRandom(1);
     const b = createRandom(2);
     const rollsA = Array.from({ length: 10 }, () => a.int(1, 6));
@@ -18,7 +18,7 @@ describe("createRandom", () => {
     expect(rollsA).not.toEqual(rollsB);
   });
 
-  it("int stays within bounds", () => {
+  it('int stays within bounds', () => {
     const r = createRandom(99);
     for (let i = 0; i < 1000; i++) {
       const n = r.int(1, 6);
@@ -27,7 +27,7 @@ describe("createRandom", () => {
     }
   });
 
-  it("dice returns correct count and bounds", () => {
+  it('dice returns correct count and bounds', () => {
     const r = createRandom(7);
     const roll = r.dice(5, 6);
     expect(roll).toHaveLength(5);
@@ -37,7 +37,7 @@ describe("createRandom", () => {
     });
   });
 
-  it("shuffle returns all original elements", () => {
+  it('shuffle returns all original elements', () => {
     const r = createRandom(13);
     const items = [1, 2, 3, 4, 5];
     const shuffled = r.shuffle(items);

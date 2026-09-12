@@ -1,4 +1,5 @@
 # even-odds
+
 Settle the score online, at even odds
 
 ## Running it
@@ -10,9 +11,9 @@ npm install
 npm run dev
 ```
 
-| | port | what it is |
-|---|---|---|
-| web | 3000 | Next.js app |
+|        | port | what it is             |
+| ------ | ---- | ---------------------- |
+| web    | 3000 | Next.js app            |
 | server | 4000 | Socket.IO match server |
 
 Both reload on change. `npm run dev:web` and `npm run dev:server` run either
@@ -30,4 +31,3 @@ npm test        # vitest
 npm run lint    # eslint
 npm run typecheck
 ```
-

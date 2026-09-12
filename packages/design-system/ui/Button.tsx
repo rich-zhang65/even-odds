@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { MouseEvent, ReactNode } from "react";
-import { cx } from "./cx";
+import type { MouseEvent, ReactNode } from 'react';
+import { cx } from './cx';
 import {
   CONTROL_DISABLED,
   CONTROL_HEIGHTS,
@@ -10,17 +10,17 @@ import {
   CONTROL_VARIANTS,
   type ControlSize,
   type ControlVariant,
-} from "./tokens";
+} from './tokens';
 
 const PADDING: Record<ControlSize, string> = {
-  sm: "gap-2 px-4 text-eo-label",
-  md: "gap-2 px-5 text-eo-button",
-  lg: "gap-3 px-8 text-eo-title",
+  sm: 'gap-2 px-4 text-eo-label',
+  md: 'gap-2 px-5 text-eo-button',
+  lg: 'gap-3 px-8 text-eo-title',
 };
 
 export const Button = ({
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   fullWidth = false,
   disabled = false,
   loading = false,
@@ -28,7 +28,7 @@ export const Button = ({
   iconRight,
   children,
   onClick,
-  type = "button",
+  type = 'button',
   className,
 }: {
   variant?: ControlVariant;
@@ -40,19 +40,19 @@ export const Button = ({
   iconRight?: ReactNode;
   children?: ReactNode;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
-  type?: "button" | "submit" | "reset";
+  type?: 'button' | 'submit' | 'reset';
   className?: string;
 }) => (
   <button
     className={cx(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-eo-md font-eo-display enabled:cursor-pointer",
+      'inline-flex items-center justify-center whitespace-nowrap rounded-eo-md font-eo-display enabled:cursor-pointer',
       CONTROL_VARIANTS[variant],
       CONTROL_HEIGHTS[size],
       PADDING[size],
       CONTROL_PRESS,
       CONTROL_MOTION,
       CONTROL_DISABLED,
-      fullWidth ? "w-full" : "w-auto",
+      fullWidth ? 'w-full' : 'w-auto',
       className,
     )}
     type={type}

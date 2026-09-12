@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useLayoutEffect } from "react";
-import { Moon, Sun } from "lucide-react";
-import { IconButton } from "@even-odds/design-system/ui";
-import { applyTheme, resolveTheme, toggleTheme } from "@/lib/theme";
+import { Moon, Sun } from 'lucide-react';
+import { useLayoutEffect } from 'react';
+import { IconButton } from '@even-odds/design-system/ui';
+import { applyTheme, resolveTheme, toggleTheme } from '@/lib/theme';
 
 // Stateless on purpose: the glyphs key off the same data-theme attribute the CSS
 // does, so the button never has to agree with the server about which theme

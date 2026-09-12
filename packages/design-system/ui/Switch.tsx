@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { ChangeEvent, ReactNode } from "react";
-import { cx } from "./cx";
+import type { ChangeEvent, ReactNode } from 'react';
+import { cx } from './cx';
 
 export const Switch = ({
   checked = false,
@@ -18,8 +18,8 @@ export const Switch = ({
 }) => (
   <label
     className={cx(
-      "inline-flex items-center gap-3",
-      disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+      'inline-flex items-center gap-3',
+      disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
       className,
     )}
   >
@@ -34,19 +34,21 @@ export const Switch = ({
     />
     <span
       className={cx(
-        "h-7 w-12 shrink-0 rounded-eo-pill p-[3px] transition-colors duration-(--eo-duration-base) ease-eo-out peer-focus-visible:shadow-eo-focus",
-        checked ? "bg-eo-blue-solid" : "bg-eo-control-line",
+        'h-7 w-12 shrink-0 rounded-eo-pill p-[3px] transition-colors duration-(--eo-duration-base) ease-eo-out peer-focus-visible:shadow-eo-focus',
+        checked ? 'bg-eo-blue-solid' : 'bg-eo-control-line',
       )}
     >
       <span
         className={cx(
-          "block size-5.5 rounded-full bg-eo-paper shadow-eo-sm transition-transform duration-(--eo-duration-base) ease-eo-bounce",
-          checked && "translate-x-5",
+          'block size-5.5 rounded-full bg-eo-paper shadow-eo-sm transition-transform duration-(--eo-duration-base) ease-eo-bounce',
+          checked && 'translate-x-5',
         )}
       />
     </span>
     {label !== undefined && (
-      <span className="font-eo-body text-eo-body-m text-eo-strong">{label}</span>
+      <span className="font-eo-body text-eo-body-m text-eo-strong">
+        {label}
+      </span>
     )}
   </label>
 );
