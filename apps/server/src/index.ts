@@ -11,5 +11,6 @@ const http = createServer((_req, res) => {
 attachSocketServer(http);
 
 http.listen(PORT, () => {
+  // eslint-disable-next-line no-console -- do not copy
   console.log(`even-odds server listening on :${PORT}`);
 });

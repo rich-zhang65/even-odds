@@ -9,6 +9,6 @@ const GAMES: Record<string, GameDefinition<unknown, GameAction>> = {
   'air-hockey': AirHockey,
 };
 
-export const getGame = (
+export const getGameDefinition = (
   gameId: string,
 ): GameDefinition<unknown, GameAction> | undefined => GAMES[gameId];

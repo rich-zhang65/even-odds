@@ -1,7 +1,6 @@
 import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
 import { createRegistry } from './matches';
-import type { Match, Seat } from './matches';
 import {
   gameActionSchema,
   matchCreateSchema,
@@ -12,21 +11,21 @@ import type {
   MatchStatePayload,
   ServerToClientEvents,
 } from './protocol';
+import type { Match, RegistryOptions, Seat } from './types';
 
-export type SocketServer = Server<
-  ClientToServerEvents,
-  ServerToClientEvents<unknown>
->;
+type SocketServer = Server<ClientToServerEvents, ServerToClientEvents<unknown>>;
 
 export const attachSocketServer = (
   http: HttpServer,
-  opts: { graceMs?: number } = {},
+  opts: RegistryOptions = {},
 ): SocketServer => {
   const io: SocketServer = new Server(http, { cors: { origin: '*' } });
 
   const registry = createRegistry((socketId, event) => {
     const socket = io.sockets.sockets.get(socketId);
+
     if (!socket) return;
+
     switch (event.type) {
       case 'state':
         socket.emit('game:state', { snapshot: event.snapshot });
@@ -69,7 +68,7 @@ export const attachSocketServer = (
         return;
       }
 
-      const result = registry.create(parsed.data.gameId, socket.id);
+      const result = registry.createMatch(parsed.data.gameId, socket.id);
       if (!result.ok) {
         ack({ error: result.error });
         return;
@@ -80,7 +79,7 @@ export const attachSocketServer = (
       }
 
       ack({ matchId: result.matchId, you: result.you, token: result.token });
-      const match = registry.get(result.matchId);
+      const match = registry.getMatch(result.matchId);
       if (match) broadcastMatchState(match);
     });
 
@@ -91,7 +90,7 @@ export const attachSocketServer = (
         return;
       }
 
-      const result = registry.join(
+      const result = registry.joinMatch(
         parsed.data.matchId,
         socket.id,
         parsed.data.token,
@@ -112,9 +111,13 @@ export const attachSocketServer = (
         reconnected: result.reconnected,
       });
 
-      const match = registry.get(result.matchId);
+      const match = registry.getMatch(result.matchId);
       if (match) broadcastMatchState(match);
-      registry.activate(socket.id, result.reconnected);
+      if (result.reconnected) {
+        registry.resume(socket.id);
+        return;
+      }
+      registry.startIfReady(socket.id);
     });
 
     socket.on('game:action', (raw, ack) => {
@@ -123,7 +126,7 @@ export const attachSocketServer = (
         ack({ error: 'bad-payload' });
         return;
       }
-      const outcome = registry.action(socket.id, parsed.data);
+      const outcome = registry.submitAction(socket.id, parsed.data);
       ack(outcome.ok ? { ok: true } : { error: outcome.error });
     });
 
