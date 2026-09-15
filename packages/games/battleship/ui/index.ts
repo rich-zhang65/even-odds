@@ -1,0 +1,1 @@
+export { BattleshipBoard } from './BattleshipBoard';

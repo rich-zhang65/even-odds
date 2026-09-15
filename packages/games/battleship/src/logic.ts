@@ -39,6 +39,24 @@ export const cellsOf = (ship: Ship): Cell[] =>
       : { x: ship.at.x, y: ship.at.y + step },
   );
 
+/* Whichever ship covers a cell, if any. */
+export const shipAt = (ships: Ship[], cell: Cell): Ship | undefined =>
+  ships.find((ship) => cellsOf(ship).some((part) => same(part, cell)));
+
+/* Why one more ship cannot join the ones already down, or null when it can.
+   Separate from fleetProblem because placing is incremental: the client needs
+   an answer for a half-built fleet, which a whole-fleet check cannot give. */
+export const placementProblem = (placed: Ship[], ship: Ship): string | null => {
+  const cells = cellsOf(ship);
+  if (cells.some((cell) => !onBoard(cell))) {
+    return 'Keep the ship on the board';
+  }
+  if (cells.some((cell) => shipAt(placed, cell) !== undefined)) {
+    return 'Ships cannot overlap';
+  }
+  return null;
+};
+
 /* Why a fleet is not deployable, or null when it is. Exported so the client can
    say what is wrong and keep the Ready button honest, rather than reimplementing
    the rules and drifting from them. */
@@ -52,16 +70,10 @@ export const fleetProblem = (ships: Ship[]): string | null => {
     if (count !== 1) return `Deploy exactly one ${name}`;
   }
 
-  const taken: Cell[] = [];
-  for (const ship of ships) {
-    const cells = cellsOf(ship);
-    if (cells.some((cell) => !onBoard(cell))) {
-      return 'Every ship has to fit on the board';
-    }
-    if (cells.some((cell) => taken.some((used) => same(used, cell)))) {
-      return 'Ships cannot overlap';
-    }
-    taken.push(...cells);
+  // Each ship against only those before it, so a clash is reported once.
+  for (const [index, ship] of ships.entries()) {
+    const problem = placementProblem(ships.slice(0, index), ship);
+    if (problem !== null) return problem;
   }
 
   return null;
@@ -72,6 +84,12 @@ const struck = (board: Board, cell: Cell): boolean =>
 
 export const isSunk = (board: Board, ship: Ship): boolean =>
   cellsOf(ship).every((cell) => struck(board, cell));
+
+/* Wrecks in these waters, which is the other player's tally. It reads correctly
+   through the mask too: an opponent's board arrives holding its sunk ships and
+   nothing else, so counting them counts the same thing either way. */
+export const sunkCount = (board: Board): number =>
+  board.ships.filter((ship) => isSunk(board, ship)).length;
 
 const wipedOut = (board: Board): boolean =>
   board.ships.length === FLEET.length &&
@@ -146,9 +164,7 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
 
     const foe = OPPONENT[by];
     const target = state.boards[foe];
-    const hit = target.ships.some((ship) =>
-      cellsOf(ship).some((cell) => same(cell, action.at)),
-    );
+    const hit = shipAt(target.ships, action.at) !== undefined;
 
     return {
       phase: 'firing',
