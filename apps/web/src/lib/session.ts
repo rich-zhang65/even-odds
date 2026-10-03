@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { createDb, userForToken } from '@even-odds/db';
 import type { Db, SignedIn } from '@even-odds/db';
-import { SESSION_COOKIE } from './sessionCookie';
+import { SESSION_COOKIE } from '@even-odds/db/cookie';
 
 /* One pool per server process. Dev reloads this module on every edit, and a
    fresh pool each time would leave the old ones holding connections open. */

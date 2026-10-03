@@ -4,20 +4,12 @@ import { attachSocketServer } from '../../../../server/src/server';
 import type { MatchStore } from '../matchStore';
 import type { MatchSocket } from '../socket';
 
-const cells = new Map<string, string>();
-
-Object.defineProperty(globalThis, 'sessionStorage', {
-  value: {
-    getItem: (key: string) => cells.get(key) ?? null,
-    setItem: (key: string, value: string) => cells.set(key, value),
-    removeItem: (key: string) => cells.delete(key),
-    clear: () => cells.clear(),
-  },
-  configurable: true,
-});
-
 const http = createServer();
-const io = attachSocketServer(http, { graceMs: 200 });
+// These tests are about the store, not sign-in, so every socket is one account.
+const io = attachSocketServer(http, {
+  graceMs: 200,
+  identify: async () => ({ id: 'tester', username: 'tester' }),
+});
 
 let getMatchStore: (matchId: string) => MatchStore;
 let getSocket: () => MatchSocket;
@@ -56,7 +48,7 @@ const track = (store: MatchStore) => {
 };
 
 describe('matchStore', () => {
-  it('claims a seat on subscribe and stores the token', async () => {
+  it('claims a seat on subscribe', async () => {
     const matchId = await openMatch();
     const store = getMatchStore(matchId);
     const { stop } = track(store);
@@ -65,7 +57,6 @@ describe('matchStore', () => {
 
     expect(store.getState().seat).toBe('p0');
     expect(store.getState().error).toBeNull();
-    expect(sessionStorage.getItem(`even-odds:token:${matchId}`)).toBeTruthy();
     stop();
   });
 

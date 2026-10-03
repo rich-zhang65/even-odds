@@ -44,7 +44,7 @@ export const createRegistry = (
       return matches.get(matchId) ?? null;
     },
 
-    createMatch(gameId, socketId) {
+    createMatch(gameId, socketId, userId) {
       const gameDef = getGameDefinition(gameId);
       if (!gameDef) return { ok: false, error: 'unknown-game' };
 
@@ -60,49 +60,31 @@ export const createRegistry = (
         },
       });
 
-      const seat: Seat = { player: 'p0', token: nanoid(16), socketId };
-      seats.p0 = seat;
+      seats.p0 = { player: 'p0', userId, socketId };
       matches.set(id, { id, gameId, session, seats });
 
-      return { ok: true, matchId: id, you: 'p0', token: seat.token };
+      return { ok: true, matchId: id, you: 'p0' };
     },
 
-    joinMatch(matchId, socketId, token) {
+    /* An account already seated here always gets that seat back -- a refresh, a
+       second tab, a dropped connection -- which is also what keeps one account
+       from ever holding both seats. */
+    joinMatch(matchId, socketId, userId) {
       const match = matches.get(matchId);
       if (!match) return { ok: false, error: 'notfound' };
 
-      const held = getSeatFromSocket(match, socketId);
-      if (held) {
-        return {
-          ok: true,
-          matchId,
-          you: held.player,
-          token: held.token,
-          reconnected: true,
-        };
-      }
-
-      if (token) {
-        for (const player of SEATS) {
-          const seat = match.seats[player];
-          if (seat?.token !== token) continue;
-          seat.socketId = socketId;
-          return { ok: true, matchId, you: player, token, reconnected: true };
-        }
+      for (const player of SEATS) {
+        const seat = match.seats[player];
+        if (seat?.userId !== userId) continue;
+        seat.socketId = socketId;
+        return { ok: true, matchId, you: player, reconnected: true };
       }
 
       const open = SEATS.find((player) => match.seats[player] === null);
       if (open === undefined) return { ok: false, error: 'full' };
 
-      match.seats[open] = { player: open, token: nanoid(16), socketId };
-      const joined = match.seats[open];
-      return {
-        ok: true,
-        matchId,
-        you: open,
-        token: joined.token,
-        reconnected: false,
-      };
+      match.seats[open] = { player: open, userId, socketId };
+      return { ok: true, matchId, you: open, reconnected: false };
     },
 
     // Split from join() so the caller can ack first — otherwise a player receives

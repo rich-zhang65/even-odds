@@ -11,35 +11,61 @@ import type {
   MatchStatePayload,
   ServerToClientEvents,
 } from './protocol';
-import type { Match, RegistryOptions, Seat } from './types';
+import type { Match, Player, Seat, ServerOptions } from './types';
 
-type SocketServer = Server<ClientToServerEvents, ServerToClientEvents<unknown>>;
+type SocketServer = Server<
+  ClientToServerEvents,
+  ServerToClientEvents<unknown>,
+  Record<string, never>,
+  { player: Player }
+>;
 
 export const attachSocketServer = (
   http: HttpServer,
-  opts: RegistryOptions = {},
+  opts: ServerOptions,
 ): SocketServer => {
   const io: SocketServer = new Server(http, { cors: { origin: '*' } });
 
-  const registry = createRegistry((socketId, event) => {
-    const socket = io.sockets.sockets.get(socketId);
+  /* Nobody reaches a match without an account. The browser sends the login
+     cookie with the handshake on its own -- ports do not count towards a
+     cookie's site, so localhost:3000's reaches :4000 -- and a socket that
+     cannot be identified never connects at all. */
+  io.use((socket, next) => {
+    opts
+      .identify(socket.handshake.headers.cookie)
+      .then((player) => {
+        if (player === null) {
+          next(new Error('unauthorized'));
+          return;
+        }
+        socket.data.player = player;
+        next();
+      })
+      .catch(next);
+  });
 
-    if (!socket) return;
+  const registry = createRegistry(
+    (socketId, event) => {
+      const socket = io.sockets.sockets.get(socketId);
 
-    switch (event.type) {
-      case 'state':
-        socket.emit('game:state', { snapshot: event.snapshot });
-        return;
-      case 'over':
-        socket.emit('game:over', { result: event.result });
-        return;
-      case 'opponent':
-        socket.emit('match:opponent', { connected: event.connected });
-        return;
-      default:
-        return event satisfies never;
-    }
-  }, opts);
+      if (!socket) return;
+
+      switch (event.type) {
+        case 'state':
+          socket.emit('game:state', { snapshot: event.snapshot });
+          return;
+        case 'over':
+          socket.emit('game:over', { result: event.result });
+          return;
+        case 'opponent':
+          socket.emit('match:opponent', { connected: event.connected });
+          return;
+        default:
+          return event satisfies never;
+      }
+    },
+    { graceMs: opts.graceMs },
+  );
 
   const isConnected = (seat: Seat | null): boolean =>
     seat !== null && seat.socketId !== null;
@@ -68,7 +94,11 @@ export const attachSocketServer = (
         return;
       }
 
-      const result = registry.createMatch(parsed.data.gameId, socket.id);
+      const result = registry.createMatch(
+        parsed.data.gameId,
+        socket.id,
+        socket.data.player.id,
+      );
       if (!result.ok) {
         ack({ error: result.error });
         return;
@@ -78,7 +108,7 @@ export const attachSocketServer = (
         broadcastMatchState(left);
       }
 
-      ack({ matchId: result.matchId, you: result.you, token: result.token });
+      ack({ matchId: result.matchId, you: result.you });
       const match = registry.getMatch(result.matchId);
       if (match) broadcastMatchState(match);
     });
@@ -93,7 +123,7 @@ export const attachSocketServer = (
       const result = registry.joinMatch(
         parsed.data.matchId,
         socket.id,
-        parsed.data.token,
+        socket.data.player.id,
       );
       if (!result.ok) {
         ack({ error: result.error });
@@ -107,7 +137,6 @@ export const attachSocketServer = (
       ack({
         matchId: result.matchId,
         you: result.you,
-        token: result.token,
         reconnected: result.reconnected,
       });
 
