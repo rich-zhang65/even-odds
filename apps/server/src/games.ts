@@ -5,9 +5,11 @@ import { Gomoku } from '@even-odds/gomoku';
 import { Pong } from '@even-odds/pong';
 import { Yazy } from '@even-odds/yazy';
 
+/* Pong is a development-only game: the home page hides it in production, and
+   leaving it here would still let anyone open one by talking to this server. */
 const GAMES: Record<string, GameDefinition<unknown, GameAction>> = {
   yazy: Yazy,
-  pong: Pong,
+  ...(process.env.NODE_ENV === 'production' ? {} : { pong: Pong }),
   'air-hockey': AirHockey,
   battleship: Battleship,
   gomoku: Gomoku,
