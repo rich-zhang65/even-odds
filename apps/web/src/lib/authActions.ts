@@ -3,8 +3,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { signIn, signOut } from '@even-odds/db';
+import { SESSION_COOKIE } from '@even-odds/db/cookie';
 import { db } from './session';
-import { SESSION_COOKIE } from './sessionCookie';
 
 /* Returns the message to show, or redirects home. One message covers an unknown
    account and a wrong password alike, so the form cannot be used to find out

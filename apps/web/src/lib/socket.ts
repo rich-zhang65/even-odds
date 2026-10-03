@@ -22,6 +22,3 @@ export const getSocket = (): MatchSocket => {
   instance ??= io(SERVER_URL, { transports: ['websocket'] });
   return instance;
 };
-
-export const tokenKey = (matchId: string): string =>
-  `even-odds:token:${matchId}`;

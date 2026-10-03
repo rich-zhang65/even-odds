@@ -9,7 +9,7 @@ import { Pong } from '@even-odds/pong';
 import { Yazy } from '@even-odds/yazy';
 import { PageContainer } from '@/components/PageContainer';
 import { PageHeader } from '@/components/PageHeader';
-import { getSocket, tokenKey } from '@/lib/socket';
+import { getSocket } from '@/lib/socket';
 
 type PlayableGame = {
   id: string;
@@ -64,7 +64,6 @@ const Home = () => {
         setError(res.error);
         return;
       }
-      sessionStorage.setItem(tokenKey(res.matchId), res.token);
       router.push(`/play/${gameId}/${res.matchId}`);
     });
   };

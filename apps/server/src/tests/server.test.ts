@@ -2,18 +2,14 @@ import { createServer } from 'node:http';
 import { io as connectClient } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 import { afterEach, describe, expect, it } from 'vitest';
+import { sessionTokenFrom } from '@even-odds/db/cookie';
 import type { GameResult, PlayerId, Snapshot } from '@even-odds/game-sdk';
 import { ALL_CATEGORIES } from '@even-odds/yazy';
 import type { YazyState } from '@even-odds/yazy';
 import { attachSocketServer } from '../server';
 
-type CreateOk = { matchId: string; you: PlayerId; token: string };
-type JoinOk = {
-  matchId: string;
-  you: PlayerId;
-  token: string;
-  reconnected: boolean;
-};
+type CreateOk = { matchId: string; you: PlayerId };
+type JoinOk = { matchId: string; you: PlayerId; reconnected: boolean };
 type ErrAck = { error: string };
 type ActionAck = { ok: true } | ErrAck;
 type StatePayload = { snapshot: Snapshot<YazyState> };
@@ -30,7 +26,15 @@ afterEach(async () => {
 
 const startServer = async (graceMs?: number): Promise<string> => {
   const http = createServer();
-  const io = attachSocketServer(http, { graceMs });
+  /* The real cookie parsing, with the database swapped for "the session token is
+     the username": every account a test names exists, and no cookie is nobody. */
+  const io = attachSocketServer(http, {
+    graceMs,
+    identify: async (cookieHeader) => {
+      const token = sessionTokenFrom(cookieHeader);
+      return token === null ? null : { id: token, username: token };
+    },
+  });
   await new Promise<void>((resolve) => http.listen(0, () => resolve()));
 
   const address = http.address();
@@ -43,10 +47,17 @@ const startServer = async (graceMs?: number): Promise<string> => {
   return `http://127.0.0.1:${address.port}`;
 };
 
-const connect = async (url: string): Promise<Socket> => {
+let strangers = 0;
+
+/* Signed in as `as`, or as a fresh account of its own when no name is given, so
+   two sockets are two different people unless a test says otherwise. */
+const connect = async (url: string, as?: string): Promise<Socket> => {
   const socket = connectClient(url, {
     transports: ['websocket'],
     forceNew: true,
+    extraHeaders: {
+      cookie: `eo_session=${as ?? `stranger-${(strangers += 1)}`}`,
+    },
   });
   clients.push(socket);
   await new Promise<void>((resolve, reject) => {
@@ -88,10 +99,10 @@ const waitForPhase = (socket: Socket, phase: string): Promise<StatePayload> =>
   );
 
 const openMatch = async (url: string) => {
-  const a = await connect(url);
+  const a = await connect(url, 'alice');
   const created = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
 
-  const b = await connect(url);
+  const b = await connect(url, 'bob');
   // Both seats must settle on "playing" — awaiting only one leaves the other's
   // opening snapshot in flight, where it can satisfy a later phase listener.
   const started = Promise.all([
@@ -132,7 +143,7 @@ describe('server — match lifecycle', () => {
     expect(await seated).toMatchObject({ seats: { p0: true, p1: true } });
   });
 
-  it('re-seats a socket into the seat it already holds, even with no token', async () => {
+  it('hands a seat back to the account that holds it', async () => {
     const url = await startServer();
     const a = await connect(url);
     const created = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
@@ -204,6 +215,73 @@ describe('server — match lifecycle', () => {
   });
 });
 
+describe('server — accounts', () => {
+  it('refuses a socket that is not signed in', async () => {
+    const url = await startServer();
+    const socket = connectClient(url, {
+      transports: ['websocket'],
+      forceNew: true,
+    });
+    clients.push(socket);
+
+    const refused = await new Promise<Error>((resolve) =>
+      socket.once('connect_error', resolve),
+    );
+
+    expect(refused.message).toBe('unauthorized');
+    expect(socket.connected).toBe(false);
+  });
+
+  it('refuses a session the server does not recognise', async () => {
+    const url = await startServer();
+    const socket = connectClient(url, {
+      transports: ['websocket'],
+      forceNew: true,
+      extraHeaders: { cookie: 'theme=dark' },
+    });
+    clients.push(socket);
+
+    const refused = await new Promise<Error>((resolve) =>
+      socket.once('connect_error', resolve),
+    );
+    expect(refused.message).toBe('unauthorized');
+  });
+
+  /* The same account in a second tab gets its own seat back rather than the
+     empty one, so nobody can end up playing themselves. */
+  it('will not seat one account twice', async () => {
+    const url = await startServer();
+    const a = await connect(url, 'alice');
+    const created = await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
+
+    const secondTab = await connect(url, 'alice');
+    const again = await ask<JoinOk>(secondTab, 'match:join', {
+      matchId: created.matchId,
+    });
+
+    expect(again).toMatchObject({ you: 'p0', reconnected: true });
+
+    const b = await connect(url, 'bob');
+    const joined = await ask<JoinOk>(b, 'match:join', {
+      matchId: created.matchId,
+    });
+    expect(joined).toMatchObject({ you: 'p1', reconnected: false });
+  });
+
+  it('will not let another account take a seat that is held', async () => {
+    const url = await startServer();
+    const { b, created } = await openMatch(url);
+    b.disconnect();
+
+    const intruder = await connect(url, 'mallory');
+    const refused = await ask<ErrAck>(intruder, 'match:join', {
+      matchId: created.matchId,
+    });
+
+    expect(refused).toEqual({ error: 'full' });
+  });
+});
+
 describe('server — play', () => {
   it('rejects an action from the player who is not on turn', async () => {
     const url = await startServer();
@@ -256,9 +334,9 @@ describe('server — play', () => {
 });
 
 describe('server — disconnect and reconnect', () => {
-  it('pauses the match and restores it when the player returns with its token', async () => {
+  it('pauses the match and restores it when the same account comes back', async () => {
     const url = await startServer();
-    const { a, b, created, joined } = await openMatch(url);
+    const { a, b, created } = await openMatch(url);
 
     const opponentGone = waitFor<OpponentPayload>(a, 'match:opponent');
     const paused = waitForPhase(a, 'paused');
@@ -267,11 +345,11 @@ describe('server — disconnect and reconnect', () => {
     expect(await opponentGone).toEqual({ connected: false });
     expect((await paused).snapshot.phase).toBe('paused');
 
-    const c = await connect(url);
+    // A brand-new socket -- a refresh, another tab -- signed in as the same account.
+    const c = await connect(url, 'bob');
     const resumed = waitForPhase(c, 'playing');
     const rejoined = await ask<JoinOk>(c, 'match:join', {
       matchId: created.matchId,
-      token: joined.token,
     });
 
     expect(rejoined).toMatchObject({ you: 'p1', reconnected: true });
@@ -286,7 +364,6 @@ describe('server — disconnect and reconnect', () => {
     const resumed = waitForPhase(a, 'playing');
     const back = await ask<JoinOk>(a, 'match:join', {
       matchId: created.matchId,
-      token: created.token,
     });
 
     expect(back).toMatchObject({ you: 'p0', reconnected: true });

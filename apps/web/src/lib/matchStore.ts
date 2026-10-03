@@ -4,7 +4,7 @@ import type {
   SeatFlags,
   Snapshot,
 } from '@even-odds/game-sdk';
-import { getSocket, tokenKey } from './socket';
+import { getSocket } from './socket';
 
 export type MatchState = {
   snapshot: Snapshot<unknown> | null;
@@ -49,22 +49,23 @@ const createMatchStore = (matchId: string): MatchStore => {
   const onMatchState = (payload: { seats: SeatFlags }): void =>
     set({ seats: payload.seats });
 
-  // Always re-join: the server reads a known token as a reconnect, so one path
-  // covers the creator arriving, a refresh reclaiming a seat, and a dropped socket.
+  // Always re-join: the server hands an account back the seat it already holds,
+  // so one path covers the creator arriving, a refresh, a new tab and a dropped
+  // socket.
   const join = (): void => {
-    const stored = sessionStorage.getItem(tokenKey(matchId));
-    getSocket().emit(
-      'match:join',
-      { matchId, token: stored ?? undefined },
-      (res) => {
-        if ('error' in res) {
-          set({ error: res.error });
-          return;
-        }
-        sessionStorage.setItem(tokenKey(matchId), res.token);
-        set({ seat: res.you, error: null });
-      },
-    );
+    getSocket().emit('match:join', { matchId }, (res) => {
+      if ('error' in res) {
+        set({ error: res.error });
+        return;
+      }
+      set({ seat: res.you, error: null });
+    });
+  };
+
+  // The handshake is refused outright when the session has gone, so this is the
+  // only place that ever learns it.
+  const onRefused = (error: Error): void => {
+    if (error.message === 'unauthorized') set({ error: 'unauthorized' });
   };
 
   return {
@@ -75,6 +76,7 @@ const createMatchStore = (matchId: string): MatchStore => {
         socket.on('game:state', onGameState);
         socket.on('match:state', onMatchState);
         socket.on('connect', join);
+        socket.on('connect_error', onRefused);
         if (socket.connected) join();
       }
 
@@ -85,6 +87,7 @@ const createMatchStore = (matchId: string): MatchStore => {
         socket.off('game:state', onGameState);
         socket.off('match:state', onMatchState);
         socket.off('connect', join);
+        socket.off('connect_error', onRefused);
       };
     },
 

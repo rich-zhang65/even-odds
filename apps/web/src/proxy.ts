@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { SESSION_COOKIE } from '@/lib/sessionCookie';
+import { SESSION_COOKIE } from '@even-odds/db/cookie';
 
 /* An optimistic gate: no cookie, no page. It never touches the database, since
    it runs on every request including prefetches -- whether the cookie is still

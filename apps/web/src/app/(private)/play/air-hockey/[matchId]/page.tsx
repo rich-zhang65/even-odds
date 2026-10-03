@@ -14,6 +14,7 @@ import { useMatch } from '@/lib/useMatch';
 const MESSAGES: Record<string, string> = {
   full: 'This match already has two players.',
   notfound: 'That match no longer exists.',
+  unauthorized: 'Your session has ended. Sign in again to keep playing.',
 };
 
 const MatchPage = ({ params }: PageProps<'/play/air-hockey/[matchId]'>) => {
