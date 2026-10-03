@@ -7,7 +7,7 @@ import { SEATS, YouTag } from '@even-odds/game-sdk/ui';
 
 /* Title, running score, exit and the result banner: the shell every match wears,
    whatever game is inside it. Scores arrive as numbers because only the game
-   knows how to add them up. */
+   knows how to add them up, and not at all for a game that keeps none. */
 export const MatchHeader = ({
   title,
   totals,
@@ -16,7 +16,7 @@ export const MatchHeader = ({
   onExit,
 }: {
   title: string;
-  totals: Record<PlayerId, number>;
+  totals?: Record<PlayerId, number>;
   seat: PlayerId | null;
   result: GameResult | null;
   onExit: () => void;
@@ -58,11 +58,17 @@ export const MatchHeader = ({
             {seat === 'p0' && (
               <YouTag className="bg-eo-inverse text-eo-on-inverse" />
             )}
-            <span className="font-eo-body text-[22px] font-extrabold tabular-nums">
-              <span className={SEATS.p0.accent}>{totals.p0}</span>
-              <span className="text-eo-muted"> – </span>
-              <span className={SEATS.p1.accent}>{totals.p1}</span>
-            </span>
+            {totals === undefined ? (
+              <span className="font-eo-body text-eo-label text-eo-muted">
+                vs
+              </span>
+            ) : (
+              <span className="font-eo-body text-[22px] font-extrabold tabular-nums">
+                <span className={SEATS.p0.accent}>{totals.p0}</span>
+                <span className="text-eo-muted"> – </span>
+                <span className={SEATS.p1.accent}>{totals.p1}</span>
+              </span>
+            )}
             {seat === 'p1' && (
               <YouTag className="bg-eo-inverse text-eo-on-inverse" />
             )}
@@ -105,10 +111,16 @@ export const MatchHeader = ({
           <h2 className="mt-3 mb-2 font-eo-display text-eo-display-m tracking-eo-tight">
             {winner === null ? 'Draw' : `${SEATS[winner].name} wins`}
           </h2>
-          <p className="font-eo-body text-eo-body-m opacity-90">
-            {totals.p0}–{totals.p1}
-            {result.reason !== undefined && ` · ${result.reason}`}
-          </p>
+          {(totals !== undefined || result.reason !== undefined) && (
+            <p className="font-eo-body text-eo-body-m opacity-90">
+              {[
+                totals !== undefined && `${totals.p0}–${totals.p1}`,
+                result.reason,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          )}
         </div>
       )}
     </>

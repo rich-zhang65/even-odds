@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { use, useState } from 'react';
 import { Button, Card, Dialog, Toast } from '@even-odds/design-system/ui';
-import type { PlayerId } from '@even-odds/game-sdk';
 import type { GomokuAction, GomokuState } from '@even-odds/gomoku';
 import { GomokuBoard } from '@even-odds/gomoku/ui';
 import { MatchHeader } from '@/components/MatchHeader';
@@ -16,10 +15,6 @@ const MESSAGES: Record<string, string> = {
   notfound: 'That match no longer exists.',
   unauthorized: 'Your session has ended. Sign in again to keep playing.',
 };
-
-// Gomoku keeps no score, so the header counts stones on the board instead.
-const stonesOf = (state: GomokuState, player: PlayerId): number =>
-  state.stones.filter((stone) => stone.by === player).length;
 
 const MatchPage = ({ params }: PageProps<'/play/gomoku/[matchId]'>) => {
   const { matchId } = use(params);
@@ -45,10 +40,6 @@ const MatchPage = ({ params }: PageProps<'/play/gomoku/[matchId]'>) => {
         {snapshot !== null && (
           <MatchHeader
             title="Gomoku"
-            totals={{
-              p0: stonesOf(snapshot.state, 'p0'),
-              p1: stonesOf(snapshot.state, 'p1'),
-            }}
             seat={seat}
             result={snapshot.result}
             onExit={() => setLeaving(true)}
