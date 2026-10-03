@@ -1,3 +1,4 @@
+import type { FinishedMatch } from '@even-odds/db';
 import type { GameAction, PlayerId, Session } from '@even-odds/game-sdk';
 
 /* Who is behind a socket, resolved from their session when it connects. */
@@ -16,6 +17,8 @@ export type Match = {
   gameId: string;
   session: Session<unknown, GameAction>;
   seats: Record<PlayerId, Seat | null>;
+  // Set when both seats fill and play begins; null for a match still waiting.
+  startedAt: Date | null;
 };
 
 type CreateResponse =
@@ -44,10 +47,15 @@ export type MatchRegistry = {
   release(socketId: string): Match | null;
 };
 
-export type RegistryOptions = { graceMs?: number };
+/* Handed every match that reaches a result, once. Fire and forget: a failed
+   write is logged by whoever supplies this and never reaches the players. */
+export type RecordMatch = (finished: FinishedMatch) => void;
+
+export type RegistryOptions = { graceMs?: number; record?: RecordMatch };
 
 export type ServerOptions = {
   graceMs?: number;
+  record?: RecordMatch;
   /* Turns a handshake's Cookie header into an account, or null to refuse the
      socket. Injected, so production asks the database and tests do not need one. */
   identify: (cookieHeader: string | undefined) => Promise<Player | null>;

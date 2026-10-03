@@ -64,7 +64,7 @@ export const attachSocketServer = (
           return event satisfies never;
       }
     },
-    { graceMs: opts.graceMs },
+    { graceMs: opts.graceMs, record: opts.record },
   );
 
   const isConnected = (seat: Seat | null): boolean =>
