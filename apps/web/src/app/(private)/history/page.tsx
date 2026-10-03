@@ -4,6 +4,7 @@ import { historyFor } from '@even-odds/db';
 import type { Outcome, PastMatch } from '@even-odds/db';
 import { Badge } from '@even-odds/design-system/ui';
 import type { BadgeTone } from '@even-odds/design-system/ui';
+import { Gomoku } from '@even-odds/gomoku';
 import { Pong } from '@even-odds/pong';
 import { Yazy } from '@even-odds/yazy';
 import { PageContainer } from '@/components/PageContainer';
@@ -11,7 +12,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { db, requireUser } from '@/lib/session';
 
 const GAME_NAMES: Record<string, string> = Object.fromEntries(
-  [Yazy, Pong, AirHockey, Battleship].map((game) => [
+  [Yazy, Pong, AirHockey, Battleship, Gomoku].map((game) => [
     game.meta.id,
     game.meta.name,
   ]),

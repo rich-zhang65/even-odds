@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { AirHockey } from '@even-odds/air-hockey';
 import { Battleship } from '@even-odds/battleship';
 import { GameCard, Toast, cx } from '@even-odds/design-system/ui';
+import { Gomoku } from '@even-odds/gomoku';
 import { Pong } from '@even-odds/pong';
 import { Yazy } from '@even-odds/yazy';
 import { PageContainer } from '@/components/PageContainer';
@@ -39,6 +40,11 @@ const PLAYABLE: PlayableGame[] = [
     id: Battleship.meta.id,
     name: Battleship.meta.name,
     art: Battleship.meta.assets.icon,
+  },
+  {
+    id: Gomoku.meta.id,
+    name: Gomoku.meta.name,
+    art: Gomoku.meta.assets.icon,
   },
 ];
 

@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     '@even-odds/game-sdk',
     '@even-odds/air-hockey',
     '@even-odds/battleship',
+    '@even-odds/gomoku',
     '@even-odds/yazy',
     '@even-odds/pong',
   ],
