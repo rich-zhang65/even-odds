@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { createSession } from '@even-odds/game-sdk';
-import type { PlayerId, SessionEvent } from '@even-odds/game-sdk';
+import type { GameResult, PlayerId, SessionEvent } from '@even-odds/game-sdk';
 import { getGameDefinition } from './games';
 import type { MatchRegistry, Match, Seat, RegistryOptions } from './types';
 
@@ -34,6 +34,37 @@ export const createRegistry = (
   const seated = (match: Match): boolean =>
     SEATS.every((player) => match.seats[player] !== null);
 
+  /* The session announces the end to each seat in turn, so this hears it twice;
+     only the first is written. */
+  const recorded = new Set<string>();
+
+  const finish = (matchId: string, result: GameResult): void => {
+    const match = matches.get(matchId);
+    if (match === undefined || recorded.has(matchId)) return;
+    const { p0, p1 } = match.seats;
+    if (p0 === null || p1 === null || match.startedAt === null) return;
+
+    /* A forfeit counts only if someone stayed to collect it. With both players
+       gone the session still forfeits whoever left first, which would hand the
+       last one out a win they walked away from -- that is an abandoned match,
+       and history leaves those out. A paused match takes no moves, so every
+       other way of finishing has both players present. */
+    if (!('draw' in result) && match.seats[result.winner]?.socketId === null) {
+      return;
+    }
+
+    recorded.add(matchId);
+    opts.record?.({
+      id: match.id,
+      gameId: match.gameId,
+      winner: 'draw' in result ? null : result.winner,
+      reason: result.reason ?? null,
+      startedAt: match.startedAt,
+      finishedAt: new Date(),
+      players: { p0: p0.userId, p1: p1.userId },
+    });
+  };
+
   const vacate = (match: Match, seat: Seat): void => {
     seat.socketId = null;
     match.session.onDisconnect(seat.player);
@@ -55,13 +86,14 @@ export const createRegistry = (
         seed: Math.floor(Math.random() * 2 ** 31),
         graceMs: opts.graceMs,
         emit: (to, event) => {
+          if (event.type === 'over') finish(id, event.result);
           const socketId = seats[to]?.socketId;
           if (socketId) deliverEvent(socketId, event);
         },
       });
 
       seats.p0 = { player: 'p0', userId, socketId };
-      matches.set(id, { id, gameId, session, seats });
+      matches.set(id, { id, gameId, session, seats, startedAt: null });
 
       return { ok: true, matchId: id, you: 'p0' };
     },
@@ -98,7 +130,9 @@ export const createRegistry = (
     startIfReady(socketId) {
       const found = locateMatchAndSeat(socketId);
       if (!found) return;
-      if (seated(found.match)) found.match.session.start();
+      if (!seated(found.match)) return;
+      found.match.startedAt ??= new Date();
+      found.match.session.start();
     },
 
     submitAction(socketId, action) {

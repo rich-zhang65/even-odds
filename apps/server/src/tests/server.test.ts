@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { io as connectClient } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 import { afterEach, describe, expect, it } from 'vitest';
+import type { FinishedMatch } from '@even-odds/db';
 import { sessionTokenFrom } from '@even-odds/db/cookie';
 import type { GameResult, PlayerId, Snapshot } from '@even-odds/game-sdk';
 import { ALL_CATEGORIES } from '@even-odds/yazy';
@@ -24,12 +25,19 @@ afterEach(async () => {
   for (const teardown of teardowns.splice(0)) await teardown();
 });
 
+/* Every result the server hands off for storage, cleared per test. */
+const recorded: FinishedMatch[] = [];
+afterEach(() => {
+  recorded.length = 0;
+});
+
 const startServer = async (graceMs?: number): Promise<string> => {
   const http = createServer();
   /* The real cookie parsing, with the database swapped for "the session token is
      the username": every account a test names exists, and no cookie is nobody. */
   const io = attachSocketServer(http, {
     graceMs,
+    record: (finished) => recorded.push(finished),
     identify: async (cookieHeader) => {
       const token = sessionTokenFrom(cookieHeader);
       return token === null ? null : { id: token, username: token };
@@ -282,6 +290,57 @@ describe('server — accounts', () => {
   });
 });
 
+describe('server — recording results', () => {
+  it('records a forfeit with the reason, for the player who stayed', async () => {
+    const url = await startServer(100);
+    const { a, b, created } = await openMatch(url);
+
+    const over = waitFor<OverPayload>(a, 'game:over');
+    b.disconnect();
+    await over;
+
+    expect(recorded).toEqual([
+      expect.objectContaining({
+        id: created.matchId,
+        winner: 'p0',
+        reason: 'opponent disconnected',
+        players: { p0: 'alice', p1: 'bob' },
+      }),
+    ]);
+  });
+
+  it('records nothing when both players walk away', async () => {
+    const url = await startServer(100);
+    const { a, b } = await openMatch(url);
+    b.disconnect();
+    a.disconnect();
+
+    // Past the grace window, where the session forfeits whoever left first.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    expect(recorded).toEqual([]);
+  });
+
+  it('records nothing for a match that never started', async () => {
+    const url = await startServer(100);
+    const a = await connect(url, 'alice');
+    await ask<CreateOk>(a, 'match:create', { gameId: 'yazy' });
+    a.disconnect();
+
+    // Long enough for any grace window to have expired and forfeited.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    expect(recorded).toEqual([]);
+  });
+
+  it('records nothing while a match is still being played', async () => {
+    const url = await startServer();
+    await openMatch(url);
+
+    expect(recorded).toEqual([]);
+  });
+});
+
 describe('server — play', () => {
   it('rejects an action from the player who is not on turn', async () => {
     const url = await startServer();
@@ -330,6 +389,18 @@ describe('server — play', () => {
     const [resultA, resultB] = await Promise.all([overA, overB]);
     expect(resultA).toEqual(resultB);
     expect(resultA.result).toBeDefined();
+
+    // Announced to both seats, written once, with both accounts on it.
+    expect(recorded).toHaveLength(1);
+    const [finished] = recorded;
+    expect(finished).toMatchObject({
+      gameId: 'yazy',
+      players: { p0: 'alice', p1: 'bob' },
+      winner: 'draw' in resultA.result ? null : resultA.result.winner,
+    });
+    expect(finished.startedAt.getTime()).toBeLessThanOrEqual(
+      finished.finishedAt.getTime(),
+    );
   }, 20_000);
 });
 

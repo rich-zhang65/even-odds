@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { createDb, userForToken } from '@even-odds/db';
+import { createDb, recordMatch, userForToken } from '@even-odds/db';
 import { sessionTokenFrom } from '@even-odds/db/cookie';
 import { attachSocketServer } from './server';
 
@@ -20,6 +20,12 @@ attachSocketServer(http, {
     const token = sessionTokenFrom(cookieHeader);
     const user = token === null ? null : await userForToken(db, token);
     return user === null ? null : { id: user.id, username: user.username };
+  },
+  record: (finished) => {
+    recordMatch(db, finished).catch((error: unknown) => {
+      // eslint-disable-next-line no-console -- the only place this failure surfaces
+      console.error(`could not record match ${finished.id}`, error);
+    });
   },
 });
 
