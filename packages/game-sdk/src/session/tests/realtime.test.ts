@@ -259,7 +259,10 @@ describe('RealtimeSession — interruptions', () => {
     expect(look(session).phase).toBe('over');
     expect(look(session).result).toEqual({ winner: 'p0' });
     expect(look(session).tick).toBe(settled);
-    expect(emitted.filter((e) => e.event.type === 'over')).toHaveLength(2);
+    const over = emitted.filter((e) => e.event.type === 'over');
+    expect(over).toHaveLength(2);
+    // This stand-in declares no score, so there is none to report.
+    for (const { event } of over) expect(event).toMatchObject({ score: null });
   });
 
   it('stops the loop when the session is stopped', () => {

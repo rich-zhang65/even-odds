@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   check,
   index,
+  integer,
   pgTable,
   primaryKey,
   text,
@@ -75,6 +76,8 @@ export const matchPlayers = pgTable(
       .notNull()
       .references(() => users.id),
     seat: text('seat', { enum: ['p0', 'p1'] }).notNull(),
+    // As the game counts it; null for a game that keeps no score.
+    score: integer('score'),
   },
   /* One account per match, as the game server already insists -- here so a bad
      write cannot record someone playing themselves. History is read per

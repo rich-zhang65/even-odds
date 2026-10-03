@@ -45,6 +45,9 @@ const Race: TurnBasedGame<RaceState, RaceAction> = {
     ...state,
     secret: { ...state.secret, [viewer === 'p0' ? 'p1' : 'p0']: 0 },
   }),
+  /* Counts the hidden numbers on purpose: each player's view zeroes the other's,
+     so a score read from a masked view would come out wrong for someone. */
+  score: (state) => state.secret,
 };
 
 type Emitted = { to: PlayerId; event: SessionEvent<RaceState> };
@@ -140,7 +143,11 @@ describe('TurnBasedSession — actions', () => {
     const over = eventsOfType(emitted, 'over');
     expect(over).toHaveLength(2);
     expect(over.map((e) => e.to)).toEqual(['p0', 'p1']);
-    expect(over[0].event).toEqual({ type: 'over', result: { winner: 'p0' } });
+    expect(over[0].event).toEqual({
+      type: 'over',
+      result: { winner: 'p0' },
+      score: { p0: 11, p1: 22 },
+    });
     expect(session.snapshotFor('p0').phase).toBe('over');
   });
 
@@ -253,6 +260,20 @@ describe('TurnBasedSession — disconnect', () => {
       reason: 'opponent disconnected',
     });
     expect(eventsOfType(emitted, 'over')).toHaveLength(2);
+  });
+
+  it('reports the score from the full state to both players, forfeit or not', () => {
+    const { session, emitted } = newSession(100);
+    session.start();
+    session.handleAction(inc(), 'p0');
+    session.onDisconnect('p1');
+    vi.advanceTimersByTime(100);
+
+    const over = eventsOfType(emitted, 'over');
+    expect(over.map((e) => e.to).sort()).toEqual(['p0', 'p1']);
+    for (const { event } of over) {
+      expect(event).toMatchObject({ score: { p0: 11, p1: 22 } });
+    }
   });
 
   it('does not forfeit a match that already ended', () => {

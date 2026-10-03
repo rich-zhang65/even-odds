@@ -142,4 +142,9 @@ export const Yazy: TurnBasedGame<YazyState, YazyAction> = {
     if (s1 > s0) return { winner: 'p1' };
     return { draw: true };
   },
+
+  score: (state) => ({
+    p0: totalScore(state.scores.p0),
+    p1: totalScore(state.scores.p1),
+  }),
 };

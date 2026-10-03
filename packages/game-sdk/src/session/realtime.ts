@@ -97,7 +97,7 @@ export const createRealtimeSession = <S, A extends GameAction>(
     clearGrace();
     phase = 'over';
     broadcastState();
-    broadcast({ type: 'over', result });
+    broadcast({ type: 'over', result, score: def.score?.(state) ?? null });
   };
 
   const step = (): void => {

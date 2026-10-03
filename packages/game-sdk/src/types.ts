@@ -54,6 +54,10 @@ export type TurnBasedGame<S, A extends GameAction> = {
   isLegal(state: S, action: A, by: PlayerId, ctx: EngineContext): boolean;
   reduce(state: S, action: A, by: PlayerId, ctx: EngineContext): S;
   isTerminal(state: S): GameResult | null;
+  /* Each player's score as the game counts it -- a card total, goals, ships sunk.
+     Read once from the real state when a match ends, forfeits included, so
+     history can show it. A game with nothing to count leaves it out. */
+  score?(state: S): Record<PlayerId, number>;
 
   playerView?(state: S, viewer: PlayerId): S;
   ai?(state: S, me: PlayerId, ctx: EngineContext): A;
@@ -68,6 +72,10 @@ export type RealtimeGame<S, A extends GameAction> = {
   isLegal(state: S, action: A, by: PlayerId, ctx: EngineContext): boolean;
   reduce(state: S, action: A, by: PlayerId, ctx: EngineContext): S;
   isTerminal(state: S): GameResult | null;
+  /* Each player's score as the game counts it -- a card total, goals, ships sunk.
+     Read once from the real state when a match ends, forfeits included, so
+     history can show it. A game with nothing to count leaves it out. */
+  score?(state: S): Record<PlayerId, number>;
 
   playerView?(state: S, viewer: PlayerId): S;
   ai?(state: S, me: PlayerId, ctx: EngineContext): A;

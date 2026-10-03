@@ -174,4 +174,6 @@ export const Pong: RealtimeGame<PongState, PongAction> = {
     if (state.scores.p1 >= TARGET_SCORE) return { winner: 'p1' };
     return null;
   },
+
+  score: (state) => state.scores,
 };

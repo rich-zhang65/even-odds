@@ -236,6 +236,19 @@ describe('Battleship — winning', () => {
   });
 });
 
+describe('Battleship — score', () => {
+  it('counts the ships each player has sunk', () => {
+    const destroyer = LINE_UP[4];
+    const state = shotsAt(cellsOf(destroyer), engaged(), 'p1');
+
+    expect(Battleship.score?.(state)).toEqual({ p0: 0, p1: 1 });
+  });
+
+  it('starts level', () => {
+    expect(Battleship.score?.(engaged())).toEqual({ p0: 0, p1: 0 });
+  });
+});
+
 describe('Battleship — what each player is allowed to see', () => {
   const view = (state: BattleshipState, viewer: PlayerId): BattleshipState => {
     const masked = Battleship.playerView?.(state, viewer);
