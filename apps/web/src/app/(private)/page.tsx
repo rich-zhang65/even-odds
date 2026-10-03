@@ -18,6 +18,11 @@ type PlayableGame = {
   art: string | null;
 };
 
+/* Pong was the real-time engine's proving ground rather than a game anyone asked
+   for, so it stays playable in development and off the shelf in production. The
+   game server drops it on the same condition, so it cannot be reached directly. */
+const IN_PRODUCTION = process.env.NODE_ENV === 'production';
+
 /* Artwork comes from the game's own asset manifest, so dropping a real image in
    is one path in assets.ts and no edit here. */
 const PLAYABLE: PlayableGame[] = [
@@ -26,11 +31,9 @@ const PLAYABLE: PlayableGame[] = [
     name: Yazy.meta.name,
     art: Yazy.meta.assets.icon,
   },
-  {
-    id: Pong.meta.id,
-    name: Pong.meta.name,
-    art: Pong.meta.assets.icon,
-  },
+  ...(IN_PRODUCTION
+    ? []
+    : [{ id: Pong.meta.id, name: Pong.meta.name, art: Pong.meta.assets.icon }]),
   {
     id: AirHockey.meta.id,
     name: AirHockey.meta.name,
@@ -49,10 +52,13 @@ const PLAYABLE: PlayableGame[] = [
 ];
 
 /* Fixed tracks, so a card is the same square at every viewport and object-cover
-   never re-crops the art. 214px is not arbitrary: it tiles five across the 1200px
-   page max with 2px to spare. Any fixed width leaves a remainder at other widths --
-   that is the cost of not using 1fr, and it only shows once a row fills. */
-const GRID = 'grid grid-cols-[repeat(auto-fill,214px)] gap-5';
+   never re-crops the art. 208px tiles exactly five across the page: the 1200px
+   max includes PageContainer's 40px gutters, leaving 1120px, and 5 x 208 plus
+   four 20px gaps is 1120. It was 214px, sized against the full 1200 as if the
+   gutters were not there, which needed 1150px and always wrapped the fifth card.
+   Any fixed width leaves a remainder at other widths -- that is the cost of not
+   using 1fr, and it only shows once a row fills. */
+const GRID = 'grid grid-cols-[repeat(auto-fill,208px)] gap-5';
 const HEADING =
   'font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong';
 
