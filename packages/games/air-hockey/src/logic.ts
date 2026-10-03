@@ -493,4 +493,6 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
     if (state.scores.p1 >= TARGET_SCORE) return { winner: 'p1' };
     return null;
   },
+
+  score: (state) => state.scores,
 };

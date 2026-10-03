@@ -186,6 +186,12 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
     return null;
   },
 
+  // Ships each player has sunk, which are the wrecks in the other's waters.
+  score: (state) => ({
+    p0: sunkCount(state.boards.p1),
+    p1: sunkCount(state.boards.p0),
+  }),
+
   /* The whole game is the hidden fleet, so this is the first game where a
      snapshot must differ per viewer. Your own board is untouched; theirs loses
      everything still afloat. */

@@ -65,7 +65,11 @@ export const createTurnBasedSession = <S, A extends GameAction>(
     phase = 'over';
     forfeit = result;
     broadcastState();
-    broadcast({ type: 'over', result });
+    broadcast({
+      type: 'over',
+      result,
+      score: def.score?.(engine.state) ?? null,
+    });
   };
 
   return {
@@ -88,7 +92,11 @@ export const createTurnBasedSession = <S, A extends GameAction>(
         clearGrace();
         phase = 'over';
         broadcastState();
-        broadcast({ type: 'over', result: terminal });
+        broadcast({
+          type: 'over',
+          result: terminal,
+          score: def.score?.(engine.state) ?? null,
+        });
         return { ok: true };
       }
 

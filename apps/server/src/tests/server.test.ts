@@ -305,6 +305,8 @@ describe('server — recording results', () => {
         winner: 'p0',
         reason: 'opponent disconnected',
         players: { p0: 'alice', p1: 'bob' },
+        // The score as it stood when the opponent left -- nothing scored yet.
+        score: { p0: 0, p1: 0 },
       }),
     ]);
   });
@@ -398,6 +400,13 @@ describe('server — play', () => {
       players: { p0: 'alice', p1: 'bob' },
       winner: 'draw' in resultA.result ? null : resultA.result.winner,
     });
+    // Yazy's own totals, the same numbers that decided the winner.
+    expect(finished.score).not.toBeNull();
+    if (finished.score !== null && !('draw' in resultA.result)) {
+      const { winner } = resultA.result;
+      const loser = winner === 'p0' ? 'p1' : 'p0';
+      expect(finished.score[winner]).toBeGreaterThan(finished.score[loser]);
+    }
     expect(finished.startedAt.getTime()).toBeLessThanOrEqual(
       finished.finishedAt.getTime(),
     );

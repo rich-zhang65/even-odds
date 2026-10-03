@@ -38,7 +38,11 @@ export const createRegistry = (
      only the first is written. */
   const recorded = new Set<string>();
 
-  const finish = (matchId: string, result: GameResult): void => {
+  const finish = (
+    matchId: string,
+    result: GameResult,
+    score: Record<PlayerId, number> | null,
+  ): void => {
     const match = matches.get(matchId);
     if (match === undefined || recorded.has(matchId)) return;
     const { p0, p1 } = match.seats;
@@ -62,6 +66,7 @@ export const createRegistry = (
       startedAt: match.startedAt,
       finishedAt: new Date(),
       players: { p0: p0.userId, p1: p1.userId },
+      score,
     });
   };
 
@@ -86,7 +91,7 @@ export const createRegistry = (
         seed: Math.floor(Math.random() * 2 ** 31),
         graceMs: opts.graceMs,
         emit: (to, event) => {
-          if (event.type === 'over') finish(id, event.result);
+          if (event.type === 'over') finish(id, event.result, event.score);
           const socketId = seats[to]?.socketId;
           if (socketId) deliverEvent(socketId, event);
         },

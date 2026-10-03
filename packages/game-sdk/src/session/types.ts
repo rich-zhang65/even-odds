@@ -36,7 +36,12 @@ export type Snapshot<S> = TurnBasedSnapshot<S> | RealtimeSnapshot<S>;
 
 export type SessionEvent<S> =
   | { type: 'state'; snapshot: Snapshot<S> }
-  | { type: 'over'; result: GameResult }
+  | {
+      type: 'over';
+      result: GameResult;
+      // From the full state, never a masked view; null when the game keeps none.
+      score: Record<PlayerId, number> | null;
+    }
   | { type: 'opponent'; connected: boolean };
 
 export type SessionEmit<S> = (to: PlayerId, event: SessionEvent<S>) => void;

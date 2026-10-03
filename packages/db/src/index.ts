@@ -1,5 +1,13 @@
 export { createDb, type Db } from './client';
-export { recordMatch, type FinishedMatch, type Seat } from './history';
+export {
+  historyFor,
+  outcomeFor,
+  recordMatch,
+  type FinishedMatch,
+  type Outcome,
+  type PastMatch,
+  type Seat,
+} from './history';
 export { hashPassword, verifyPassword } from './password';
 export { matches, matchPlayers, sessions, users, type User } from './schema';
 export {
