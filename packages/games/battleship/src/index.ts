@@ -1,5 +1,13 @@
 export { assets } from './assets';
-export { Battleship, cellsOf, fleetProblem, isSunk } from './logic';
+export {
+  Battleship,
+  cellsOf,
+  fleetProblem,
+  isSunk,
+  placementProblem,
+  shipAt,
+  sunkCount,
+} from './logic';
 export { BOARD, FLEET } from './types';
 export type {
   BattleshipAction,
