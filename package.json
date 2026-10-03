@@ -13,7 +13,11 @@
     "test": "vitest run",
     "typecheck": "tsgo",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:up": "npm run serve --workspace @even-odds/db",
+    "db:generate": "npm run generate --workspace @even-odds/db",
+    "db:migrate": "npm run migrate --workspace @even-odds/db",
+    "db:seed": "npm run seed --workspace @even-odds/db"
   },
   "devDependencies": {
     "@typescript/native-preview": "7.0.0-dev.20260707.2",

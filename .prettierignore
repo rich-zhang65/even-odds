@@ -1,2 +1,4 @@
 package-lock.json
 *.tsbuildinfo
+# Written by drizzle-kit, which rewrites them on every generate.
+packages/db/migrations/
