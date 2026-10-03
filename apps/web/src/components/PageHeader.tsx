@@ -17,7 +17,13 @@ export const PageHeader = () => (
       <Link className="select-none" href="/" aria-label="Even Odds home">
         <Wordmark />
       </Link>
-      <Flex align="center" gap="8px">
+      <Flex align="center" gap="16px">
+        <Link
+          className="font-eo-display text-eo-label text-eo-strong transition-colors duration-(--eo-duration-fast) hover:text-eo-link"
+          href="/history"
+        >
+          History
+        </Link>
         <ThemeToggle />
         <form action={logOut}>
           <Button type="submit" variant="ghost" size="sm">
