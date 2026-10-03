@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Flex, cx } from '@even-odds/design-system/ui';
+import { Button, Flex, cx } from '@even-odds/design-system/ui';
+import { logOut } from '@/lib/authActions';
 import { PAGE_GUTTER } from './PageContainer';
 import { ThemeToggle } from './ThemeToggle';
 import { Wordmark } from './Wordmark';
@@ -16,7 +17,14 @@ export const PageHeader = () => (
       <Link className="select-none" href="/" aria-label="Even Odds home">
         <Wordmark />
       </Link>
-      <ThemeToggle />
+      <Flex align="center" gap="8px">
+        <ThemeToggle />
+        <form action={logOut}>
+          <Button type="submit" variant="ghost" size="sm">
+            Sign out
+          </Button>
+        </form>
+      </Flex>
     </Flex>
   </div>
 );

@@ -1,10 +1,16 @@
 'use client';
 
-import type { ChangeEvent, ReactNode } from 'react';
+import type {
+  ChangeEvent,
+  HTMLInputAutoCompleteAttribute,
+  ReactNode,
+} from 'react';
 import { cx } from './cx';
 import { CONTROL_HEIGHTS, type ControlSize } from './tokens';
 
 export const Input = ({
+  name,
+  autoComplete,
   label,
   hint,
   error,
@@ -17,6 +23,8 @@ export const Input = ({
   size = 'md',
   className,
 }: {
+  name?: string;
+  autoComplete?: HTMLInputAutoCompleteAttribute;
   label?: string;
   hint?: string;
   error?: string;
@@ -50,6 +58,8 @@ export const Input = ({
       )}
       <input
         className="min-w-0 flex-1 border-none bg-transparent font-eo-body text-eo-body-m text-eo-strong outline-none"
+        name={name}
+        autoComplete={autoComplete}
         type={type}
         value={value}
         onChange={onChange}
