@@ -85,12 +85,6 @@ const struck = (board: Board, cell: Cell): boolean =>
 export const isSunk = (board: Board, ship: Ship): boolean =>
   cellsOf(ship).every((cell) => struck(board, cell));
 
-/* Wrecks in these waters, which is the other player's tally. It reads correctly
-   through the mask too: an opponent's board arrives holding its sunk ships and
-   nothing else, so counting them counts the same thing either way. */
-export const sunkCount = (board: Board): number =>
-  board.ships.filter((ship) => isSunk(board, ship)).length;
-
 const wipedOut = (board: Board): boolean =>
   board.ships.length === FLEET.length &&
   board.ships.every((ship) => isSunk(board, ship));
@@ -166,9 +160,10 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
     const target = state.boards[foe];
     const hit = shipAt(target.ships, action.at) !== undefined;
 
+    // A hit earns another shot, sinking or not; only a miss hands the turn over.
     return {
       phase: 'firing',
-      turn: foe,
+      turn: hit ? by : foe,
       boards: {
         ...state.boards,
         [foe]: {
@@ -185,12 +180,6 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
     if (wipedOut(state.boards.p0)) return { winner: 'p1' };
     return null;
   },
-
-  // Ships each player has sunk, which are the wrecks in the other's waters.
-  score: (state) => ({
-    p0: sunkCount(state.boards.p1),
-    p1: sunkCount(state.boards.p0),
-  }),
 
   /* The whole game is the hidden fleet, so this is the first game where a
      snapshot must differ per viewer. Your own board is untouched; theirs loses

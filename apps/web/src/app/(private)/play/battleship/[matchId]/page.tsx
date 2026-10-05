@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { use, useState } from 'react';
-import { sunkCount } from '@even-odds/battleship';
 import type { BattleshipAction, BattleshipState } from '@even-odds/battleship';
 import { BattleshipBoard } from '@even-odds/battleship/ui';
 import { Button, Card, Dialog, Toast } from '@even-odds/design-system/ui';
@@ -41,10 +40,6 @@ const MatchPage = ({ params }: PageProps<'/play/battleship/[matchId]'>) => {
         {snapshot !== null && (
           <MatchHeader
             title="Battleship"
-            totals={{
-              p0: sunkCount(snapshot.state.boards.p1),
-              p1: sunkCount(snapshot.state.boards.p0),
-            }}
             seat={seat}
             result={snapshot.result}
             onExit={() => setLeaving(true)}

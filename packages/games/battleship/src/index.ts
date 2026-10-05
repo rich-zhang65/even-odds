@@ -6,7 +6,6 @@ export {
   isSunk,
   placementProblem,
   shipAt,
-  sunkCount,
 } from './logic';
 export { BOARD, FLEET } from './types';
 export type {

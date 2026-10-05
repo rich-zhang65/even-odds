@@ -146,22 +146,28 @@ describe('Battleship — firing', () => {
     ]);
   });
 
-  it('passes the turn whether the shot hit or missed', () => {
-    expect(
-      Battleship.currentPlayer(fire(engaged(), 'p1', { x: 0, y: 0 })),
-    ).toBe('p0');
+  it('passes the turn on a miss', () => {
     expect(
       Battleship.currentPlayer(fire(engaged(), 'p1', { x: 9, y: 9 })),
     ).toBe('p0');
   });
 
+  it('keeps the turn on a hit, sinking or not', () => {
+    const destroyer = cellsOf(LINE_UP[4]);
+    const hit = fire(engaged(), 'p1', destroyer[0]);
+    const sunk = fire(hit, 'p1', destroyer[1]);
+
+    expect(Battleship.currentPlayer(hit)).toBe('p1');
+    expect(isSunk(sunk.boards.p0, LINE_UP[4])).toBe(true);
+    expect(Battleship.currentPlayer(sunk)).toBe('p1');
+  });
+
   it('refuses a cell already fired at, hit or miss', () => {
     const once = fire(engaged(), 'p1', { x: 0, y: 0 });
-    const twice = fire(once, 'p0', { x: 5, y: 9 });
 
     expect(
       Battleship.isLegal(
-        twice,
+        once,
         { type: 'FIRE', at: { x: 0, y: 0 } },
         'p1',
         context(),
@@ -233,19 +239,6 @@ describe('Battleship — winning', () => {
     );
 
     expect(Battleship.isTerminal(halfDeployed)).toBeNull();
-  });
-});
-
-describe('Battleship — score', () => {
-  it('counts the ships each player has sunk', () => {
-    const destroyer = LINE_UP[4];
-    const state = shotsAt(cellsOf(destroyer), engaged(), 'p1');
-
-    expect(Battleship.score?.(state)).toEqual({ p0: 0, p1: 1 });
-  });
-
-  it('starts level', () => {
-    expect(Battleship.score?.(engaged())).toEqual({ p0: 0, p1: 0 });
   });
 });
 
