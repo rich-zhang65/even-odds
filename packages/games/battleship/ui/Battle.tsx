@@ -117,7 +117,7 @@ export const Battle = ({
               >
                 <Hull
                   id={ship.id}
-                  facing={ship.facing}
+                  facing="across"
                   className={cx('border-eo-strong', theirSeat.solid)}
                 />
               </div>
@@ -175,7 +175,7 @@ export const Battle = ({
               >
                 <Hull
                   id={ship.id}
-                  facing={ship.facing}
+                  facing="across"
                   className={cx('border-eo-strong', mySeat.solid)}
                 />
               </div>
