@@ -1,5 +1,6 @@
 'use client';
 
+import { Dice5, Disc, Grid3x3, Ship, type LucideIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { AirHockey } from '@even-odds/air-hockey';
@@ -16,6 +17,8 @@ type PlayableGame = {
   id: string;
   name: string;
   art: string | null;
+  // Drawn when the art is missing or fails to load; the card defaults to a controller.
+  icon?: LucideIcon;
 };
 
 /* Pong was the real-time engine's proving ground rather than a game anyone asked
@@ -30,6 +33,7 @@ const PLAYABLE: PlayableGame[] = [
     id: Yazy.meta.id,
     name: Yazy.meta.name,
     art: Yazy.meta.assets.icon,
+    icon: Dice5,
   },
   ...(IN_PRODUCTION
     ? []
@@ -38,16 +42,19 @@ const PLAYABLE: PlayableGame[] = [
     id: AirHockey.meta.id,
     name: AirHockey.meta.name,
     art: AirHockey.meta.assets.icon,
+    icon: Disc,
   },
   {
     id: Battleship.meta.id,
     name: Battleship.meta.name,
     art: Battleship.meta.assets.icon,
+    icon: Ship,
   },
   {
     id: Gomoku.meta.id,
     name: Gomoku.meta.name,
     art: Gomoku.meta.assets.icon,
+    icon: Grid3x3,
   },
 ];
 
@@ -85,6 +92,7 @@ const Home = () => {
       key={game.id}
       name={game.name}
       art={game.art ?? undefined}
+      icon={game.icon}
       disabled={pending !== null}
       onClick={() => start(game.id)}
     />
