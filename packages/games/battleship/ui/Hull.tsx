@@ -6,16 +6,26 @@ import { lengthOf } from '../src/logic';
 import type { Cell, Facing, ShipId } from '../src/types';
 
 /* Where a ship sits on a ten-by-ten board, as fractions of it, so the hull lands
-   on its squares at any size the board is drawn. */
+   on its squares at any size the board is drawn. A ship is always laid out
+   lying across and turned a quarter about the middle of its bow square when
+   it points down. Turning is then a change of angle rather than of shape, so
+   a transition on the box shows the ship swinging round, and the hull inside
+   is always drawn across. */
 export const spanOf = (at: Cell, facing: Facing, id: ShipId): CSSProperties => {
   const length = lengthOf(id);
   return {
     left: `${at.x * 10}%`,
     top: `${at.y * 10}%`,
-    width: `${(facing === 'across' ? length : 1) * 10}%`,
-    height: `${(facing === 'across' ? 1 : length) * 10}%`,
+    width: `${length * 10}%`,
+    height: '10%',
+    transformOrigin: `${50 / length}% 50%`,
+    transform: facing === 'across' ? 'rotate(0deg)' : 'rotate(90deg)',
   };
 };
+
+// The transition that animates a ship turning or moving between squares.
+export const SWING =
+  'transition-[left,top,transform] duration-(--eo-duration-base) ease-eo-out';
 
 /* A ship drawn as one rounded hull with a port light per square, filling
    whatever box it is put in. */
