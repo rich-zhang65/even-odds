@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { cx } from '@even-odds/design-system/ui';
 import type { PlayerId, RealtimeSnapshot, Snapshot } from '@even-odds/game-sdk';
 import { SEATS, seenBy } from '@even-odds/game-sdk/ui';
-import { clearOfPaddle, penned } from '../src/logic';
+import { clearOfPaddle, inFrontOf, penned, puckLook } from '../src/logic';
 import { GOAL, PADDLE, PUCK, TABLE } from '../src/types';
 import type { AirHockeyAction, AirHockeyState, Vec } from '../src/types';
 
@@ -27,12 +27,58 @@ const isRealtimeAirHockey = (
 
 const percent = (value: number, of: number): string => `${(value / of) * 100}%`;
 
+const OPPONENT: Record<PlayerId, PlayerId> = { p0: 'p1', p1: 'p0' };
+
+const TOUCHING = PUCK.radius + PADDLE.radius;
+
+/* How long a ram keeps the drawn puck in front of your paddle: the render
+   delay, plus a little for the hit's snapshot to arrive. */
+const RAM_MS = DELAY_MS + 60;
+
+// Whether the stroke from `from` to `to` passed within reach of `at`.
+const strokeMet = (from: Vec, to: Vec, at: Vec): boolean => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = dx * dx + dy * dy;
+  const t =
+    length === 0
+      ? 0
+      : Math.min(
+          Math.max(((at.x - from.x) * dx + (at.y - from.y) * dy) / length, 0),
+          1,
+        );
+  return (
+    Math.hypot(at.x - (from.x + dx * t), at.y - (from.y + dy * t)) < TOUCHING
+  );
+};
+
+/* The table's markings, in table units: the centre circle and each goal crease.
+   They are drawn hairline-grey on a light table and white on a dark one, where
+   the grey all but disappears into the tinted halves. */
+const CENTRE_RADIUS = 15;
+const CREASE_RADIUS = 22.5;
+
+/* A paddle: a disc with a dark outline and a hard shadow under it, as if lifted
+   off the table. */
+const DISC =
+  'border-[3px] border-eo-strong shadow-[0_4px_0_var(--color-eo-strong)]';
+
 export const AirHockeyBoard = ({
   seat,
+  scores,
+  count,
+  scorer,
+  winner,
   subscribe,
   onAction,
 }: {
   seat: PlayerId | null;
+  scores: Record<PlayerId, number>;
+  // The opening countdown, 3 to 1, while the puck waits on the centre spot.
+  count: number | null;
+  // Whoever just scored, while the puck waits to come back; null otherwise.
+  scorer: PlayerId | null;
+  winner: PlayerId | null;
   subscribe: (listener: (snapshot: Snapshot<unknown>) => void) => () => void;
   onAction: (action: AirHockeyAction) => void;
 }) => {
@@ -93,6 +139,9 @@ export const AirHockeyBoard = ({
     const element = table.current;
     let running = 0;
     let sent: Vec | null = null;
+    // Where your paddle was drawn last frame, and the ram in progress, if any.
+    let last: Vec | null = null;
+    let ram: { heading: Vec; until: number } | null = null;
 
     const place = (node: HTMLDivElement | null, at: Vec): void => {
       if (node === null) return;
@@ -138,10 +187,41 @@ export const AirHockeyBoard = ({
          the next snapshot overrides it, and only your own paddle counts,
          because the opponent's and the puck come from the same frame and the
          server has already settled them against each other. */
-      place(
-        puck.current,
-        aim.current === null ? drifting : clearOfPaddle(drifting, aim.current),
-      );
+      /* While it waits the puck is a ghost on the server, which paddles pass
+         through, so it is drawn exactly where it is. After a goal it is
+         hidden, then blinks through the grace period. */
+      const live = newer.state.faceOff.inMs <= 0;
+      const node = puck.current;
+      const look = puckLook(newer.state);
+      if (node !== null && node.dataset.look !== look) node.dataset.look = look;
+
+      /* A fast ram can carry your paddle past the delayed puck's centre in a
+         single frame, and pushed out the nearest way the puck would show
+         behind the paddle until the hit arrives. So when this frame's stroke
+         met the puck, it is drawn ahead of the stroke for as long as the hit
+         takes to show. */
+      const own = aim.current;
+      const now = performance.now();
+      if (own !== null && last !== null && live) {
+        const dx = own.x - last.x;
+        const dy = own.y - last.y;
+        const length = Math.hypot(dx, dy);
+        if (length > 0 && strokeMet(last, own, drifting)) {
+          ram = {
+            heading: { x: dx / length, y: dy / length },
+            until: now + RAM_MS,
+          };
+        }
+      }
+      last = own;
+      if (ram !== null && now > ram.until) ram = null;
+
+      let shown = drifting;
+      if (own !== null && live) {
+        if (ram !== null) shown = inFrontOf(shown, own, ram.heading);
+        shown = clearOfPaddle(shown, own);
+      }
+      place(node, shown);
 
       for (const player of ['p0', 'p1'] as const) {
         /* Your own paddle is drawn from the pointer, never from the snapshot.
@@ -215,45 +295,75 @@ export const AirHockeyBoard = ({
     };
   }, [seat, onAction]);
 
+  /* The table is always drawn from your end: your half and goal at the
+     bottom, theirs at the top. Someone watching sees it from Red's end. */
+  const near = seat ?? 'p0';
+  const far = OPPONENT[near];
+
+  /* The rim takes the colour of whoever leads, and the winner's at the end; a
+     level score leaves it plain. */
+  const ahead =
+    winner ??
+    (scores.p0 === scores.p1 ? null : scores.p0 > scores.p1 ? 'p0' : 'p1');
+
   return (
     <div
-      className="relative mx-auto h-[min(68vh,720px)] max-w-full touch-none overflow-hidden rounded-eo-lg border-2 border-eo-strong bg-eo-inverse"
+      className={cx(
+        'relative mx-auto h-[min(68vh,720px)] max-w-full touch-none overflow-hidden rounded-eo-lg border-2 bg-eo-card shadow-eo-sm transition-colors duration-(--eo-duration-base)',
+        ahead === null ? 'border-eo-strong' : SEATS[ahead].border,
+        // Your paddle sits under the pointer, so the cursor would only cover it.
+        seat !== null && winner === null && 'cursor-none',
+      )}
       style={{ aspectRatio: `${TABLE.width} / ${TABLE.height}` }}
       ref={table}
     >
-      <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-eo-on-inverse/20" />
-
+      <div className={cx('absolute inset-x-0 top-0 h-1/2', SEATS[far].soft)} />
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-eo-on-inverse/20"
+        className={cx('absolute inset-x-0 bottom-0 h-1/2', SEATS[near].soft)}
+      />
+
+      <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-eo-hairline dark:bg-white" />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-eo-hairline dark:border-white bg-eo-card"
         style={{
-          width: percent(PADDLE.radius * 4, TABLE.width),
+          width: percent(CENTRE_RADIUS * 2, TABLE.width),
           aspectRatio: '1',
         }}
       />
 
+      {/* Each crease is a whole circle centred on the end wall, half of it
+          hidden past the edge, and each mouth a bar in its defender's colour. */}
       {(['top', 'bottom'] as const).map((end) => (
-        <div
-          key={end}
-          className={cx(
-            'absolute left-1/2 -translate-x-1/2 bg-eo-on-inverse/15',
-            end === 'top'
-              ? 'top-0 rounded-b-eo-xs'
-              : 'bottom-0 rounded-t-eo-xs',
-          )}
-          style={{
-            width: percent(GOAL.width, TABLE.width),
-            height: percent(PUCK.radius, TABLE.height),
-          }}
-        />
+        <div key={end}>
+          <div
+            className="absolute left-1/2 rounded-full border-2 border-eo-hairline dark:border-white"
+            style={{
+              width: percent(CREASE_RADIUS * 2, TABLE.width),
+              aspectRatio: '1',
+              [end]: 0,
+              translate: `-50% ${end === 'top' ? '-50%' : '50%'}`,
+            }}
+          />
+          <div
+            className={cx(
+              'absolute left-1/2 h-1.75 -translate-x-1/2',
+              end === 'top'
+                ? 'top-0 rounded-b-full'
+                : 'bottom-0 rounded-t-full',
+              SEATS[end === 'top' ? far : near].solid,
+            )}
+            style={{ width: percent(GOAL.width, TABLE.width) }}
+          />
+        </div>
       ))}
 
       {(['p0', 'p1'] as const).map((player) => (
         <div
           key={player}
           className={cx(
-            'absolute top-0 left-0 rounded-full will-change-transform',
+            'absolute top-0 left-0 grid place-items-center rounded-full will-change-transform',
+            DISC,
             SEATS[player].solid,
-            seat === player && 'ring-2 ring-eo-on-inverse/60',
           )}
           style={{
             width: percent(PADDLE.radius * 2, TABLE.width),
@@ -262,17 +372,52 @@ export const AirHockeyBoard = ({
           ref={(node) => {
             paddleRefs.current[player] = node;
           }}
-        />
+        >
+          <span className="size-1/3 rounded-full bg-white/85" />
+        </div>
       ))}
 
+      {/* Black in either theme, as a puck is, with an outline that turns white
+          on a dark table. A shallower shadow than the paddles': at this size
+          theirs stretched it into an egg. The ring is the raised rim of its top
+          face, which is what makes it read as a flat disc from above. */}
       <div
-        className="absolute top-0 left-0 rounded-full bg-eo-on-inverse will-change-transform"
+        className="absolute top-0 left-0 grid place-items-center rounded-full border-2 border-eo-strong bg-eo-ink-900 shadow-[0_2px_0_var(--color-eo-strong)] will-change-transform data-[look=blinking]:animate-eo-blink data-[look=hidden]:opacity-0"
         style={{
           width: percent(PUCK.radius * 2, TABLE.width),
           aspectRatio: '1',
         }}
         ref={puck}
-      />
+      >
+        <span className="size-[62%] rounded-full border border-white/30" />
+      </div>
+
+      {/* Keyed on the number, so each second pops in afresh. */}
+      {count !== null && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <span
+            className="grid aspect-square w-[32%] animate-eo-pop place-items-center rounded-full bg-eo-inverse font-eo-display text-6xl font-bold tracking-eo-tight text-eo-on-inverse shadow-eo-md"
+            key={count}
+          >
+            {count}
+          </span>
+        </div>
+      )}
+
+      {/* Keyed on the score, so a second goal in a row pops in afresh. */}
+      {scorer !== null && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <span
+            className={cx(
+              'animate-eo-pop rounded-eo-pill border-[3px] border-eo-strong px-6 py-2 font-eo-display text-2xl font-bold tracking-eo-tight whitespace-nowrap text-white shadow-eo-edge-ink',
+              SEATS[scorer].solid,
+            )}
+            key={scores.p0 + scores.p1}
+          >
+            {seat === scorer ? 'You score' : `${SEATS[scorer].name} scores`}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

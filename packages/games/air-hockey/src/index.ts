@@ -1,8 +1,18 @@
-export { AirHockey, clearOfPaddle, penned } from './logic';
+export {
+  AirHockey,
+  clearOfPaddle,
+  countdown,
+  inFrontOf,
+  justScored,
+  puckLook,
+  penned,
+} from './logic';
 export { assets } from './assets';
 export {
   FACE_OFF_MS,
   GOAL,
+  GRACE_MS,
+  OPENING_MS,
   PADDLE,
   PUCK,
   SUB_STEPS,

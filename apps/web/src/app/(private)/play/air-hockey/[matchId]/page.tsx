@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { use, useState } from 'react';
+import { countdown, justScored } from '@even-odds/air-hockey';
 import type { AirHockeyAction, AirHockeyState } from '@even-odds/air-hockey';
 import { AirHockeyBoard } from '@even-odds/air-hockey/ui';
 import { Button, Card, Dialog, Toast } from '@even-odds/design-system/ui';
@@ -90,6 +91,19 @@ const MatchPage = ({ params }: PageProps<'/play/air-hockey/[matchId]'>) => {
           <>
             <AirHockeyBoard
               seat={seat}
+              scores={snapshot.state.scores}
+              count={
+                snapshot.phase === 'playing' ? countdown(snapshot.state) : null
+              }
+              scorer={
+                // The match-winning goal gets the result banner instead.
+                snapshot.result === null ? justScored(snapshot.state) : null
+              }
+              winner={
+                snapshot.result !== null && 'winner' in snapshot.result
+                  ? snapshot.result.winner
+                  : null
+              }
               subscribe={store.onSnapshot}
               onAction={send}
             />

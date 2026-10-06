@@ -6,6 +6,8 @@ import type {
 import { assets } from './assets';
 import {
   FACE_OFF_MS,
+  GRACE_MS,
+  OPENING_MS,
   GOAL,
   PADDLE,
   PUCK,
@@ -42,6 +44,57 @@ const inMouth = (x: number): boolean =>
 
 /* Every player owns a rectangle: the full width, their own half, inset by the
    paddle's radius so its edge stops on the line rather than over it. */
+/* Whoever just scored, while the puck waits to come back, or null. A goal
+   drops the puck to the side that conceded, so the scorer is the other one;
+   the opening face-off has no scorer because nobody has scored yet. */
+export const justScored = (state: AirHockeyState): PlayerId | null =>
+  state.faceOff.inMs > 0 &&
+  state.faceOff.toward !== null &&
+  state.scores.p0 + state.scores.p1 > 0
+    ? OPPONENT[state.faceOff.toward]
+    : null;
+
+/* How the puck should be drawn. After a goal it is hidden, then blinks on its
+   spot through the grace period while nobody can touch it; the rest of the
+   time, the opening countdown included, it shows plainly. */
+export const puckLook = (
+  state: AirHockeyState,
+): 'hidden' | 'blinking' | 'solid' => {
+  const { inMs, toward } = state.faceOff;
+  if (toward === null || inMs <= 0) return 'solid';
+  return inMs > GRACE_MS ? 'hidden' : 'blinking';
+};
+
+/* Where to draw the puck when your own paddle is heading along `heading` (a
+   unit vector) and has run into it. The client draws your paddle at your
+   cursor but the puck a tenth of a second behind the server, so a fast ram can
+   carry the paddle past the puck's centre between frames. Pushed out the
+   nearest way, the puck would then be drawn behind the paddle until the hit
+   arrived. This pushes it out ahead instead, keeping its offset from the line
+   of travel. A puck the paddle never reached, or already clear ahead, is left
+   where it is. Drawing only: the server's collision is untouched. */
+export const inFrontOf = (at: Vec, centre: Vec, heading: Vec): Vec => {
+  const rel = { x: at.x - centre.x, y: at.y - centre.y };
+  const along = rel.x * heading.x + rel.y * heading.y;
+  const side = { x: rel.x - along * heading.x, y: rel.y - along * heading.y };
+  const offset = Math.hypot(side.x, side.y);
+  if (offset >= TOUCHING) return at;
+
+  const reach = Math.sqrt(TOUCHING * TOUCHING - offset * offset);
+  if (along >= reach) return at;
+  return {
+    x: centre.x + side.x + heading.x * reach,
+    y: centre.y + side.y + heading.y * reach,
+  };
+};
+
+/* The opening count for the screen, 3 then 2 then 1, or null once it is over
+   and on every face-off after a goal. */
+export const countdown = (state: AirHockeyState): number | null =>
+  state.faceOff.toward === null && state.faceOff.inMs > 0
+    ? Math.ceil(state.faceOff.inMs / 1000)
+    : null;
+
 export const penned = (player: PlayerId, at: Vec): Vec => ({
   x: clamp(at.x, PADDLE.radius, TABLE.width - PADDLE.radius),
   y:
@@ -50,11 +103,14 @@ export const penned = (player: PlayerId, at: Vec): Vec => ({
       : clamp(at.y, PADDLE.radius, HALFWAY - PADDLE.radius),
 });
 
-const restingPuck = (toward: PlayerId): AirHockeyState['puck'] => ({
-  at: {
-    x: TABLE.width / 2,
-    y: toward === 'p0' ? TABLE.height * 0.75 : TABLE.height * 0.25,
-  },
+const restingPuck = (toward: PlayerId | null): AirHockeyState['puck'] => ({
+  at:
+    toward === null
+      ? { ...CENTRE }
+      : {
+          x: TABLE.width / 2,
+          y: toward === 'p0' ? TABLE.height * 0.75 : TABLE.height * 0.25,
+        },
   velocity: { x: 0, y: 0 },
 });
 
@@ -67,9 +123,11 @@ const capped = (velocity: Vec): Vec => {
   };
 };
 
+/* Straight to the conceding side's spot. Sending it back through the middle
+   first would only be drawn as the puck sliding the length of the table. */
 const concede = (state: AirHockeyState, to: PlayerId): AirHockeyState => ({
   ...state,
-  puck: { at: { ...CENTRE }, velocity: { x: 0, y: 0 } },
+  puck: restingPuck(OPPONENT[to]),
   scores: { ...state.scores, [to]: state.scores[to] + 1 },
   faceOff: { inMs: FACE_OFF_MS, toward: OPPONENT[to] },
 });
@@ -104,38 +162,47 @@ const strike = (
   const dy = puck.at.y - to.y;
   const distance = Math.hypot(dx, dy);
 
-  /* Normally the puck is pushed straight out from the paddle. When the paddle
-     has swept past it there is no such direction to use, so it goes the way the
-     hand was travelling — shoved ahead of the paddle rather than left behind. */
-  const swept = distance < 1e-9 || distance >= TOUCHING;
-  const nx = swept
-    ? travelled === 0
-      ? 0
-      : travel.x / travelled
-    : dx / distance;
-  const ny = swept
-    ? travelled === 0
-      ? 1
-      : travel.y / travelled
-    : dy / distance;
+  /* Normally the puck is pushed straight out from the paddle. Once the paddle
+     has gone past the puck's centre that direction points backwards -- a paddle
+     outruns the capped puck within a slice, so a hard ram ends either clean
+     past it or still overlapping it from behind -- so instead it is shoved out
+     ahead the way the hand was travelling, keeping its offset from the line of
+     travel so a glancing ram still glances. */
+  const heading =
+    travelled === 0
+      ? null
+      : { x: travel.x / travelled, y: travel.y / travelled };
+  const passed = heading !== null && dx * heading.x + dy * heading.y < 0;
+  const out =
+    heading !== null && (passed || distance < 1e-9 || distance >= TOUCHING)
+      ? inFrontOf(puck.at, to, heading)
+      : distance < 1e-9
+        ? { x: to.x, y: to.y + TOUCHING }
+        : {
+            x: to.x + (dx / distance) * TOUCHING,
+            y: to.y + (dy / distance) * TOUCHING,
+          };
+  const nx = (out.x - to.x) / TOUCHING;
+  const ny = (out.y - to.y) / TOUCHING;
 
-  const closing = puck.velocity.x * nx + puck.velocity.y * ny;
-  const bounced =
-    closing < 0
-      ? {
-          x: puck.velocity.x - 2 * closing * nx,
-          y: puck.velocity.y - 2 * closing * ny,
-        }
-      : puck.velocity;
+  /* The paddle's speed along the hit, capped: a pointer can cross the table
+     between two ticks, and uncapped that would launch the puck at any speed a
+     hand can produce. A paddle moving away counts as still. */
+  const pushing = clamp(hand.x * nx + hand.y * ny, 0, PADDLE.maxTransfer);
 
-  /* What a strike adds is capped. A pointer can cross the table between two
-     ticks, and an uncapped transfer would let a flick launch the puck at any
-     speed a hand can produce. */
-  const push = clamp(hand.x * nx + hand.y * ny, 0, PADDLE.maxTransfer);
+  /* Bounced off the paddle as a moving surface: the puck's closing speed
+     relative to it is turned around and scaled by the bounce. A paddle that
+     hits a resting puck sends it off faster than itself, which is what keeps
+     it from riding along on the paddle's face. */
+  const closing = puck.velocity.x * nx + puck.velocity.y * ny - pushing;
+  const kick = closing < 0 ? -(1 + PUCK.bounce) * closing : 0;
 
   return {
-    at: { x: to.x + nx * TOUCHING, y: to.y + ny * TOUCHING },
-    velocity: capped({ x: bounced.x + nx * push, y: bounced.y + ny * push }),
+    at: out,
+    velocity: capped({
+      x: puck.velocity.x + kick * nx,
+      y: puck.velocity.y + kick * ny,
+    }),
   };
 };
 
@@ -391,7 +458,7 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
 
   tickRateHz: 60,
 
-  setup: (ctx) => ({
+  setup: () => ({
     puck: { at: { ...CENTRE }, velocity: { x: 0, y: 0 } },
     paddles: {
       p0: {
@@ -404,10 +471,7 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
       },
     },
     scores: { p0: 0, p1: 0 },
-    faceOff: {
-      inMs: FACE_OFF_MS,
-      toward: ctx.random.int(0, 1) === 0 ? 'p0' : 'p1',
-    },
+    faceOff: { inMs: OPENING_MS, toward: null },
   }),
 
   isLegal: (_state, action) =>
@@ -450,18 +514,16 @@ export const AirHockey: RealtimeGame<AirHockeyState, AirHockeyAction> = {
       },
     };
 
-    /* A waiting puck is still solid. Parking a paddle on the spot slides it out
-       from underneath rather than swallowing it, and it stays at rest. */
+    /* The moment a waiting puck goes live it becomes solid, so a paddle parked
+       on the spot slides it out from underneath rather than swallowing it. It
+       stays at rest. */
     const waiting = (at: Vec): Vec => clearOf(at, to.p0, to.p1);
 
     if (settled.faceOff.inMs > 0) {
       const inMs = settled.faceOff.inMs - dtMs;
       if (inMs > SLACK_MS) {
-        return {
-          ...settled,
-          puck: { ...settled.puck, at: waiting(settled.puck.at) },
-          faceOff: { ...settled.faceOff, inMs },
-        };
+        // A ghost while it waits: the paddles move, the puck does not.
+        return { ...settled, faceOff: { ...settled.faceOff, inMs } };
       }
       const dropped = restingPuck(settled.faceOff.toward);
       return {
