@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createEngine, createRandom } from '@even-odds/game-sdk';
 import type { EngineContext, PlayerId } from '@even-odds/game-sdk';
-import { Battleship, cellsOf, fleetProblem, isSunk } from '../logic';
+import { Battleship, cellsOf, fleetProblem, isSunk, turnShip } from '../logic';
 import { BOARD, FLEET } from '../types';
 import type { BattleshipState, Cell, Ship } from '../types';
 
@@ -164,6 +164,53 @@ describe('Battleship — what counts as a fleet', () => {
     ];
 
     expect(fleetProblem(between)).not.toBeNull();
+  });
+});
+
+describe('Battleship — turning a ship while arranging', () => {
+  // The layout from the bug report: a carrier sits two rows under a cruiser.
+  const cruiser: Ship = { id: 'cruiser', at: { x: 4, y: 1 }, facing: 'across' };
+  const carrier: Ship = { id: 'carrier', at: { x: 4, y: 3 }, facing: 'across' };
+
+  it('turns about the square that was tapped', () => {
+    expect(turnShip([], cruiser, 1)).toEqual({
+      id: 'cruiser',
+      at: { x: 5, y: 0 },
+      facing: 'down',
+    });
+  });
+
+  it('finds room nearby rather than refusing when the turn is blocked', () => {
+    // Down from the bow would land on the carrier; one square up is clear.
+    expect(turnShip([carrier], cruiser, 0)).toEqual({
+      id: 'cruiser',
+      at: { x: 4, y: 0 },
+      facing: 'down',
+    });
+  });
+
+  it('stays on the board at an edge', () => {
+    const corner: Ship = {
+      id: 'carrier',
+      at: { x: 5, y: 9 },
+      facing: 'across',
+    };
+    expect(turnShip([], corner, 0)).toEqual({
+      id: 'carrier',
+      at: { x: 5, y: 5 },
+      facing: 'down',
+    });
+  });
+
+  it('gives up only when no turned position fits', () => {
+    const boxedIn: Ship = {
+      id: 'destroyer',
+      at: { x: 0, y: 0 },
+      facing: 'across',
+    };
+    const wall: Ship = { id: 'carrier', at: { x: 0, y: 1 }, facing: 'across' };
+
+    expect(turnShip([wall], boxedIn, 0)).toBeNull();
   });
 });
 

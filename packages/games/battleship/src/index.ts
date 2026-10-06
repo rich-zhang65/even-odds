@@ -4,8 +4,10 @@ export {
   cellsOf,
   fleetProblem,
   isSunk,
+  lengthOf,
   placementProblem,
   shipAt,
+  turnShip,
 } from './logic';
 export { BOARD, FLEET } from './types';
 export type {
