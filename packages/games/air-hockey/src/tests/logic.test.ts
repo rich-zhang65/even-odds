@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { createRandom } from '@even-odds/game-sdk';
 import type { EngineContext, PlayerId } from '@even-odds/game-sdk';
-import { AirHockey } from '../logic';
-import { FACE_OFF_MS, GOAL, PADDLE, PUCK, TABLE, TARGET_SCORE } from '../types';
+import {
+  AirHockey,
+  countdown,
+  inFrontOf,
+  justScored,
+  puckLook,
+} from '../logic';
+import {
+  FACE_OFF_MS,
+  GOAL,
+  GRACE_MS,
+  OPENING_MS,
+  PADDLE,
+  PUCK,
+  TABLE,
+  TARGET_SCORE,
+} from '../types';
 import type { AirHockeyState, Vec } from '../types';
 
 const STEP_MS = 1000 / 60;
@@ -47,6 +62,46 @@ const board = (overrides: Partial<AirHockeyState> = {}): AirHockeyState => ({
 });
 
 const speedOf = (v: Vec): number => Math.hypot(v.x, v.y);
+
+describe('Air Hockey — the opening countdown', () => {
+  it('opens with three seconds on the clock and the puck in the middle', () => {
+    const fresh = AirHockey.setup(context());
+
+    expect(fresh.faceOff).toEqual({ inMs: OPENING_MS, toward: null });
+    expect(fresh.puck.at).toEqual({ x: MID_X, y: HALFWAY });
+  });
+
+  it('holds the puck through the countdown, then leaves it in the middle at rest', () => {
+    const ticks = Math.ceil(OPENING_MS / STEP_MS);
+    const nearly = run(AirHockey.setup(context()), ticks - 2);
+    const done = run(AirHockey.setup(context()), ticks + 1);
+
+    expect(nearly.faceOff.inMs).toBeGreaterThan(0);
+    expect(nearly.puck.velocity).toEqual({ x: 0, y: 0 });
+    expect(done.faceOff.inMs).toBe(0);
+    expect(done.puck.at).toEqual({ x: MID_X, y: HALFWAY });
+    expect(done.puck.velocity).toEqual({ x: 0, y: 0 });
+  });
+
+  it('counts 3, 2, 1 for the screen, then nothing', () => {
+    const at = (ms: number) =>
+      countdown(run(AirHockey.setup(context()), Math.round(ms / STEP_MS)));
+
+    expect(at(0)).toBe(3);
+    expect(at(1100)).toBe(2);
+    expect(at(2100)).toBe(1);
+    expect(at(OPENING_MS + 100)).toBeNull();
+  });
+
+  it('shows no countdown on the face-off after a goal', () => {
+    const afterGoal = board({
+      scores: { p0: 1, p1: 0 },
+      faceOff: { inMs: FACE_OFF_MS, toward: 'p1' },
+    });
+
+    expect(countdown(afterGoal)).toBeNull();
+  });
+});
 
 describe('Air Hockey — the face-off', () => {
   it('holds the puck until the delay runs out', () => {
@@ -196,6 +251,9 @@ describe('Air Hockey — the puck', () => {
 
     expect(scored.scores).toEqual({ p0: 1, p1: 0 });
     expect(scored.faceOff).toEqual({ inMs: FACE_OFF_MS, toward: 'p1' });
+    // Straight to the conceding side's spot, never back through the middle.
+    expect(scored.puck.at).toEqual({ x: MID_X, y: TABLE.height * 0.25 });
+    expect(scored.puck.velocity).toEqual({ x: 0, y: 0 });
   });
 
   it('slows down while nothing is touching it', () => {
@@ -208,6 +266,42 @@ describe('Air Hockey — the puck', () => {
 });
 
 describe('Air Hockey — striking', () => {
+  /* A paddle can cover far more than the puck can in one slice, so a hard ram
+     ends a slice with the paddle past the puck's centre while still overlapping
+     it. Pushed straight out from the paddle, the puck went out the back and
+     back toward the rammer's own goal. */
+  const ram = (puckX: number) =>
+    run(
+      AirHockey.reduce(
+        board({
+          puck: { at: { x: puckX, y: 128 }, velocity: { x: 0, y: 0 } },
+          paddles: {
+            p0: still({ x: 50, y: 168 }),
+            p1: still({ x: PADDLE.radius, y: PADDLE.radius }),
+          },
+        }),
+        { type: 'AIM', x: 50, y: 107 },
+        'p0',
+        context(),
+      ),
+      1,
+    );
+
+  it('sends a puck forward however hard the paddle rams it', () => {
+    const after = ram(50);
+
+    expect(after.puck.velocity.y).toBeLessThan(0);
+    expect(after.puck.at.y).toBeLessThan(after.paddles.p0.at.y);
+  });
+
+  it('keeps a rammed puck on the side it was struck', () => {
+    const after = ram(55);
+
+    expect(after.puck.velocity.y).toBeLessThan(0);
+    expect(after.puck.velocity.x).toBeGreaterThan(0);
+    expect(after.puck.at.x).toBeGreaterThan(50);
+  });
+
   /* A paddle sitting in the puck's path, close enough to be touching it. */
   const facing = (
     velocity: Vec,
@@ -251,6 +345,44 @@ describe('Air Hockey — striking', () => {
     });
 
     expect(run(glancing, 1).puck.velocity.x).toBeGreaterThan(0);
+  });
+
+  /* A hit bounces the puck off the paddle, so it leaves faster than the paddle
+     was moving. Leaving at the paddle's own speed, it rode along stuck to the
+     face of a hand that kept moving. */
+  it('bounces off a paddle that keeps pushing, rather than riding it', () => {
+    const start = { x: MID_X, y: HALFWAY + 60 };
+    let state = board({
+      puck: {
+        at: { x: MID_X, y: start.y - TOUCHING - 1 },
+        velocity: { x: 0, y: 0 },
+      },
+      paddles: {
+        p0: still(start),
+        p1: still({ x: PADDLE.radius, y: PADDLE.radius }),
+      },
+    });
+    // The hand keeps coming at 180 units a second, an ordinary swing.
+    for (let i = 0; i < 20; i++) {
+      const at = state.paddles.p0.at;
+      state = tick(
+        {
+          ...state,
+          paddles: {
+            ...state.paddles,
+            p0: { at, target: { x: at.x, y: at.y - 3 } },
+          },
+        },
+        STEP_MS,
+        context(),
+      );
+    }
+
+    const gap = Math.hypot(
+      state.puck.at.x - state.paddles.p0.at.x,
+      state.puck.at.y - state.paddles.p0.at.y,
+    );
+    expect(gap).toBeGreaterThan(TOUCHING + 20);
   });
 
   it('adds speed when the paddle is moving into it', () => {
@@ -392,25 +524,23 @@ describe('Air Hockey — the pinch', () => {
 });
 
 describe('Air Hockey — nothing ever ends inside a paddle', () => {
-  it('slides a waiting puck out from under a paddle parked on the spot', () => {
+  /* While it waits the puck is a ghost: paddles pass through it and it stays
+     on its spot, so nobody can hit it before it is live. */
+  it('lets a paddle pass through a waiting puck without moving it', () => {
     const spot = { x: MID_X, y: TABLE.height * 0.75 };
     const camped = board({
       puck: { at: spot, velocity: { x: 0, y: 0 } },
       faceOff: { inMs: FACE_OFF_MS, toward: 'p0' },
       paddles: {
-        p0: still(spot),
+        p0: { at: { x: MID_X - 20, y: spot.y }, target: spot },
         p1: still({ x: PADDLE.radius, y: PADDLE.radius }),
       },
     });
 
-    const after = run(camped, 1);
+    const after = run(camped, 2);
 
-    /* Exactly a contact away, not merely somewhere legal: the puck slides off
-       the edge it was under, it does not get teleported clear. */
-    expect(
-      Math.hypot(after.puck.at.x - spot.x, after.puck.at.y - spot.y),
-    ).toBeCloseTo(TOUCHING, 9);
-    // Slid aside, but the face-off has not started it moving.
+    expect(after.paddles.p0.at).toEqual(spot);
+    expect(after.puck.at).toEqual(spot);
     expect(after.puck.velocity).toEqual({ x: 0, y: 0 });
   });
 
@@ -488,7 +618,7 @@ describe('Air Hockey — nothing ever ends inside a paddle', () => {
           p1: { at: inHalf('p1'), target: inHalf('p1') },
         },
         faceOff: {
-          inMs: trial % 4 === 0 ? FACE_OFF_MS : 0,
+          inMs: trial % 4 === 0 ? STEP_MS / 2 : 0,
           toward: trial % 2 === 0 ? 'p0' : 'p1',
         },
       });
@@ -562,7 +692,7 @@ describe('Air Hockey — camped against the boards', () => {
             velocity: { x: spread(-40, 40), y: spread(-40, 40) },
           },
           paddles: { p0: still(p0At), p1: still(p1At) },
-          faceOff: { inMs: trial % 4 === 0 ? FACE_OFF_MS : 0, toward: 'p0' },
+          faceOff: { inMs: trial % 4 === 0 ? STEP_MS / 2 : 0, toward: 'p0' },
         }),
         STEP_MS,
         context(),
@@ -609,6 +739,91 @@ describe('Air Hockey — scoring', () => {
   });
 });
 
+describe('Air Hockey — who just scored', () => {
+  it('names the scorer while the puck waits to come back', () => {
+    // The puck is dropped to whoever conceded, so p1 scored here.
+    const waiting = board({
+      scores: { p0: 0, p1: 1 },
+      faceOff: { inMs: FACE_OFF_MS, toward: 'p0' },
+    });
+
+    expect(justScored(waiting)).toBe('p1');
+  });
+
+  it('names nobody before the first goal, or once play is back on', () => {
+    expect(
+      justScored(board({ faceOff: { inMs: FACE_OFF_MS, toward: 'p1' } })),
+    ).toBeNull();
+    expect(justScored(board({ scores: { p0: 3, p1: 1 } }))).toBeNull();
+  });
+
+  it('names the scorer of a real goal', () => {
+    // Into the top mouth, which p1 defends.
+    const state = run(
+      board({
+        puck: { at: { x: MID_X, y: 2 }, velocity: { x: 0, y: -PUCK.maxSpeed } },
+      }),
+      10,
+    );
+
+    expect(state.scores).toEqual({ p0: 1, p1: 0 });
+    expect(justScored(state)).toBe('p0');
+  });
+});
+
+describe('Air Hockey — how the puck shows after a goal', () => {
+  const afterGoal = (inMs: number) =>
+    board({ scores: { p0: 1, p1: 0 }, faceOff: { inMs, toward: 'p1' } });
+
+  it('hides it, then blinks it for the grace period, then shows it', () => {
+    expect(puckLook(afterGoal(FACE_OFF_MS))).toBe('hidden');
+    expect(puckLook(afterGoal(GRACE_MS + 1))).toBe('hidden');
+    expect(puckLook(afterGoal(GRACE_MS))).toBe('blinking');
+    expect(puckLook(afterGoal(1))).toBe('blinking');
+    expect(puckLook(afterGoal(0))).toBe('solid');
+  });
+
+  it('shows it plainly through the opening countdown', () => {
+    expect(puckLook(AirHockey.setup(context()))).toBe('solid');
+  });
+});
+
+describe('Air Hockey — drawing the puck in front of a fast paddle', () => {
+  const centre = { x: 50, y: 100 };
+  const up = { x: 0, y: -1 };
+
+  it('puts a puck the paddle has run through back in front of it', () => {
+    // Dead behind the paddle, as a fast ram leaves the delayed puck.
+    expect(inFrontOf({ x: 50, y: 104 }, centre, up)).toEqual({
+      x: 50,
+      y: 100 - TOUCHING,
+    });
+  });
+
+  it('keeps how far off-centre the puck was', () => {
+    const out = inFrontOf({ x: 53, y: 102 }, centre, up);
+
+    expect(out.x).toBe(53);
+    expect(Math.hypot(out.x - centre.x, out.y - centre.y)).toBeCloseTo(
+      TOUCHING,
+      9,
+    );
+    expect(out.y).toBeLessThan(centre.y);
+  });
+
+  it('leaves a puck that is already clear ahead alone', () => {
+    const clear = { x: 50, y: 100 - TOUCHING - 3 };
+
+    expect(inFrontOf(clear, centre, up)).toEqual(clear);
+  });
+
+  it('leaves a puck off to the side, which the paddle never reached', () => {
+    const beside = { x: 50 + TOUCHING + 1, y: 104 };
+
+    expect(inFrontOf(beside, centre, up)).toEqual(beside);
+  });
+});
+
 describe('Air Hockey — determinism', () => {
   it('lands in the same place from the same seed and the same inputs', () => {
     const play = (): AirHockeyState => {
@@ -635,18 +850,5 @@ describe('Air Hockey — determinism', () => {
     };
 
     expect(play()).toEqual(play());
-  });
-
-  it('picks the opening face-off from the seed, and both sides are reachable', () => {
-    const opening = (seed: number): PlayerId =>
-      AirHockey.setup(context(seed)).faceOff.toward;
-
-    expect(opening(7)).toBe(opening(7));
-
-    /* A spread rather than 1..6: mulberry32's first draw is correlated across
-       small sequential seeds, so those six all open the same way. */
-    const seen = [1, 7, 41, 1_000, 65_537, 1_234_567].map(opening);
-    expect(seen).toContain('p0');
-    expect(seen).toContain('p1');
   });
 });
