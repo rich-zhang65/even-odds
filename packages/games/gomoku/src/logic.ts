@@ -46,24 +46,25 @@ const lineThrough = (stones: Stone[], from: Stone, axis: Cell): Cell[] => {
   return [...reach(-1).reverse(), from.at, ...reach(1)];
 };
 
-/* The line that won, or null. Only the stone just played can have completed
+/* Every run that won, or null. Only the stone just played can have completed
    one, so this looks at that stone alone rather than sweeping the board --
-   which also means a win is found the moment it is made.
+   which also means a win is found the moment it is made. The same stone can
+   finish a run on more than one axis, so all four are walked: at most four
+   runs, since the stones either side of it on one axis are a single run.
 
-   Exported so the client can draw the five it was won with instead of working
-   them out again and disagreeing about which five. */
-export const winningLine = (
+   Exported so the client can draw the runs it was won with instead of working
+   them out again and disagreeing about which. */
+export const winningLines = (
   state: GomokuState,
-): { line: Cell[]; by: PlayerId } | null => {
+): { lines: Cell[][]; by: PlayerId } | null => {
   const last = state.stones[state.stones.length - 1];
   if (last === undefined) return null;
 
-  for (const axis of AXES) {
-    const line = lineThrough(state.stones, last, axis);
-    if (line.length >= RUN) return { line, by: last.by };
-  }
+  const lines = AXES.map((axis) =>
+    lineThrough(state.stones, last, axis),
+  ).filter((line) => line.length >= RUN);
 
-  return null;
+  return lines.length > 0 ? { lines, by: last.by } : null;
 };
 
 export const Gomoku: TurnBasedGame<GomokuState, GomokuAction> = {
@@ -90,7 +91,7 @@ export const Gomoku: TurnBasedGame<GomokuState, GomokuAction> = {
   }),
 
   isTerminal: (state) => {
-    const won = winningLine(state);
+    const won = winningLines(state);
     if (won !== null) return { winner: won.by };
 
     return state.stones.length === BOARD * BOARD
