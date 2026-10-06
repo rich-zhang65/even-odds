@@ -39,8 +39,12 @@ const lerp = (a: Vec, b: Vec, t: number): Vec => ({
   y: a.y + (b.y - a.y) * t,
 });
 
+/* Whether the puck is lined up with the mouth closely enough to go through it.
+   The mouth is a slot in the end wall, so all of the puck has to fit: its
+   centre at least a radius inside each post. One that overhangs a post meets
+   the wall like anywhere else and comes back. */
 const inMouth = (x: number): boolean =>
-  Math.abs(x - TABLE.width / 2) <= GOAL.width / 2;
+  Math.abs(x - TABLE.width / 2) <= GOAL.width / 2 - PUCK.radius;
 
 /* Every player owns a rectangle: the full width, their own half, inset by the
    paddle's radius so its edge stops on the line rather than over it. */
