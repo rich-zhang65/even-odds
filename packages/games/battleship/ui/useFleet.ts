@@ -21,7 +21,8 @@ export type Piece = { id: ShipId; facing: Facing; at: Cell | null };
 
 /* A ship on its way somewhere, drawn as a ghost under the pointer. The ghost
    keeps the spot it was grabbed by, and `landing` is the square its bow would
-   snap to, or null where it cannot go. */
+   snap to, or null where it cannot go. `docking` is whether letting go now
+   sends it back to the dock. */
 export type Drag = {
   id: ShipId;
   facing: Facing;
@@ -30,6 +31,7 @@ export type Drag = {
   width: number;
   height: number;
   landing: Cell | null;
+  docking: boolean;
 };
 
 const ASHORE: Piece[] = FLEET.map(({ id }) => ({
@@ -151,8 +153,9 @@ export const useFleet = () => {
       /* Over the dock means back to the dock, even where the board runs on
          underneath it: below 800px the dock is a tray fixed over the bottom
          of the page, and the board's lower rows can sit right behind it. */
+      const docking = overDock(moving.clientX, moving.clientY);
       landing =
-        !overDock(moving.clientX, moving.clientY) &&
+        !docking &&
         placementProblem(others, { id, facing: piece.facing, at }) === null
           ? at
           : null;
@@ -165,6 +168,7 @@ export const useFleet = () => {
         width,
         height,
         landing,
+        docking,
       });
     };
 

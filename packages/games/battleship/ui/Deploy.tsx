@@ -18,8 +18,7 @@ const nameOf = (id: ShipId): string =>
 
 /* The whole fleet in a row, always lying across. A ship out on the board, or
    on its way there, leaves its outline behind, so the dock shows at a glance
-   what is still to place. Dropping a ship back here takes it off the board;
-   the data attribute is how a drop finds the dock. */
+   what is still to place. */
 const Dock = ({
   pieces,
   drag,
@@ -36,9 +35,10 @@ const Dock = ({
   <div
     className={cx(
       'flex touch-none flex-wrap items-start select-none',
-      compact ? 'min-h-11 justify-center gap-2' : 'min-h-16 gap-3',
+      compact
+        ? 'min-h-16 content-center justify-center gap-2'
+        : 'min-h-16 gap-3',
     )}
-    data-dock
   >
     {pieces.map((piece) => {
       const out = piece.at !== null || drag?.id === piece.id;
@@ -171,7 +171,7 @@ export const Deploy = ({
     <div>
       <Flex wrap="wrap" align="start" justify="center" gap="24px">
         <div className="max-w-[560px] min-w-0 flex-[1_1_360px]">
-          <Waters title="Your waters" edge={null} frame={fleet.water}>
+          <Waters title="Your waters" frame={fleet.water}>
             {EVERY_CELL.map((cell) => (
               <div className={mySeat.soft} key={`${cell.x},${cell.y}`} />
             ))}
@@ -228,11 +228,17 @@ export const Deploy = ({
         </div>
 
         {/* Above 800px the dock and buttons sit in a sticky rail; below it they
-            move to a tray fixed along the bottom, as Yazy's dice do. */}
-        <div className="sticky top-6 grid max-w-[320px] min-w-0 flex-[1_1_240px] gap-4 max-[800px]:hidden">
+            move to a tray fixed along the bottom, as Yazy's dice do. A ship
+            dropped anywhere on the rail or the tray, buttons and padding
+            included, goes back to the dock: data-dock is how a drop finds it,
+            and the narrow tray is too easy to miss otherwise. */}
+        <div
+          className="sticky top-6 grid max-w-[320px] min-w-0 flex-[1_1_240px] gap-4 max-[800px]:hidden"
+          data-dock
+        >
           <Card
             className="p-5!"
-            tone={drag !== null && drag.landing === null ? 'outlined' : 'plain'}
+            tone={drag?.docking === true ? 'outlined' : 'plain'}
           >
             <span className="mb-3 block font-eo-body text-eo-caption tracking-eo-caps text-eo-muted uppercase">
               Your fleet
@@ -249,9 +255,12 @@ export const Deploy = ({
         </div>
       </Flex>
 
-      <div className="h-45 min-[800px]:hidden" />
+      <div className="h-50 min-[800px]:hidden" />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-eo-strong bg-eo-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] min-[800px]:hidden">
+      <div
+        className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-eo-strong bg-eo-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] min-[800px]:hidden"
+        data-dock
+      >
         <div className="mx-auto grid max-w-[520px] gap-3">
           <Dock
             pieces={fleet.pieces}
