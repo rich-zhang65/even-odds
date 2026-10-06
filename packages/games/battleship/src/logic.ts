@@ -115,8 +115,8 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
     boards: { p0: emptyBoard(), p1: emptyBoard() },
   }),
 
-  /* Deployment is taken one player at a time, so whoever still has no fleet is
-     on the clock, and p0 goes first. */
+  /* While deploying nobody is really on turn -- see offTurn -- so this names
+     whoever still owes a fleet, for the session to report. */
   currentPlayer: (state) =>
     state.phase === 'firing'
       ? state.turn
@@ -124,7 +124,15 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
         ? 'p0'
         : 'p1',
 
+  /* Deploying is open to both players at once: either can send a fleet, or
+     take theirs back, without waiting on the other. Only firing takes turns. */
+  offTurn: (state) => state.phase === 'deploying',
+
   isLegal: (state, action, by) => {
+    if (action.type === 'RECALL') {
+      return state.phase === 'deploying' && state.boards[by].ships.length > 0;
+    }
+
     if (action.type === 'DEPLOY') {
       if (state.phase !== 'deploying') return false;
       if (state.boards[by].ships.length > 0) return false;
@@ -152,6 +160,16 @@ export const Battleship: TurnBasedGame<BattleshipState, BattleshipAction> = {
       return boards.p0.ships.length > 0 && boards.p1.ships.length > 0
         ? { phase: 'firing', boards, turn: by }
         : { phase: 'deploying', boards };
+    }
+
+    if (action.type === 'RECALL') {
+      return {
+        phase: 'deploying',
+        boards: {
+          ...state.boards,
+          [by]: { ships: [], incoming: state.boards[by].incoming },
+        },
+      };
     }
 
     if (state.phase !== 'firing') return state;

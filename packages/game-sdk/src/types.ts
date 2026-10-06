@@ -51,6 +51,10 @@ export type TurnBasedGame<S, A extends GameAction> = {
   meta: GameMeta;
   setup(ctx: EngineContext): S;
   currentPlayer(state: S): PlayerId;
+  /* A move the player who is not on turn may still make, such as taking back
+     something they sent. isLegal still decides whether it is allowed. Left
+     out, only the player on turn can move. */
+  offTurn?(state: S, action: A, by: PlayerId): boolean;
   isLegal(state: S, action: A, by: PlayerId, ctx: EngineContext): boolean;
   reduce(state: S, action: A, by: PlayerId, ctx: EngineContext): S;
   isTerminal(state: S): GameResult | null;

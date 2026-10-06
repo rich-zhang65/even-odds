@@ -39,4 +39,6 @@ export type BattleshipState =
   | { phase: 'firing'; boards: Record<PlayerId, Board>; turn: PlayerId };
 
 export type BattleshipAction =
-  { type: 'DEPLOY'; ships: Ship[] } | { type: 'FIRE'; at: Cell };
+  | { type: 'DEPLOY'; ships: Ship[] }
+  | { type: 'RECALL' }
+  | { type: 'FIRE'; at: Cell };
