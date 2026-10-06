@@ -101,3 +101,15 @@ export const historyFor = async (
     score: mine === null || theirs === null ? null : { mine, theirs },
   }));
 };
+
+/* The games someone has played, each once, most recent first: what the home
+   page offers to play again. Read off history already in hand, newest first,
+   rather than asking the database a second question. */
+export const recentGames = (past: PastMatch[], limit: number): string[] => {
+  const seen: string[] = [];
+  for (const match of past) {
+    if (seen.length === limit) break;
+    if (!seen.includes(match.gameId)) seen.push(match.gameId);
+  }
+  return seen;
+};
