@@ -1,6 +1,7 @@
 export { createDb, type Db } from './client';
 export {
   historyFor,
+  recentGames,
   outcomeFor,
   recordMatch,
   type FinishedMatch,
