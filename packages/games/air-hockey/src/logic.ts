@@ -132,78 +132,72 @@ const concede = (state: AirHockeyState, to: PlayerId): AirHockeyState => ({
   faceOff: { inMs: FACE_OFF_MS, toward: OPPONENT[to] },
 });
 
-/* The closest point to the puck on the segment a paddle covered this slice. */
-const closestOn = (a: Vec, b: Vec, to: Vec): Vec => {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const lengthSq = dx * dx + dy * dy;
-  if (lengthSq === 0) return a;
-  const along = clamp(((to.x - a.x) * dx + (to.y - a.y) * dy) / lengthSq, 0, 1);
-  return { x: a.x + dx * along, y: a.y + dy * along };
+const dot = (a: Vec, b: Vec): number => a.x * b.x + a.y * b.y;
+
+/* The first moment, within `span` seconds, that a puck at `at` moving at
+   `velocity` touches a paddle at `centre` moving at `paddle`, or null if it
+   does not. Both move in straight lines through a slice, so this is where
+   their gap closes to a contact: the earlier root of a quadratic in time. A
+   pair already touching counts as touching now, but only while still closing,
+   so a puck just bounced off is not caught again. */
+const contactTime = (
+  at: Vec,
+  velocity: Vec,
+  centre: Vec,
+  paddle: Vec,
+  span: number,
+): number | null => {
+  const gap = { x: at.x - centre.x, y: at.y - centre.y };
+  const closing = { x: velocity.x - paddle.x, y: velocity.y - paddle.y };
+  const a = dot(closing, closing);
+  const b = 2 * dot(gap, closing);
+  const c = dot(gap, gap) - TOUCHING * TOUCHING;
+
+  if (c <= 0) return b < 0 ? 0 : null;
+  if (a === 0) return null;
+  const discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) return null;
+  const t = (-b - Math.sqrt(discriminant)) / (2 * a);
+  return t >= 0 && t <= span ? t : null;
 };
 
-/* Circle against the whole swept segment, not against where the paddle ended
-   up. A pointer has no speed limit, so a hand can cross its own half between
-   two ticks — many times the puck's width — and a paddle tested only at its
-   endpoints would step clean over the puck without ever touching it. */
-const strike = (
-  puck: AirHockeyState['puck'],
-  from: Vec,
-  to: Vec,
-  hand: Vec,
-): AirHockeyState['puck'] | null => {
-  const contact = closestOn(from, to, puck.at);
-  if (Math.hypot(puck.at.x - contact.x, puck.at.y - contact.y) >= TOUCHING)
-    return null;
+/* The direction a puck leaves a paddle by. Straight out from its centre, except
+   where the paddle has gone past the puck's centre: a paddle outruns the capped
+   puck, and pushing it out the nearest way would then send it out the back. So
+   it goes out ahead the way the hand was travelling, keeping its offset from
+   the line of travel so a glancing ram still glances. */
+const leaving = (at: Vec, centre: Vec, paddle: Vec): Vec => {
+  const gap = { x: at.x - centre.x, y: at.y - centre.y };
+  const distance = Math.hypot(gap.x, gap.y);
+  const speed = Math.hypot(paddle.x, paddle.y);
+  if (speed > 0 && (distance < 1e-9 || dot(gap, paddle) < 0)) {
+    const heading = { x: paddle.x / speed, y: paddle.y / speed };
+    const out = inFrontOf(at, centre, heading);
+    return {
+      x: (out.x - centre.x) / TOUCHING,
+      y: (out.y - centre.y) / TOUCHING,
+    };
+  }
+  return distance < 1e-9
+    ? { x: 0, y: 1 }
+    : { x: gap.x / distance, y: gap.y / distance };
+};
 
-  const travel = { x: to.x - from.x, y: to.y - from.y };
-  const travelled = Math.hypot(travel.x, travel.y);
-  const dx = puck.at.x - to.x;
-  const dy = puck.at.y - to.y;
-  const distance = Math.hypot(dx, dy);
-
-  /* Normally the puck is pushed straight out from the paddle. Once the paddle
-     has gone past the puck's centre that direction points backwards -- a paddle
-     outruns the capped puck within a slice, so a hard ram ends either clean
-     past it or still overlapping it from behind -- so instead it is shoved out
-     ahead the way the hand was travelling, keeping its offset from the line of
-     travel so a glancing ram still glances. */
-  const heading =
-    travelled === 0
-      ? null
-      : { x: travel.x / travelled, y: travel.y / travelled };
-  const passed = heading !== null && dx * heading.x + dy * heading.y < 0;
-  const out =
-    heading !== null && (passed || distance < 1e-9 || distance >= TOUCHING)
-      ? inFrontOf(puck.at, to, heading)
-      : distance < 1e-9
-        ? { x: to.x, y: to.y + TOUCHING }
-        : {
-            x: to.x + (dx / distance) * TOUCHING,
-            y: to.y + (dy / distance) * TOUCHING,
-          };
-  const nx = (out.x - to.x) / TOUCHING;
-  const ny = (out.y - to.y) / TOUCHING;
-
-  /* The paddle's speed along the hit, capped: a pointer can cross the table
-     between two ticks, and uncapped that would launch the puck at any speed a
-     hand can produce. A paddle moving away counts as still. */
-  const pushing = clamp(hand.x * nx + hand.y * ny, 0, PADDLE.maxTransfer);
-
-  /* Bounced off the paddle as a moving surface: the puck's closing speed
-     relative to it is turned around and scaled by the bounce. A paddle that
-     hits a resting puck sends it off faster than itself, which is what keeps
-     it from riding along on the paddle's face. */
-  const closing = puck.velocity.x * nx + puck.velocity.y * ny - pushing;
-  const kick = closing < 0 ? -(1 + PUCK.bounce) * closing : 0;
-
-  return {
-    at: out,
-    velocity: capped({
-      x: puck.velocity.x + kick * nx,
-      y: puck.velocity.y + kick * ny,
-    }),
-  };
+/* Bounced off the paddle as a moving surface, leaving along `normal`: the
+   puck's closing speed relative to the paddle is turned around and scaled by
+   the bounce, so a paddle that hits a resting puck sends it off faster than
+   itself rather than carrying it on its face. The paddle's speed is capped:
+   a pointer can cross the table between two ticks, and uncapped that would
+   launch the puck at any speed a hand can produce. */
+const bounceOff = (velocity: Vec, normal: Vec, paddle: Vec): Vec => {
+  const pushing = clamp(dot(paddle, normal), 0, PADDLE.maxTransfer);
+  const closing = dot(velocity, normal) - pushing;
+  if (closing >= 0) return velocity;
+  const kick = -(1 + PUCK.bounce) * closing;
+  return capped({
+    x: velocity.x + kick * normal.x,
+    y: velocity.y + kick * normal.y,
+  });
 };
 
 /* Two paddles can face each other across the halfway line fourteen units apart,
@@ -369,19 +363,73 @@ const clearOf = (at: Vec, first: Vec, second: Vec): Vec => {
   return nearest[0] ?? pushed;
 };
 
+/* A puck that ends a slice inside a paddle anyway -- one moving faster than
+   the puck can be sent, so it catches up after the bounce -- is set on the
+   edge it leaves by and given the paddle's push. */
+const offPaddle = (
+  puck: AirHockeyState['puck'],
+  centre: Vec,
+  paddle: Vec,
+): AirHockeyState['puck'] => {
+  if (Math.hypot(puck.at.x - centre.x, puck.at.y - centre.y) >= TOUCHING)
+    return puck;
+  const normal = leaving(puck.at, centre, paddle);
+  return {
+    at: {
+      x: centre.x + normal.x * TOUCHING,
+      y: centre.y + normal.y * TOUCHING,
+    },
+    velocity: bounceOff(puck.velocity, normal, paddle),
+  };
+};
+
+/* One slice. Continuous against the paddles: each contact is found at the
+   moment it happens, the puck bounces there, and it travels on for the rest of
+   the slice. A pointer has no speed limit, so a hand can cross its own half
+   between two ticks; testing only where the paddle ended up would let it step
+   clean over the puck, and resolving there would park the puck against it. */
 const advance = (
   state: AirHockeyState,
   dt: number,
   hands: Record<PlayerId, Vec>,
   swept: Record<PlayerId, { from: Vec; to: Vec }>,
 ): AirHockeyState => {
-  const { velocity } = state.puck;
+  let at = state.puck.at;
+  let velocity = state.puck.velocity;
+  let time = 0;
+
+  // A puck struck by one paddle can reach the other within the same slice.
+  for (let contacts = 0; contacts < 4; contacts++) {
+    let first: { player: PlayerId; t: number } | null = null;
+    for (const player of ['p0', 'p1'] as const) {
+      const paddle = hands[player];
+      const centre = {
+        x: swept[player].from.x + paddle.x * time,
+        y: swept[player].from.y + paddle.y * time,
+      };
+      const t = contactTime(at, velocity, centre, paddle, dt - time);
+      if (t !== null && (first === null || t < first.t)) first = { player, t };
+    }
+    if (first === null) break;
+
+    at = { x: at.x + velocity.x * first.t, y: at.y + velocity.y * first.t };
+    time += first.t;
+    const paddle = hands[first.player];
+    const centre = {
+      x: swept[first.player].from.x + paddle.x * time,
+      y: swept[first.player].from.y + paddle.y * time,
+    };
+    const bounced = bounceOff(velocity, leaving(at, centre, paddle), paddle);
+    // Nothing left to give: a paddle faster than the puck can go. Settled below.
+    if (bounced === velocity) break;
+    velocity = bounced;
+  }
+
   let next: Vec = {
-    x: state.puck.at.x + velocity.x * dt,
-    y: state.puck.at.y + velocity.y * dt,
+    x: at.x + velocity.x * (dt - time),
+    y: at.y + velocity.y * (dt - time),
   };
   let heading = velocity;
-
   // The long sides are solid: reflect and push clear, so a puck cannot stick.
   if (next.x - PUCK.radius <= 0 && heading.x < 0) {
     next = { ...next, x: PUCK.radius };
@@ -412,15 +460,11 @@ const advance = (
   };
 
   for (const player of ['p0', 'p1'] as const) {
-    const struck = strike(
-      moved.puck,
-      swept[player].from,
-      swept[player].to,
-      hands[player],
-    );
-    if (struck !== null) moved = { ...moved, puck: struck };
+    moved = {
+      ...moved,
+      puck: offPaddle(moved.puck, swept[player].to, hands[player]),
+    };
   }
-
   moved = {
     ...moved,
     puck: {

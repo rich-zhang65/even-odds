@@ -4,22 +4,24 @@ import { useEffect, useRef } from 'react';
 import { cx } from '@even-odds/design-system/ui';
 import type { PlayerId, RealtimeSnapshot, Snapshot } from '@even-odds/game-sdk';
 import { SEATS, seenBy } from '@even-odds/game-sdk/ui';
-import { clearOfPaddle, inFrontOf, penned, puckLook } from '../src/logic';
+import { advanceTo, drawnPuck, rebase } from './predict';
+import type { Prediction } from './predict';
+import { clearOfPaddle, penned, puckLook } from '../src/logic';
 import { GOAL, PADDLE, PUCK, TABLE } from '../src/types';
 import type { AirHockeyAction, AirHockeyState, Vec } from '../src/types';
-
-/* Draw this far behind the server. Snapshots arrive every 50ms, so a frame
-   almost always has two to sit between; without the delay every frame would be
-   extrapolating past the newest one and the puck would jitter. */
-const DELAY_MS = 100;
 
 // A fifth of a unit is about half a pixel at the table's largest. Below that the
 // paddle cannot visibly move, so sending it only spends bandwidth.
 const AIM_EPSILON = 0.2;
 
-type Frame = { received: number; tick: number; state: AirHockeyState };
+/* A snapshot's age is read off its server timestamp, which assumes the two
+   clocks roughly agree. Capped, so a clock that is far off costs a slightly
+   late puck rather than a wild one. */
+const MAX_AGE_MS = 120;
 
-const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+/* How quickly the opponent's paddle eases onto each new position. It is only
+   known twenty times a second; drawn as it arrives it would jump. */
+const FOLLOW_MS = 40;
 
 const isRealtimeAirHockey = (
   snapshot: Snapshot<unknown>,
@@ -28,29 +30,6 @@ const isRealtimeAirHockey = (
 const percent = (value: number, of: number): string => `${(value / of) * 100}%`;
 
 const OPPONENT: Record<PlayerId, PlayerId> = { p0: 'p1', p1: 'p0' };
-
-const TOUCHING = PUCK.radius + PADDLE.radius;
-
-/* How long a ram keeps the drawn puck in front of your paddle: the render
-   delay, plus a little for the hit's snapshot to arrive. */
-const RAM_MS = DELAY_MS + 60;
-
-// Whether the stroke from `from` to `to` passed within reach of `at`.
-const strokeMet = (from: Vec, to: Vec, at: Vec): boolean => {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = dx * dx + dy * dy;
-  const t =
-    length === 0
-      ? 0
-      : Math.min(
-          Math.max(((at.x - from.x) * dx + (at.y - from.y) * dy) / length, 0),
-          1,
-        );
-  return (
-    Math.hypot(at.x - (from.x + dx * t), at.y - (from.y + dy * t)) < TOUCHING
-  );
-};
 
 /* The table's markings, in table units: the centre circle and each goal crease.
    They are drawn hairline-grey on a light table and white on a dark one, where
@@ -92,33 +71,31 @@ export const AirHockeyBoard = ({
   /* All of this is deliberately outside React. The loop below runs sixty times a
      second; putting any of it in state would re-render the tree to move three
      absolutely positioned divs. */
-  const frames = useRef<Frame[]>([]);
+  const prediction = useRef<Prediction | null>(null);
+  const lastTick = useRef(-1);
   const size = useRef({ width: 0, height: 0 });
   const aim = useRef<Vec | null>(null);
 
   useEffect(() => {
     const stop = subscribe((snapshot) => {
       if (!isRealtimeAirHockey(snapshot)) return;
+      // Socket.IO delivers in order, but a stale snapshot would rewind the game.
+      if (snapshot.tick <= lastTick.current) return;
+      lastTick.current = snapshot.tick;
 
-      const buffered = frames.current;
-      // Socket.IO delivers in order, but a stale frame would rewind the render.
-      if (
-        buffered.length > 0 &&
-        snapshot.tick <= buffered[buffered.length - 1].tick
-      )
-        return;
-
-      buffered.push({
-        received: performance.now(),
-        tick: snapshot.tick,
-        state: snapshot.state,
-      });
-      // Two frames span the render delay; a few more absorb a late arrival.
-      if (buffered.length > 8) buffered.splice(0, buffered.length - 8);
+      const age = Math.min(Math.max(Date.now() - snapshot.at, 0), MAX_AGE_MS);
+      prediction.current = rebase(
+        prediction.current,
+        snapshot.state,
+        age,
+        performance.now(),
+        seat,
+        aim.current,
+      );
     });
 
     return stop;
-  }, [subscribe]);
+  }, [subscribe, seat]);
 
   useEffect(() => {
     const element = table.current;
@@ -139,9 +116,9 @@ export const AirHockeyBoard = ({
     const element = table.current;
     let running = 0;
     let sent: Vec | null = null;
-    // Where your paddle was drawn last frame, and the ram in progress, if any.
-    let last: Vec | null = null;
-    let ram: { heading: Vec; until: number } | null = null;
+    let lastFrame = performance.now();
+    // Where each paddle not under your hand is drawn, easing toward the game.
+    const shown: Record<PlayerId, Vec | null> = { p0: null, p1: null };
 
     const place = (node: HTMLDivElement | null, at: Vec): void => {
       if (node === null) return;
@@ -153,98 +130,48 @@ export const AirHockeyBoard = ({
     };
 
     const draw = (): void => {
-      const buffered = frames.current;
-      if (buffered.length === 0) return;
+      if (prediction.current === null) return;
+      const now = performance.now();
+      const ease = 1 - Math.exp(-(now - lastFrame) / FOLLOW_MS);
+      lastFrame = now;
 
-      const at = performance.now() - DELAY_MS;
+      // The game run forward to this frame, your paddle under your cursor.
+      const ahead = advanceTo(prediction.current, now, seat, aim.current);
+      prediction.current = ahead;
 
-      /* Find the pair the render time falls between. Past the newest frame we
-         hold on it rather than extrapolate: a puck that guesses wrong has to be
-         yanked back, and standing still for 50ms reads better than that. */
-      let older = buffered[0];
-      let newer = buffered[buffered.length - 1];
-      for (let i = 0; i < buffered.length - 1; i++) {
-        if (buffered[i].received <= at && buffered[i + 1].received >= at) {
-          older = buffered[i];
-          newer = buffered[i + 1];
-          break;
-        }
-      }
-
-      const span = newer.received - older.received;
-      const t =
-        span > 0 ? Math.min(Math.max((at - older.received) / span, 0), 1) : 1;
-
-      const drifting = {
-        x: lerp(older.state.puck.at.x, newer.state.puck.at.x, t),
-        y: lerp(older.state.puck.at.y, newer.state.puck.at.y, t),
-      };
-
-      /* Your paddle is drawn from the cursor and the puck from a snapshot a
-         tenth of a second old, so left alone the two would overlap on screen
-         every time you moved onto the puck — the server has already pushed it
-         away, that frame just has not arrived. Nothing here changes the game:
-         the next snapshot overrides it, and only your own paddle counts,
-         because the opponent's and the puck come from the same frame and the
-         server has already settled them against each other. */
-      /* While it waits the puck is a ghost on the server, which paddles pass
-         through, so it is drawn exactly where it is. After a goal it is
-         hidden, then blinks through the grace period. */
-      const live = newer.state.faceOff.inMs <= 0;
+      /* After a goal the puck is hidden, then blinks through the grace period
+         while nobody can touch it. */
       const node = puck.current;
-      const look = puckLook(newer.state);
+      const look = puckLook(ahead.state);
       if (node !== null && node.dataset.look !== look) node.dataset.look = look;
 
-      /* A fast ram can carry your paddle past the delayed puck's centre in a
-         single frame, and pushed out the nearest way the puck would show
-         behind the paddle until the hit arrives. So when this frame's stroke
-         met the puck, it is drawn ahead of the stroke for as long as the hit
-         takes to show. */
+      /* Your paddle is drawn at your cursor, which can be up to a step ahead of
+         the simulation, so the puck is kept off its edge in the drawing. */
       const own = aim.current;
-      const now = performance.now();
-      if (own !== null && last !== null && live) {
-        const dx = own.x - last.x;
-        const dy = own.y - last.y;
-        const length = Math.hypot(dx, dy);
-        if (length > 0 && strokeMet(last, own, drifting)) {
-          ram = {
-            heading: { x: dx / length, y: dy / length },
-            until: now + RAM_MS,
-          };
-        }
-      }
-      last = own;
-      if (ram !== null && now > ram.until) ram = null;
-
-      let shown = drifting;
-      if (own !== null && live) {
-        if (ram !== null) shown = inFrontOf(shown, own, ram.heading);
-        shown = clearOfPaddle(shown, own);
-      }
-      place(node, shown);
+      const puckAt = drawnPuck(ahead, now);
+      place(
+        node,
+        own !== null && ahead.state.faceOff.inMs <= 0
+          ? clearOfPaddle(puckAt, own)
+          : puckAt,
+      );
 
       for (const player of ['p0', 'p1'] as const) {
-        /* Your own paddle is drawn from the pointer, never from the snapshot.
-           Everything else renders DELAY_MS behind the server, and a hand that
-           lags its own cursor by a tenth of a second is the one delay nobody
-           tolerates — most of all in the game where you are dragging the thing.
-           The server still owns the paddle the puck collides with. */
-        const own = player === seat ? aim.current : null;
-        place(
-          paddleRefs.current[player],
-          own ?? {
-            x: lerp(
-              older.state.paddles[player].at.x,
-              newer.state.paddles[player].at.x,
-              t,
-            ),
-            y: lerp(
-              older.state.paddles[player].at.y,
-              newer.state.paddles[player].at.y,
-              t,
-            ),
-          },
-        );
+        /* Your own paddle is drawn from the pointer: a hand that lags its own
+           cursor is the one delay nobody tolerates, most of all in the game
+           where you are dragging the thing. */
+        if (player === seat && own !== null) {
+          place(paddleRefs.current[player], own);
+          continue;
+        }
+        const target = ahead.state.paddles[player].at;
+        const was = shown[player] ?? target;
+        const next = {
+          x: was.x + (target.x - was.x) * ease,
+          y: was.y + (target.y - was.y) * ease,
+        };
+        shown[player] = next;
+        place(paddleRefs.current[player], next);
       }
     };
 
