@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Wordmark } from '@/components/Wordmark';
 import { currentUser } from '@/lib/session';
 import { LoginForm } from './LoginForm';
@@ -10,7 +11,11 @@ const LoginPage = async () => {
   if ((await currentUser()) !== null) redirect('/');
 
   return (
-    <main className="grid min-h-full place-items-center px-5 py-12">
+    <main className="relative grid min-h-full place-items-center px-5 py-12">
+      {/* There is no header before signing in, so the theme gets the corner. */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <h1 className="mb-10 text-center">
           <Wordmark className="text-eo-display-xl" />
