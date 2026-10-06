@@ -1,19 +1,50 @@
 'use client';
 
-import { useState } from 'react';
-import { cellsOf, fleetProblem, placementProblem, shipAt } from '../src/logic';
+import { useRef, useState } from 'react';
+import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
+import {
+  fleetProblem,
+  lengthOf,
+  placementProblem,
+  turnShip,
+} from '../src/logic';
 import { BOARD, FLEET } from '../src/types';
 import type { Cell, Facing, Ship, ShipId } from '../src/types';
 
 /* How far the pointer travels before a press becomes a drag. Below it the press
-   is a click, and a click on a placed ship turns it. */
-const SLOP = 4;
+   is a tap, and a tap turns the ship. */
+const SLOP = 6;
 
-/* A ship on its way somewhere. `grab` is which of its cells the pointer holds,
-   so the ship moves under the finger rather than snapping its bow to it. */
-type Drag = { id: ShipId; facing: Facing; grab: number; over: Cell | null };
+/* Every ship the player owns, in the water or still in the dock. A docked ship
+   always lies across, and goes back to lying across when returned. */
+export type Piece = { id: ShipId; facing: Facing; at: Cell | null };
 
-type Point = { clientX: number; clientY: number; button: number };
+/* A ship on its way somewhere, drawn as a ghost under the pointer. The ghost
+   keeps the spot it was grabbed by, and `landing` is the square its bow would
+   snap to, or null where it cannot go. */
+export type Drag = {
+  id: ShipId;
+  facing: Facing;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  landing: Cell | null;
+};
+
+const ASHORE: Piece[] = FLEET.map(({ id }) => ({
+  id,
+  facing: 'across',
+  at: null,
+}));
+
+const afloat = (pieces: Piece[]): Ship[] => {
+  const ships: Ship[] = [];
+  for (const { id, facing, at } of pieces) {
+    if (at !== null) ships.push({ id, facing, at });
+  }
+  return ships;
+};
 
 const anywhere = (): Cell => ({
   x: Math.floor(Math.random() * BOARD),
@@ -41,74 +72,100 @@ const attempt = (): Ship[] => {
   return placed;
 };
 
-const bowFor = (over: Cell, facing: Facing, grab: number): Cell =>
-  facing === 'across'
-    ? { x: over.x - grab, y: over.y }
-    : { x: over.x, y: over.y - grab };
-
-/* The square of your own waters under the pointer, if any. Read off the page
-   rather than worked out from a rectangle, because a drag can start in the tray
-   below the grid and the grid has no say in where the pointer goes. */
-const cellUnder = (x: number, y: number): Cell | null => {
-  const square = document
-    .elementFromPoint(x, y)
-    ?.closest<HTMLElement>('[data-drop-x]');
-  if (square === null || square === undefined) return null;
-
-  const cell = {
-    x: Number(square.dataset.dropX),
-    y: Number(square.dataset.dropY),
-  };
-  return Number.isInteger(cell.x) && Number.isInteger(cell.y) ? cell : null;
-};
-
-/* The click a browser sends after a drag that ends where it began would turn
-   the ship just put down, so the one straight after a drag is swallowed. It
-   arrives in the same task as the pointerup, so anything later is let through. */
-const swallowNextClick = (): void => {
-  const swallow = (event: MouseEvent): void => {
-    event.stopPropagation();
-    event.preventDefault();
-  };
-  window.addEventListener('click', swallow, { capture: true, once: true });
-  setTimeout(() => {
-    window.removeEventListener('click', swallow, { capture: true });
-  }, 0);
-};
+/* Whether the pointer is over a dock, which takes a ship back off the board. A
+   dock hidden at this screen width is never hit, so either layout's works. */
+const overDock = (x: number, y: number): boolean =>
+  document.elementFromPoint(x, y)?.closest('[data-dock]') != null;
 
 /* A fleet the player arranges locally. None of it reaches the server until they
-   are ready: arranging is a hundred small decisions and not one of them is a
-   move, so the waiting player can lay their ships out while the other deploys
-   and send it the moment the turn comes round. */
+   deploy: arranging is a hundred small decisions and not one of them is a move. */
 export const useFleet = () => {
-  const [ships, setShips] = useState<Ship[]>([]);
+  const [pieces, setPieces] = useState<Piece[]>(ASHORE);
   const [drag, setDrag] = useState<Drag | null>(null);
+  // The board ships snap to, measured when a drag needs it.
+  const water = useRef<HTMLDivElement>(null);
 
-  /* Listeners go on the window for the length of one drag, so the ship follows
-     the pointer off the grid and back. Everything the drop needs lives in this
+  const ships = afloat(pieces);
+
+  const update = (id: ShipId, change: { facing?: Facing; at?: Cell | null }) =>
+    setPieces(
+      pieces.map((piece) =>
+        piece.id === id ? { ...piece, ...change } : piece,
+      ),
+    );
+
+  /* Turned about `pivot`, the square tapped, counted from the bow; turnShip
+     finds room nearby when that exact spot is taken. Only a ship in the water
+     turns. */
+  const turn = (id: ShipId, pivot: number): void => {
+    const ship = ships.find((each) => each.id === id);
+    if (ship === undefined) return;
+
+    const others = ships.filter((other) => other.id !== id);
+    const turned = turnShip(others, ship, pivot);
+    if (turned !== null) update(id, turned);
+  };
+
+  /* Listeners go on the window for the length of one press, so the ship follows
+     the pointer off the board and back. What the drop needs lives in this
      closure; state is only written for the render. */
-  const pickUp = (
-    id: ShipId,
-    facing: Facing,
-    grab: number,
-    start: Point,
-  ): void => {
-    if (start.button !== 0) return;
+  const press = (id: ShipId, event: ReactPointerEvent<HTMLElement>): void => {
+    if (event.button !== 0) return;
+    const board = water.current;
+    const piece = pieces.find((each) => each.id === id);
+    if (board === null || piece === undefined) return;
+    event.preventDefault();
+
+    const cell = board.getBoundingClientRect().width / BOARD;
+    const length = lengthOf(id);
+    const width = (piece.facing === 'across' ? length : 1) * cell;
+    const height = (piece.facing === 'across' ? 1 : length) * cell;
+
+    /* Held at the same fraction along the ship as it was grabbed, so leaving
+       the smaller dock does not make the ghost jump. */
+    const pressed = event.currentTarget.getBoundingClientRect();
+    const grabX = ((event.clientX - pressed.left) / pressed.width) * width;
+    const grabY = ((event.clientY - pressed.top) / pressed.height) * height;
+    const startX = event.clientX;
+    const startY = event.clientY;
 
     const others = ships.filter((ship) => ship.id !== id);
     let moved = false;
-    let over: Cell | null = null;
+    let landing: Cell | null = null;
 
-    const move = (event: PointerEvent): void => {
+    const move = (moving: PointerEvent): void => {
       const travel = Math.hypot(
-        event.clientX - start.clientX,
-        event.clientY - start.clientY,
+        moving.clientX - startX,
+        moving.clientY - startY,
       );
       if (!moved && travel < SLOP) return;
-
       moved = true;
-      over = cellUnder(event.clientX, event.clientY);
-      setDrag({ id, facing, grab, over });
+
+      const left = moving.clientX - grabX;
+      const top = moving.clientY - grabY;
+      const grid = board.getBoundingClientRect();
+      const at = {
+        x: Math.round((left - grid.left) / cell),
+        y: Math.round((top - grid.top) / cell),
+      };
+      /* Over the dock means back to the dock, even where the board runs on
+         underneath it: below 800px the dock is a tray fixed over the bottom
+         of the page, and the board's lower rows can sit right behind it. */
+      landing =
+        !overDock(moving.clientX, moving.clientY) &&
+        placementProblem(others, { id, facing: piece.facing, at }) === null
+          ? at
+          : null;
+
+      setDrag({
+        id,
+        facing: piece.facing,
+        left,
+        top,
+        width,
+        height,
+        landing,
+      });
     };
 
     const stop = (): void => {
@@ -118,16 +175,17 @@ export const useFleet = () => {
       setDrag(null);
     };
 
-    // Anywhere it does not fit, the ship goes back where it came from.
-    const drop = (): void => {
+    // Anywhere it cannot go, the ship goes back where it came from.
+    const drop = (up: PointerEvent): void => {
       stop();
-      if (!moved) return;
-      swallowNextClick();
-      if (over === null) return;
-
-      const ship: Ship = { id, at: bowFor(over, facing, grab), facing };
-      if (placementProblem(others, ship) === null) {
-        setShips([...others, ship]);
+      if (!moved) {
+        // The square under the press, along the ship from its bow.
+        const along = piece.facing === 'across' ? grabX : grabY;
+        turn(id, Math.min(length - 1, Math.max(0, Math.floor(along / cell))));
+      } else if (overDock(up.clientX, up.clientY)) {
+        update(id, { at: null, facing: 'across' });
+      } else if (landing !== null) {
+        update(id, { at: landing });
       }
     };
 
@@ -136,69 +194,40 @@ export const useFleet = () => {
     window.addEventListener('pointercancel', stop);
   };
 
-  const landing =
-    drag === null || drag.over === null
-      ? null
-      : {
-          id: drag.id,
-          at: bowFor(drag.over, drag.facing, drag.grab),
-          facing: drag.facing,
-        };
-  const afloat =
-    drag === null ? ships : ships.filter((ship) => ship.id !== drag.id);
-
   return {
-    // What to draw: a ship being dragged leaves its old spot empty.
-    ships: afloat,
+    pieces,
+    ships,
+    drag,
+    water,
     problem: fleetProblem(ships),
-    ashore: FLEET.filter(
-      (entry) => !ships.some((ship) => ship.id === entry.id),
-    ),
 
-    preview: landing === null ? [] : cellsOf(landing),
-    previewBad: landing !== null && placementProblem(afloat, landing) !== null,
+    press,
 
-    // A press on a ship in the water, held by whichever cell was pressed.
-    grabAt: (at: Cell, start: Point): void => {
-      const ship = shipAt(ships, at);
-      if (ship === undefined) return;
-      const grab = cellsOf(ship).findIndex(
-        (part) => part.x === at.x && part.y === at.y,
+    // Enter or Space turns a ship, the keyboard's version of a tap.
+    key: (id: ShipId, event: KeyboardEvent<HTMLElement>): void => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      turn(id, Math.floor((lengthOf(id) - 1) / 2));
+    },
+
+    /* Puts back a fleet that was sent and then taken back, so cancelling a
+       deploy returns the layout rather than an empty dock. */
+    restore: (sent: Ship[]): void => {
+      setPieces(
+        ASHORE.map(
+          (piece) => sent.find((ship) => ship.id === piece.id) ?? piece,
+        ),
       );
-      pickUp(ship.id, ship.facing, grab, start);
     },
 
-    // A press on a ship still ashore, which comes off the tray lying across.
-    launch: (id: ShipId, start: Point): void => {
-      pickUp(id, 'across', 0, start);
-    },
-
-    /* Turned about its bow. Where that would run it off the board or into
-       another ship, it stays as it is. */
-    turn: (at: Cell): void => {
-      const ship = shipAt(ships, at);
-      if (ship === undefined) return;
-
-      const turned: Ship = {
-        ...ship,
-        facing: ship.facing === 'across' ? 'down' : 'across',
-      };
-      const others = ships.filter((other) => other.id !== ship.id);
-      if (placementProblem(others, turned) !== null) return;
-
-      setShips(ships.map((other) => (other.id === ship.id ? turned : other)));
-    },
-
-    scatter: (): void => {
+    shuffle: (): void => {
       for (let go = 0; go < 20; go++) {
         const placed = attempt();
         if (placed.length === FLEET.length) {
-          setShips(placed);
+          setPieces(placed);
           return;
         }
       }
     },
-
-    clear: (): void => setShips([]),
   };
 };
