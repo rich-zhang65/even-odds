@@ -8,7 +8,6 @@ import type { YazyAction, YazyState } from '@even-odds/yazy';
 import { YazyBoard } from '@even-odds/yazy/ui';
 import { MatchHeader } from '@/components/MatchHeader';
 import { PageContainer } from '@/components/PageContainer';
-import { PageHeader } from '@/components/PageHeader';
 import { useMatch } from '@/lib/useMatch';
 
 const MESSAGES: Record<string, string> = {
@@ -35,8 +34,6 @@ const MatchPage = ({ params }: PageProps<'/play/yazy/[matchId]'>) => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <PageHeader />
-
       <PageContainer>
         {snapshot !== null && (
           <MatchHeader

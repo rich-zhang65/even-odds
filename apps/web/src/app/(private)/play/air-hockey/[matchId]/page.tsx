@@ -8,7 +8,6 @@ import { AirHockeyBoard } from '@even-odds/air-hockey/ui';
 import { Button, Card, Dialog, Toast } from '@even-odds/design-system/ui';
 import { MatchHeader } from '@/components/MatchHeader';
 import { PageContainer } from '@/components/PageContainer';
-import { PageHeader } from '@/components/PageHeader';
 import { getMatchStore } from '@/lib/matchStore';
 import { useMatch } from '@/lib/useMatch';
 
@@ -41,8 +40,6 @@ const MatchPage = ({ params }: PageProps<'/play/air-hockey/[matchId]'>) => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <PageHeader />
-
       <PageContainer>
         {snapshot !== null && (
           <MatchHeader
