@@ -56,6 +56,29 @@ describe('Air Hockey prediction', () => {
     expect(predicted.state.puck).toEqual(expected.puck);
   });
 
+  /* The game moves in 60Hz steps but the screen redraws at its own rate, often
+     faster. Drawn from the latest step alone the puck would stand still for
+     several frames and then jump, so it is drawn between its last two steps by
+     how far this frame has got from one to the next. */
+  it('draws the puck between steps, so it moves every frame', () => {
+    const moving = live({
+      puck: { at: { x: MID_X, y: HALFWAY }, velocity: { x: 0, y: 120 } },
+    });
+    const one = AirHockey.tick(moving, STEP_MS, context);
+    const two = AirHockey.tick(one, STEP_MS, context);
+
+    const ahead = advanceTo(start(moving, 0), STEP_MS * 2.25, null, null);
+
+    expect(drawnPuck(ahead, STEP_MS * 2.25).y).toBeCloseTo(
+      one.puck.at.y + (two.puck.at.y - one.puck.at.y) * 0.25,
+      9,
+    );
+    expect(drawnPuck(ahead, STEP_MS * 2.75).y).toBeCloseTo(
+      one.puck.at.y + (two.puck.at.y - one.puck.at.y) * 0.75,
+      9,
+    );
+  });
+
   /* The point of predicting: your hit lands the moment you make it, without
      waiting for the server to hear about it and answer. */
   it('lands your hit straight away, before the server has answered', () => {
@@ -116,6 +139,69 @@ describe('Air Hockey prediction', () => {
       x: MID_X + 6,
       y: HALFWAY,
     });
+  });
+
+  it('keeps a moving puck exactly where it was drawn when a snapshot lands', () => {
+    const moving = live({
+      puck: { at: { x: MID_X, y: HALFWAY }, velocity: { x: 30, y: 150 } },
+    });
+    // Run to part-way between two steps, as a real frame usually is.
+    const now = STEP_MS * 4.4;
+    const ours = advanceTo(start(moving, 0), now, null, null);
+    const theirs = live({
+      puck: {
+        at: { x: MID_X + 2, y: HALFWAY + 9 },
+        velocity: { x: 30, y: 150 },
+      },
+    });
+
+    const corrected = rebase(ours, theirs, STEP_MS * 1.6, now, null, null);
+
+    const before = drawnPuck(ours, now);
+    const after = drawnPuck(corrected, now);
+    expect(after.x).toBeCloseTo(before.x, 9);
+    expect(after.y).toBeCloseTo(before.y, 9);
+  });
+
+  /* A snapshot lands between frames, when the prediction was last run at the
+     previous frame. The comparison has to be with where the puck would be
+     drawn now, not where it was drawn then. */
+  it('stays continuous when a snapshot lands between frames', () => {
+    const moving = live({
+      puck: { at: { x: MID_X, y: HALFWAY }, velocity: { x: 30, y: 150 } },
+    });
+    const lastFrame = STEP_MS * 4.4;
+    const now = STEP_MS * 5.9;
+    const ours = advanceTo(start(moving, 0), lastFrame, null, null);
+    const theirs = live({
+      puck: {
+        at: { x: MID_X + 2, y: HALFWAY + 9 },
+        velocity: { x: 30, y: 150 },
+      },
+    });
+
+    const corrected = rebase(ours, theirs, STEP_MS * 1.6, now, null, null);
+
+    const expected = drawnPuck(advanceTo(ours, now, null, null), now);
+    const after = drawnPuck(corrected, now);
+    expect(after.x).toBeCloseTo(expected.x, 9);
+    expect(after.y).toBeCloseTo(expected.y, 9);
+  });
+
+  /* A fresh run from a snapshot has no step before it yet. Drawn between two
+     copies of the same point, the puck stood still until the next step came
+     round -- a hitch twenty times a second. */
+  it('keeps the puck moving straight after a snapshot', () => {
+    const moving = live({
+      puck: { at: { x: MID_X, y: HALFWAY }, velocity: { x: 0, y: 150 } },
+    });
+    const now = 1000;
+
+    const fresh = rebase(null, moving, 2, now, null, null);
+    const later = advanceTo(fresh, now + 5, null, null);
+
+    const travelled = drawnPuck(later, now + 5).y - drawnPuck(fresh, now).y;
+    expect(travelled).toBeCloseTo(150 * 0.005, 2);
   });
 
   it('snaps on a goal, where the puck jumps on purpose', () => {
