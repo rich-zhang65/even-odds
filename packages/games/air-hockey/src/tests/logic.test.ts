@@ -243,6 +243,30 @@ describe('Air Hockey — the puck', () => {
     expect(bounced.scores).toEqual({ p0: 0, p1: 0 });
   });
 
+  /* The mouth is a slot in the end wall: a puck goes in only if all of it
+     fits through. One that overhangs a post meets the wall and comes back. */
+  const atTheMouth = (x: number) =>
+    run(
+      board({
+        puck: { at: { x, y: PUCK.radius + 1 }, velocity: { x: 0, y: -120 } },
+      }),
+      4,
+    );
+  const FITS = GOAL.width / 2 - PUCK.radius;
+
+  it('scores a puck that just fits through the mouth', () => {
+    expect(atTheMouth(MID_X + FITS).scores).toEqual({ p0: 1, p1: 0 });
+    expect(atTheMouth(MID_X - FITS).scores).toEqual({ p0: 1, p1: 0 });
+  });
+
+  it('turns back a puck that overhangs a post', () => {
+    for (const x of [MID_X + FITS + 0.5, MID_X - FITS - 0.5]) {
+      const after = atTheMouth(x);
+      expect(after.scores).toEqual({ p0: 0, p1: 0 });
+      expect(after.puck.velocity.y).toBeGreaterThan(0);
+    }
+  });
+
   it('goes in through the mouth', () => {
     const onTarget = board({
       puck: { at: { x: MID_X, y: PUCK.radius }, velocity: { x: 0, y: -120 } },
@@ -671,7 +695,7 @@ describe('Air Hockey — nothing ever ends inside a paddle', () => {
          same sweep watches for it. The mouth is not a wall: a puck on its way in
          is allowed past the line. */
       const { x, y } = after.puck.at;
-      const inMouth = Math.abs(x - MID_X) <= GOAL.width / 2;
+      const inMouth = Math.abs(x - MID_X) <= GOAL.width / 2 - PUCK.radius;
       const buried =
         x < PUCK.radius - 1e-9 ||
         x > TABLE.width - PUCK.radius + 1e-9 ||
@@ -739,7 +763,7 @@ describe('Air Hockey — camped against the boards', () => {
         worst = Math.min(worst, Math.hypot(x - centre.x, y - centre.y));
       }
 
-      const mouth = Math.abs(x - MID_X) <= GOAL.width / 2;
+      const mouth = Math.abs(x - MID_X) <= GOAL.width / 2 - PUCK.radius;
       if (
         x < PUCK.radius - 1e-9 ||
         x > TABLE.width - PUCK.radius + 1e-9 ||
