@@ -20,6 +20,8 @@ const LENGTHS: Record<ShipId, number> = {
   destroyer: 2,
 };
 
+export const lengthOf = (id: ShipId): number => LENGTHS[id];
+
 const same = (one: Cell, other: Cell): boolean =>
   one.x === other.x && one.y === other.y;
 
@@ -33,7 +35,7 @@ const onBoard = (cell: Cell): boolean =>
 
 /* Every cell a ship occupies, from its bow along its facing. */
 export const cellsOf = (ship: Ship): Cell[] =>
-  Array.from({ length: LENGTHS[ship.id] }, (_, step) =>
+  Array.from({ length: lengthOf(ship.id) }, (_, step) =>
     ship.facing === 'across'
       ? { x: ship.at.x + step, y: ship.at.y }
       : { x: ship.at.x, y: ship.at.y + step },
@@ -54,6 +56,43 @@ export const placementProblem = (placed: Ship[], ship: Ship): string | null => {
   if (cells.some((cell) => shipAt(placed, cell) !== undefined)) {
     return 'Ships cannot overlap';
   }
+  return null;
+};
+
+/* Indices 0..length-1, nearest to `from` first, so a search tries the
+   smallest shift before a larger one. */
+const nearest = (length: number, from: number): number[] =>
+  Array.from({ length }, (_, index) => index).sort(
+    (one, other) => Math.abs(one - from) - Math.abs(other - from),
+  );
+
+/* A ship turned a quarter, while arranging. It turns about the square that was
+   tapped -- `pivot`, counted from the bow -- and where that position is off
+   the board or on another ship, it slides along its new line, then pivots on
+   its other squares, nearest first, taking the first spot that fits. Null
+   only when no turned position touching the old one fits at all. */
+export const turnShip = (
+  placed: Ship[],
+  ship: Ship,
+  pivot: number,
+): Ship | null => {
+  const cells = cellsOf(ship);
+  const facing = ship.facing === 'across' ? 'down' : 'across';
+
+  for (const square of nearest(cells.length, pivot)) {
+    const held = cells[square];
+    if (held === undefined) continue;
+
+    for (const step of nearest(cells.length, square)) {
+      const at =
+        facing === 'across'
+          ? { x: held.x - step, y: held.y }
+          : { x: held.x, y: held.y - step };
+      const turned: Ship = { id: ship.id, at, facing };
+      if (placementProblem(placed, turned) === null) return turned;
+    }
+  }
+
   return null;
 };
 
