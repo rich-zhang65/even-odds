@@ -48,6 +48,22 @@ describe('createEngine', () => {
     if (!result.ok) expect(result.error).toBe('not your turn');
   });
 
+  it('lets a game allow a move out of turn, still subject to isLegal', () => {
+    const anyTime = { ...countGame, offTurn: () => true };
+    const e = createEngine(anyTime, { matchId: 'm', seed: 1 });
+
+    expect(e.dispatch({ type: 'INCREMENT' }, 'p1').ok).toBe(true);
+
+    const finished = createEngine(
+      { ...anyTime, setup: () => ({ count: 0, turn: 'p0', done: true }) },
+      { matchId: 'm', seed: 1 },
+    );
+    expect(finished.dispatch({ type: 'INCREMENT' }, 'p1')).toEqual({
+      ok: false,
+      error: 'match is over',
+    });
+  });
+
   it('rejects action after game is over', () => {
     const e = createEngine(countGame, { matchId: 'm', seed: 1 });
     e.dispatch({ type: 'INCREMENT' }, 'p0');
