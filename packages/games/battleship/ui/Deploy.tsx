@@ -5,7 +5,7 @@ import type { PointerEvent } from 'react';
 import { Button, Card, Flex, Icon, cx } from '@even-odds/design-system/ui';
 import type { PlayerId } from '@even-odds/game-sdk';
 import { SEATS } from '@even-odds/game-sdk/ui';
-import { Hull, spanOf } from './Hull';
+import { Hull, SWING, spanOf } from './Hull';
 import { useFleet } from './useFleet';
 import type { Drag, Piece } from './useFleet';
 import { EVERY_CELL, Waters } from './Waters';
@@ -16,9 +16,68 @@ import type { BattleshipAction, Ship, ShipId } from '../src/types';
 const nameOf = (id: ShipId): string =>
   FLEET.find((entry) => entry.id === id)?.name ?? id;
 
-/* The whole fleet in a row, always lying across. A ship out on the board, or
-   on its way there, leaves its outline behind, so the dock shows at a glance
-   what is still to place. */
+/* On a phone the dock is two set rows, five-four over three-three-two,
+   so it keeps one shape however much of the fleet is out. */
+const ROWS: ShipId[][] = [
+  ['carrier', 'battleship'],
+  ['cruiser', 'submarine', 'destroyer'],
+];
+
+/* One ship in the dock, lying across. Out on the board, or on its way there,
+   it leaves its outline behind, so the dock shows what is still to place. */
+const DockShip = ({
+  piece,
+  drag,
+  tint,
+  compact,
+  onPress,
+}: {
+  piece: Piece;
+  drag: Drag | null;
+  tint: string;
+  compact: boolean;
+  onPress: (id: ShipId, event: PointerEvent<HTMLElement>) => void;
+}) => {
+  const out = piece.at !== null || drag?.id === piece.id;
+
+  return (
+    <div
+      className={cx(
+        'flex rounded-eo-pill border-2',
+        out
+          ? 'border-dashed border-eo-faint'
+          : cx('cursor-grab border-eo-strong shadow-eo-edge-ink', tint),
+      )}
+      aria-label={out ? undefined : `${nameOf(piece.id)}, drag onto the board`}
+      onPointerDown={out ? undefined : (event) => onPress(piece.id, event)}
+    >
+      {Array.from({ length: lengthOf(piece.id) }, (_, square) => (
+        <span
+          className={cx(
+            'grid place-items-center',
+            /* 32px, or a ninth of what a narrow phone has left once the tray's
+               padding and the top row's borders and gap are taken off, so the
+               five-four row never wraps. */
+            compact ? 'size-[min(2rem,calc((100vw-3rem)/9))]' : 'size-9',
+          )}
+          key={square}
+        >
+          {!out && (
+            <span
+              className={cx(
+                'rounded-full bg-white/22',
+                compact ? 'size-[37.5%]' : 'size-3.5',
+              )}
+            />
+          )}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+/* The whole fleet, ready to be dragged out: wrapping freely in the side rail,
+   in its two set rows in the phone tray. */
 const Dock = ({
   pieces,
   drag,
@@ -31,55 +90,36 @@ const Dock = ({
   tint: string;
   compact: boolean;
   onPress: (id: ShipId, event: PointerEvent<HTMLElement>) => void;
-}) => (
-  <div
-    className={cx(
-      'flex touch-none flex-wrap items-start select-none',
-      compact
-        ? 'min-h-16 content-center justify-center gap-2'
-        : 'min-h-16 gap-3',
-    )}
-  >
-    {pieces.map((piece) => {
-      const out = piece.at !== null || drag?.id === piece.id;
+}) => {
+  const ship = (piece: Piece) => ({
+    piece,
+    drag,
+    tint,
+    compact,
+    onPress,
+  });
 
-      return (
-        <div
-          className={cx(
-            'flex rounded-eo-pill border-2',
-            out
-              ? 'border-dashed border-eo-faint'
-              : cx('cursor-grab border-eo-strong shadow-eo-edge-ink', tint),
-          )}
-          key={piece.id}
-          aria-label={
-            out ? undefined : `${nameOf(piece.id)}, drag onto the board`
-          }
-          onPointerDown={out ? undefined : (event) => onPress(piece.id, event)}
-        >
-          {Array.from({ length: lengthOf(piece.id) }, (_, square) => (
-            <span
-              className={cx(
-                'grid place-items-center',
-                compact ? 'size-6.5' : 'size-7.5',
-              )}
-              key={square}
-            >
-              {!out && (
-                <span
-                  className={cx(
-                    'rounded-full bg-white/22',
-                    compact ? 'size-2.5' : 'size-3',
-                  )}
-                />
-              )}
-            </span>
-          ))}
+  return compact ? (
+    <div className="grid touch-none justify-items-center gap-2 select-none">
+      {ROWS.map((row) => (
+        <div className="flex gap-2" key={row.join()}>
+          {pieces
+            .filter((piece) => row.includes(piece.id))
+            .sort((one, other) => row.indexOf(one.id) - row.indexOf(other.id))
+            .map((piece) => (
+              <DockShip {...ship(piece)} key={piece.id} />
+            ))}
         </div>
-      );
-    })}
-  </div>
-);
+      ))}
+    </div>
+  ) : (
+    <div className="flex min-h-16 touch-none flex-wrap items-start gap-3 select-none">
+      {pieces.map((piece) => (
+        <DockShip {...ship(piece)} key={piece.id} />
+      ))}
+    </div>
+  );
+};
 
 /* Deploy and Shuffle while arranging; once sent, a spent Deployed and the
    Cancel that takes the fleet back. Stacked in the side rail, in a row in the
@@ -186,6 +226,7 @@ export const Deploy = ({
                 <div
                   className={cx(
                     'absolute box-border p-[3px]',
+                    SWING,
                     locked ? 'opacity-60' : 'cursor-grab',
                     lifted ? 'z-10 opacity-35' : 'z-5',
                   )}
@@ -203,7 +244,7 @@ export const Deploy = ({
                 >
                   <Hull
                     id={piece.id}
-                    facing={piece.facing}
+                    facing="across"
                     className={
                       lifted
                         ? cx(mySeat.solid, mySeat.border)
