@@ -8,7 +8,6 @@ import { Gomoku } from '@even-odds/gomoku';
 import { Pong } from '@even-odds/pong';
 import { Yazy } from '@even-odds/yazy';
 import { PageContainer } from '@/components/PageContainer';
-import { PageHeader } from '@/components/PageHeader';
 import { db, requireUser } from '@/lib/session';
 
 const GAME_NAMES: Record<string, string> = Object.fromEntries(
@@ -41,8 +40,6 @@ const HistoryPage = async () => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <PageHeader />
-
       <PageContainer>
         <h1 className="mb-6 font-eo-display text-eo-display-s tracking-eo-tight text-eo-strong">
           History

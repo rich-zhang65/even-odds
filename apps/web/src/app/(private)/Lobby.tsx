@@ -10,7 +10,6 @@ import { Gomoku } from '@even-odds/gomoku';
 import { Pong } from '@even-odds/pong';
 import { Yazy } from '@even-odds/yazy';
 import { PageContainer } from '@/components/PageContainer';
-import { PageHeader } from '@/components/PageHeader';
 import { getSocket } from '@/lib/socket';
 
 type PlayableGame = {
@@ -121,8 +120,6 @@ export const Lobby = ({ recent }: { recent: string[] }) => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <PageHeader />
-
       <PageContainer>
         <h1 className="sr-only">Even Odds</h1>
 

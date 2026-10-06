@@ -7,7 +7,6 @@ import type { PongAction, PongState } from '@even-odds/pong';
 import { PongBoard } from '@even-odds/pong/ui';
 import { MatchHeader } from '@/components/MatchHeader';
 import { PageContainer } from '@/components/PageContainer';
-import { PageHeader } from '@/components/PageHeader';
 import { getMatchStore } from '@/lib/matchStore';
 import { useMatch } from '@/lib/useMatch';
 
@@ -40,8 +39,6 @@ const MatchPage = ({ params }: PageProps<'/play/pong/[matchId]'>) => {
 
   return (
     <main className="flex min-h-full flex-col">
-      <PageHeader />
-
       <PageContainer>
         {snapshot !== null && (
           <MatchHeader
