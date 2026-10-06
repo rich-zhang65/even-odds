@@ -38,7 +38,10 @@ export const Dialog = ({
       }}
       onClose={onClose}
       style={{ maxWidth: width }}
-      className="m-auto w-full rounded-eo-xl bg-eo-card p-8 shadow-eo-lg backdrop:bg-(--eo-scrim) backdrop:backdrop-blur-[3px] open:animate-eo-pop"
+      // A dim scrim and no backdrop blur. The blur redraws the page behind from
+      // a snapshot, and in Chrome's device emulation that snapshot came out
+      // magnified and cropped, so the page looked zoomed in behind the dialog.
+      className="m-auto w-full rounded-eo-xl bg-eo-card p-8 shadow-eo-lg backdrop:bg-(--eo-scrim) open:animate-eo-pop"
     >
       <div className="mb-4">
         {title !== undefined && (
