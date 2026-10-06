@@ -45,6 +45,49 @@ describe('GomokuBoard', () => {
     expect(enabledPoints(render(snapshot, 'p0'))).toBe(0);
   });
 
+  it('draws one line through the winning run, just past each end', () => {
+    const stones: Stone[] = [];
+    for (let step = 0; step < 5; step++) {
+      stones.push({ at: { x: 2 + step, y: 9 - step }, by: 'p1' });
+      if (step < 4) stones.push({ at: { x: step, y: 0 }, by: 'p0' });
+    }
+    const html = render(snapshotOf(stones, 'p0', { winner: 'p1' }), 'p0');
+
+    expect(html.match(/<line/g)).toHaveLength(1);
+    expect(html).toContain('x1="2.1" y1="9.9" x2="6.9" y2="5.1"');
+  });
+
+  it('draws a line for each run the winning stone completed', () => {
+    const red = [
+      { x: 3, y: 7 },
+      { x: 4, y: 7 },
+      { x: 6, y: 7 },
+      { x: 7, y: 7 },
+      { x: 5, y: 5 },
+      { x: 5, y: 6 },
+      { x: 5, y: 8 },
+      { x: 5, y: 9 },
+      { x: 5, y: 7 },
+    ];
+    const stones: Stone[] = [];
+    for (const [index, at] of red.entries()) {
+      stones.push({ at, by: 'p0' });
+      if (index < red.length - 1)
+        stones.push({ at: { x: index * 2, y: 0 }, by: 'p1' });
+    }
+    const html = render(snapshotOf(stones, 'p1', { winner: 'p0' }), 'p0');
+
+    expect(html.match(/<line/g)).toHaveLength(2);
+    expect(html).toContain('x1="3.1" y1="7.5" x2="7.9" y2="7.5"');
+    expect(html).toContain('x1="5.5" y1="5.1" x2="5.5" y2="9.9"');
+  });
+
+  it('draws no line while the game is still going', () => {
+    const stones: Stone[] = [{ at: { x: 7, y: 7 }, by: 'p0' }];
+
+    expect(render(snapshotOf(stones, 'p1'), 'p1')).not.toContain('<line');
+  });
+
   it('names the stone on a point, and the five that won', () => {
     const stones: Stone[] = [];
     for (let x = 3; x < 8; x++) {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createRandom } from '@even-odds/game-sdk';
 import type { EngineContext, PlayerId } from '@even-odds/game-sdk';
-import { Gomoku, stoneAt, winningLine } from '../logic';
+import { Gomoku, stoneAt, winningLines } from '../logic';
 import { BOARD, RUN } from '../types';
 import type { Cell, GomokuState, Stone } from '../types';
 
@@ -98,7 +98,7 @@ describe('Gomoku — winning', () => {
       const state = runOf(RUN, axis, { x: 5, y: 7 });
 
       expect(Gomoku.isTerminal(state)).toEqual({ winner: 'p0' });
-      expect(winningLine(state)?.line).toHaveLength(RUN);
+      expect(winningLines(state)?.lines[0]).toHaveLength(RUN);
     }
   });
 
@@ -112,7 +112,7 @@ describe('Gomoku — winning', () => {
     const state = runOf(RUN + 1, { x: 1, y: 0 });
 
     expect(Gomoku.isTerminal(state)).toEqual({ winner: 'p0' });
-    expect(winningLine(state)?.line).toHaveLength(RUN + 1);
+    expect(winningLines(state)?.lines[0]).toHaveLength(RUN + 1);
   });
 
   it('does not count a run broken by the other colour', () => {
@@ -149,10 +149,10 @@ describe('Gomoku — winning', () => {
      would be able to continue past a win. */
   it('reports the win on the stone that made it, not a later one', () => {
     const winning = runOf(RUN, { x: 1, y: 0 });
-    const line = winningLine(winning);
+    const won = winningLines(winning);
 
-    expect(line?.by).toBe('p0');
-    expect(line?.line[0]).toEqual({ x: 5, y: 5 });
+    expect(won?.by).toBe('p0');
+    expect(won?.lines[0]?.[0]).toEqual({ x: 5, y: 5 });
   });
 
   /* The fixtures above all start their winning run with p0's opening stone, so
@@ -175,14 +175,14 @@ describe('Gomoku — winning', () => {
     ]);
 
     expect(Gomoku.isTerminal(state)).toEqual({ winner: 'p0' });
-    expect(winningLine(state)?.line).toHaveLength(RUN);
-    expect(winningLine(state)?.line).not.toContainEqual({ x: 0, y: 0 });
+    expect(winningLines(state)?.lines[0]).toHaveLength(RUN);
+    expect(winningLines(state)?.lines[0]).not.toContainEqual({ x: 0, y: 0 });
   });
 
   it('names the line it was won with, in board order', () => {
     const state = runOf(RUN, { x: 1, y: 1 }, { x: 3, y: 3 });
 
-    expect(winningLine(state)?.line).toEqual([
+    expect(winningLines(state)?.lines[0]).toEqual([
       { x: 3, y: 3 },
       { x: 4, y: 4 },
       { x: 5, y: 5 },
@@ -191,8 +191,37 @@ describe('Gomoku — winning', () => {
     ]);
   });
 
+  /* A stone can finish more than one run at once, and every one of them goes
+     through it -- an earlier five would already have ended the game. */
+  it('names every run the last stone completed', () => {
+    const state = played([
+      { x: 3, y: 7 },
+      { x: 0, y: 0 },
+      { x: 4, y: 7 },
+      { x: 2, y: 0 },
+      { x: 6, y: 7 },
+      { x: 4, y: 0 },
+      { x: 7, y: 7 },
+      { x: 6, y: 0 },
+      { x: 5, y: 5 },
+      { x: 8, y: 0 },
+      { x: 5, y: 6 },
+      { x: 10, y: 0 },
+      { x: 5, y: 8 },
+      { x: 12, y: 0 },
+      { x: 5, y: 9 },
+      { x: 14, y: 0 },
+      { x: 5, y: 7 },
+    ]);
+
+    expect(winningLines(state)?.lines).toEqual([
+      [3, 4, 5, 6, 7].map((x) => ({ x, y: 7 })),
+      [5, 6, 7, 8, 9].map((y) => ({ x: 5, y })),
+    ]);
+  });
+
   it('has no line to report on an empty board', () => {
-    expect(winningLine(Gomoku.setup(context()))).toBeNull();
+    expect(winningLines(Gomoku.setup(context()))).toBeNull();
     expect(Gomoku.isTerminal(Gomoku.setup(context()))).toBeNull();
   });
 });
@@ -215,7 +244,7 @@ describe('Gomoku — a full board', () => {
     const full = packed();
 
     // Guards the fixture: a pattern that accidentally lined up would hide this.
-    expect(winningLine(full)).toBeNull();
+    expect(winningLines(full)).toBeNull();
     expect(full.stones).toHaveLength(BOARD * BOARD);
     expect(Gomoku.isTerminal(full)).toEqual({
       draw: true,
