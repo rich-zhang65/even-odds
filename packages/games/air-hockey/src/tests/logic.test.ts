@@ -15,6 +15,7 @@ import {
   OPENING_MS,
   PADDLE,
   PUCK,
+  SUB_STEPS,
   TABLE,
   TARGET_SCORE,
 } from '../types';
@@ -266,6 +267,40 @@ describe('Air Hockey — the puck', () => {
 });
 
 describe('Air Hockey — striking', () => {
+  /* Continuous: the bounce happens at the instant the two touch, and the puck
+     spends the rest of the slice travelling away. Resolved at the end of the
+     slice instead, it would be parked against the paddle and lose that travel,
+     which is what made hits look like they clipped into the paddle. */
+  it('bounces at the moment of contact and keeps moving for the rest of the slice', () => {
+    const paddle = { x: MID_X, y: HALFWAY + 30 };
+    const slice = 1 / (60 * SUB_STEPS);
+    const speed = 240;
+    // Half a slice's travel short of touching, heading straight at the paddle.
+    const gap = (speed * slice) / 2;
+    const state = board({
+      puck: {
+        at: { x: MID_X, y: paddle.y - TOUCHING - gap },
+        velocity: { x: 0, y: speed },
+      },
+      paddles: {
+        p0: still(paddle),
+        p1: still({ x: PADDLE.radius, y: PADDLE.radius }),
+      },
+    });
+
+    // By hand: touch half-way through slice one, bounce, then travel away.
+    let y = paddle.y - TOUCHING - (speed * PUCK.bounce * slice) / 2;
+    let vy = -speed * PUCK.bounce * (1 - PUCK.damping * slice);
+    for (let rest = 1; rest < SUB_STEPS; rest++) {
+      y += vy * slice;
+      vy *= 1 - PUCK.damping * slice;
+    }
+
+    const after = run(state, 1);
+    expect(after.puck.at.y).toBeCloseTo(y, 6);
+    expect(after.puck.velocity.y).toBeCloseTo(vy, 6);
+  });
+
   /* A paddle can cover far more than the puck can in one slice, so a hard ram
      ends a slice with the paddle past the puck's centre while still overlapping
      it. Pushed straight out from the paddle, the puck went out the back and
