@@ -172,6 +172,7 @@
   --animate-eo-rise: eo-rise var(--eo-duration-base) var(--ease-eo-out);
   --animate-eo-pulse: eo-pulse 1.6s var(--ease-eo-in-out) infinite;
   --animate-eo-dice-roll: eo-dice-roll 0.7s linear;
+  --animate-eo-blink: eo-blink 0.2s steps(1, end) infinite;
 
   /* A tumble, not a spin: rotateX and rotateY under a perspective foreshorten
      the face so the die reads as turning over rather than skidding. Every axis
@@ -248,6 +249,17 @@
     }
     50% {
       opacity: 0.45;
+    }
+  }
+
+  /* An on-off flicker rather than a fade, for something not yet in play: it
+     says "you can't touch this" where a pulse only says "waiting". */
+  @keyframes eo-blink {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.15;
     }
   }
 
