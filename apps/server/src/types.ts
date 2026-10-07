@@ -55,6 +55,9 @@ export type RegistryOptions = { graceMs?: number; record?: RecordMatch };
 
 export type ServerOptions = {
   graceMs?: number;
+  /* The one website allowed to open a game connection, such as the deployed
+     web app's address. Left out, any may: local development and tests. */
+  origin?: string;
   record?: RecordMatch;
   /* Turns the ticket a client offered -- untouched, so it may be anything at
      all -- into an account, or null to refuse the socket. Injected, so tests

@@ -31,11 +31,15 @@ afterEach(() => {
   recorded.length = 0;
 });
 
-const startServer = async (graceMs?: number): Promise<string> => {
+const startServer = async (
+  graceMs?: number,
+  origin?: string,
+): Promise<string> => {
   const http = createServer();
   // The real ticket check: a ticket from the web app is the only way in.
   const io = attachSocketServer(http, {
     graceMs,
+    origin,
     record: (finished) => recorded.push(finished),
     identify: async (ticket) => readTicket(SECRET, ticket, Date.now()),
   });
@@ -236,6 +240,28 @@ describe('server — accounts', () => {
 
     expect(refused.message).toBe('unauthorized');
     expect(socket.connected).toBe(false);
+  });
+
+  /* Deployed, the server answers only the web app's own address, so another
+     website cannot open a game connection from someone's browser. */
+  it('accepts only the allowed site once one is set', async () => {
+    const url = await startServer(undefined, 'https://even-odds.example');
+    const from = (origin: string) => {
+      const socket = connectClient(url, {
+        transports: ['websocket'],
+        forceNew: true,
+        auth: { ticket: ticketFor('richard') },
+        extraHeaders: { origin },
+      });
+      clients.push(socket);
+      return new Promise<boolean>((resolve) => {
+        socket.once('connect', () => resolve(true));
+        socket.once('connect_error', () => resolve(false));
+      });
+    };
+
+    expect(await from('https://even-odds.example')).toBe(true);
+    expect(await from('https://somewhere-else.example')).toBe(false);
   });
 
   it('refuses a ticket the server did not sign', async () => {
