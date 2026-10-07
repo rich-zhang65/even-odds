@@ -8,9 +8,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "@even-odds/air-hockey": "*",
+    "@even-odds/battleship": "*",
     "@even-odds/db": "*",
     "@even-odds/design-system": "^0.0.0",
     "@even-odds/game-sdk": "^0.0.0",
+    "@even-odds/gomoku": "*",
     "@even-odds/pong": "*",
     "@even-odds/yazy": "^0.0.0",
     "lucide-react": "^1.35.0",
