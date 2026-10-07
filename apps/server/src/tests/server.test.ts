@@ -3,7 +3,7 @@ import { io as connectClient } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { FinishedMatch } from '@even-odds/db';
-import { sessionTokenFrom } from '@even-odds/db/cookie';
+import { issueTicket, readTicket } from '@even-odds/db/ticket';
 import type { GameResult, PlayerId, Snapshot } from '@even-odds/game-sdk';
 import { ALL_CATEGORIES } from '@even-odds/yazy';
 import type { YazyState } from '@even-odds/yazy';
@@ -33,15 +33,11 @@ afterEach(() => {
 
 const startServer = async (graceMs?: number): Promise<string> => {
   const http = createServer();
-  /* The real cookie parsing, with the database swapped for "the session token is
-     the username": every account a test names exists, and no cookie is nobody. */
+  // The real ticket check: a ticket from the web app is the only way in.
   const io = attachSocketServer(http, {
     graceMs,
     record: (finished) => recorded.push(finished),
-    identify: async (cookieHeader) => {
-      const token = sessionTokenFrom(cookieHeader);
-      return token === null ? null : { id: token, username: token };
-    },
+    identify: async (ticket) => readTicket(SECRET, ticket, Date.now()),
   });
   await new Promise<void>((resolve) => http.listen(0, () => resolve()));
 
@@ -57,15 +53,17 @@ const startServer = async (graceMs?: number): Promise<string> => {
 
 let strangers = 0;
 
+const SECRET = 'the game server tests';
+const ticketFor = (name: string, secret = SECRET) =>
+  issueTicket(secret, { id: name, username: name }, Date.now());
+
 /* Signed in as `as`, or as a fresh account of its own when no name is given, so
    two sockets are two different people unless a test says otherwise. */
 const connect = async (url: string, as?: string): Promise<Socket> => {
   const socket = connectClient(url, {
     transports: ['websocket'],
     forceNew: true,
-    extraHeaders: {
-      cookie: `eo_session=${as ?? `stranger-${(strangers += 1)}`}`,
-    },
+    auth: { ticket: ticketFor(as ?? `stranger-${(strangers += 1)}`) },
   });
   clients.push(socket);
   await new Promise<void>((resolve, reject) => {
@@ -240,12 +238,12 @@ describe('server — accounts', () => {
     expect(socket.connected).toBe(false);
   });
 
-  it('refuses a session the server does not recognise', async () => {
+  it('refuses a ticket the server did not sign', async () => {
     const url = await startServer();
     const socket = connectClient(url, {
       transports: ['websocket'],
       forceNew: true,
-      extraHeaders: { cookie: 'theme=dark' },
+      auth: { ticket: ticketFor('richard', 'a guessed secret') },
     });
     clients.push(socket);
 

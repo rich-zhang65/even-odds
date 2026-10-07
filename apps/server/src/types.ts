@@ -56,7 +56,8 @@ export type RegistryOptions = { graceMs?: number; record?: RecordMatch };
 export type ServerOptions = {
   graceMs?: number;
   record?: RecordMatch;
-  /* Turns a handshake's Cookie header into an account, or null to refuse the
-     socket. Injected, so production asks the database and tests do not need one. */
-  identify: (cookieHeader: string | undefined) => Promise<Player | null>;
+  /* Turns the ticket a client offered -- untouched, so it may be anything at
+     all -- into an account, or null to refuse the socket. Injected, so tests
+     choose their own secret. */
+  identify: (ticket: unknown) => Promise<Player | null>;
 };

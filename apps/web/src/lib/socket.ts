@@ -16,9 +16,30 @@ export type MatchSocket = Socket<
 const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:4000';
 
+/* A ticket from the web app, fetched afresh for every connection attempt,
+   reconnects included, since each expires within a minute. Any failure hands
+   over no ticket, and the game server turns the socket away as unauthorized --
+   the same answer as being signed out, which is what it usually means. */
+const withTicket = (send: (auth: { ticket: string | null }) => void): void => {
+  fetch('/api/socket-ticket', { cache: 'no-store' })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((body: unknown) =>
+      send({
+        ticket:
+          typeof body === 'object' &&
+          body !== null &&
+          'ticket' in body &&
+          typeof body.ticket === 'string'
+            ? body.ticket
+            : null,
+      }),
+    )
+    .catch(() => send({ ticket: null }));
+};
+
 let instance: MatchSocket | null = null;
 
 export const getSocket = (): MatchSocket => {
-  instance ??= io(SERVER_URL, { transports: ['websocket'] });
+  instance ??= io(SERVER_URL, { transports: ['websocket'], auth: withTicket });
   return instance;
 };
