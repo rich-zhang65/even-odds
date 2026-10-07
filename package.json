@@ -6,6 +6,9 @@
     "packages/*",
     "packages/games/*"
   ],
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "concurrently --kill-others-on-fail -n web,server -c cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
     "dev:web": "npm run dev --workspace apps/web",
