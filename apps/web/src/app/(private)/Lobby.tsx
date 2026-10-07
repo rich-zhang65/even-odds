@@ -98,11 +98,17 @@ export const Lobby = ({ recent }: { recent: string[] }) => {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /* Starting a match while the game server is still asleep: the request waits
+     until it wakes, which can be a minute, so say so rather than sit silent. */
+  const [waking, setWaking] = useState(false);
 
   const start = (gameId: string) => {
     setPending(gameId);
     setError(null);
-    getSocket().emit('match:create', { gameId }, (res) => {
+    const socket = getSocket();
+    setWaking(!socket.connected);
+    socket.emit('match:create', { gameId }, (res) => {
+      setWaking(false);
       if ('error' in res) {
         setPending(null);
         setError(res.error);
@@ -162,11 +168,20 @@ export const Lobby = ({ recent }: { recent: string[] }) => {
         </section>
       </PageContainer>
 
+      {waking && (
+        <div className="fixed inset-x-0 bottom-8 grid place-items-center px-4">
+          <Toast
+            tone="neutral"
+            message="Waking up the game server. This can take up to a minute."
+          />
+        </div>
+      )}
+
       {error !== null && (
         <div className="fixed inset-x-0 bottom-8 grid place-items-center px-4">
           <Toast
             tone="alert"
-            message={`Could not start a match (${error}). Is the server running on port 4000?`}
+            message={`Could not start a match (${error}).`}
             onDismiss={() => setError(null)}
           />
         </div>

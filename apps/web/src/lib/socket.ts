@@ -4,6 +4,7 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
 } from '@even-odds/game-sdk';
+import { SERVER_URL } from './serverUrl';
 
 /* One connection carries every match, so it cannot be typed to one game's state.
    What comes down it is narrowed once, in useMatch, by the page that knows which
@@ -12,9 +13,6 @@ export type MatchSocket = Socket<
   ServerToClientEvents<unknown>,
   ClientToServerEvents
 >;
-
-const SERVER_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:4000';
 
 /* A ticket from the web app, fetched afresh for every connection attempt,
    reconnects included, since each expires within a minute. Any failure hands
