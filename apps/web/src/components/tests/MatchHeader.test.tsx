@@ -22,8 +22,8 @@ describe('MatchHeader', () => {
   it('shows the running score with both seats named', () => {
     const html = render('p0');
 
-    expect(html).toContain('Red');
-    expect(html).toContain('Blue');
+    expect(html).toContain('Lemon');
+    expect(html).toContain('Lime');
     expect(html).toContain('>164<');
     expect(html).toContain('>174<');
   });
@@ -46,7 +46,7 @@ describe('MatchHeader', () => {
     for (const seat of ['p0', 'p1'] as const) {
       const html = render(seat, { winner: 'p0' });
 
-      expect(html).toContain('Red wins');
+      expect(html).toContain('Lemon wins');
       expect(html).toContain('164–174');
       expect(html).not.toContain('You win');
     }

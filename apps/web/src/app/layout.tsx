@@ -16,8 +16,8 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: 'Even Odds',
-  description: 'Settle the score online, at even odds',
+  title: 'Lemon Lime',
+  description: 'Settle the score online, Lemon against Lime',
 };
 
 const RootLayout = ({ children }: LayoutProps<'/'>) => (

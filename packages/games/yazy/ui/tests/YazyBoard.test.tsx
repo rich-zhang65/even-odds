@@ -54,16 +54,16 @@ const cell = (html: string, label: string): { tag: string; text: string } => {
 
 describe('YazyBoard', () => {
   it('washes a cell only once it is taken, so a column reads filled versus empty', () => {
-    // Red is up, so Blue's column is the one with nothing open in it.
+    // Lemon is up, so Lime's column is the one with nothing open in it.
     const html = render(snapshotOf({ turn: 'p0', p1: { ones: 3 } }), 'p1');
 
     // Taken: seat wash, seat ink, heavy.
-    expect(cell(html, 'Ones, Blue').tag).toContain('bg-eo-blue-soft');
-    expect(cell(html, 'Ones, Blue').tag).toContain('font-extrabold');
+    expect(cell(html, 'Ones, Lime').tag).toContain('bg-eo-blue-soft');
+    expect(cell(html, 'Ones, Lime').tag).toContain('font-extrabold');
 
     // Untaken, and not the acting player's: no wash at all.
-    expect(cell(html, 'Twos, Blue').tag).toContain('bg-eo-card');
-    expect(cell(html, 'Twos, Blue').tag).not.toContain('bg-eo-blue-soft');
+    expect(cell(html, 'Twos, Lime').tag).toContain('bg-eo-card');
+    expect(cell(html, 'Twos, Lime').tag).not.toContain('bg-eo-blue-soft');
   });
 
   it("lights the acting player's open rows for both players, from the turn's start", () => {
@@ -71,14 +71,14 @@ describe('YazyBoard', () => {
     const fresh = snapshotOf({ turn: 'p0', rollsLeft: 3 });
 
     for (const viewer of ['p0', 'p1'] as const) {
-      const open = cell(render(fresh, viewer), 'Yazy, Red');
+      const open = cell(render(fresh, viewer), 'Yazy, Lemon');
       expect(open.tag).toContain('bg-eo-red-solid'); // tinted for whoever is looking
       expect(open.text).toBe(''); // but nothing to read yet
       expect(open.tag).toContain('disabled'); // SCORE is illegal at rollsLeft 3
     }
 
     // The waiting player's own column stays plain.
-    expect(cell(render(fresh, 'p1'), 'Yazy, Blue').tag).toContain('bg-eo-card');
+    expect(cell(render(fresh, 'p1'), 'Yazy, Lime').tag).toContain('bg-eo-card');
   });
 
   it("shows the acting player's preview to their opponent as well", () => {
@@ -87,7 +87,7 @@ describe('YazyBoard', () => {
       'p1',
     );
 
-    const red = cell(html, 'Yazy, Red');
+    const red = cell(html, 'Yazy, Lemon');
     expect(red.text).toBe('50');
     expect(red.tag).toContain('disabled'); // visible, but not the watcher's to score
   });
@@ -95,27 +95,27 @@ describe('YazyBoard', () => {
   it('renders a preview muted, so it cannot pass for a committed score', () => {
     const html = render(snapshotOf({ p0: { ones: 3 } }), 'p0');
 
-    const preview = cell(html, 'Twos, Red');
+    const preview = cell(html, 'Twos, Lemon');
     expect(preview.tag).toContain('text-eo-faint');
     expect(preview.tag).not.toContain('font-extrabold');
 
-    expect(cell(html, 'Ones, Red').tag).toContain('text-eo-red-ink');
+    expect(cell(html, 'Ones, Lemon').tag).toContain('text-eo-red-ink');
   });
 
   it('gives every category a cell for each player', () => {
     const html = render(snapshotOf({}), 'p0');
 
     for (const label of ['Ones', 'Sixes', 'Full House', 'Straight', 'Yazy']) {
-      expect(() => cell(html, `${label}, Red`)).not.toThrow();
-      expect(() => cell(html, `${label}, Blue`)).not.toThrow();
+      expect(() => cell(html, `${label}, Lemon`)).not.toThrow();
+      expect(() => cell(html, `${label}, Lime`)).not.toThrow();
     }
   });
 
   it("previews a score only in the acting player's column", () => {
     const html = render(snapshotOf({ dice: [3, 3, 3, 3, 3] }), 'p0');
 
-    const red = cell(html, 'Yazy, Red');
-    const blue = cell(html, 'Yazy, Blue');
+    const red = cell(html, 'Yazy, Lemon');
+    const blue = cell(html, 'Yazy, Lime');
 
     expect(red.text).toBe('50');
     expect(red.tag).not.toContain('disabled');
@@ -126,7 +126,7 @@ describe('YazyBoard', () => {
   it('previews nothing to the player waiting for their turn', () => {
     const html = render(snapshotOf({ turn: 'p1' }), 'p0');
 
-    const red = cell(html, 'Yazy, Red');
+    const red = cell(html, 'Yazy, Lemon');
     expect(red.text).toBe('');
     expect(red.tag).toContain('disabled');
   });
@@ -134,19 +134,19 @@ describe('YazyBoard', () => {
   it('offers nothing before the dice are rolled', () => {
     const html = render(snapshotOf({ rollsLeft: 3 }), 'p0');
 
-    expect(cell(html, 'Yazy, Red').tag).toContain('disabled');
+    expect(cell(html, 'Yazy, Lemon').tag).toContain('disabled');
   });
 
   it('keeps a scored zero visible instead of blanking the cell', () => {
     const html = render(snapshotOf({ p0: { ones: 0 } }), 'p0');
 
-    expect(cell(html, 'Ones, Red').text).toBe('0');
+    expect(cell(html, 'Ones, Lemon').text).toBe('0');
   });
 
   it('closes a category once it has been scored', () => {
     const html = render(snapshotOf({ p0: { yazy: 50 } }), 'p0');
 
-    const red = cell(html, 'Yazy, Red');
+    const red = cell(html, 'Yazy, Lemon');
     expect(red.text).toBe('50');
     expect(red.tag).toContain('disabled');
   });

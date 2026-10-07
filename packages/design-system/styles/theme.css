@@ -1,27 +1,28 @@
-/* Even Odds design tokens, expressed as a Tailwind theme so every token also
+/* Lemon Lime design tokens, expressed as a Tailwind theme so every token also
    generates a utility. Import once from the app's entry stylesheet. */
 @theme {
-  /* ---- Player red ---- */
-  --color-eo-red-50: #fff0ed;
-  --color-eo-red-100: #ffdbd5;
-  --color-eo-red-200: #ffb4a8;
-  --color-eo-red-300: #ff8776;
-  --color-eo-red-400: #ff4d3d;
-  --color-eo-red-500: #f03526;
-  --color-eo-red-600: #d02417;
-  --color-eo-red-700: #a11a10;
-  --color-eo-red-800: #6b120b;
+  /* ---- Player one: lemon, a soft butter yellow. The tokens keep the name
+     "red" from the original palette, so no component has to change. ---- */
+  --color-eo-red-50: #fffbea;
+  --color-eo-red-100: #fff3c4;
+  --color-eo-red-200: #ffe89a;
+  --color-eo-red-300: #fbdc72;
+  --color-eo-red-400: #f6d155;
+  --color-eo-red-500: #e9bf36;
+  --color-eo-red-600: #c99a1c;
+  --color-eo-red-700: #8a6510;
+  --color-eo-red-800: #5c450a;
 
-  /* ---- Player blue ---- */
-  --color-eo-blue-50: #eef3ff;
-  --color-eo-blue-100: #d7e2ff;
-  --color-eo-blue-200: #aec5ff;
-  --color-eo-blue-300: #7ba0fa;
-  --color-eo-blue-400: #4a7bf0;
-  --color-eo-blue-500: #2563eb;
-  --color-eo-blue-600: #1746b8;
-  --color-eo-blue-700: #123689;
-  --color-eo-blue-800: #0c2358;
+  /* ---- Player two: lime, a light green, under the name "blue". ---- */
+  --color-eo-blue-50: #f1fbe9;
+  --color-eo-blue-100: #def5cc;
+  --color-eo-blue-200: #c1eba3;
+  --color-eo-blue-300: #a1de78;
+  --color-eo-blue-400: #84cf55;
+  --color-eo-blue-500: #6cbf3f;
+  --color-eo-blue-600: #4f9a2b;
+  --color-eo-blue-700: #3a7120;
+  --color-eo-blue-800: #254a15;
 
   /* ---- Neutrals: ink on paper ---- */
   --color-eo-ink-900: #12141c;
@@ -44,10 +45,10 @@
   --color-eo-on-inverse: var(--color-eo-ink-50);
   --color-eo-red-solid: var(--color-eo-red-400);
   --color-eo-red-soft: var(--color-eo-red-50);
-  --color-eo-blue-solid: var(--color-eo-blue-500);
+  --color-eo-blue-solid: var(--color-eo-blue-400);
   --color-eo-blue-soft: var(--color-eo-blue-50);
   --color-eo-red-solid-hover: var(--color-eo-red-300);
-  --color-eo-blue-solid-hover: var(--color-eo-blue-400);
+  --color-eo-blue-solid-hover: var(--color-eo-blue-300);
   --color-eo-inverse-hover: var(--color-eo-ink-800);
   --color-eo-live-soft: #dcf5e8;
   --color-eo-waiting-soft: #fdefd9;
@@ -57,13 +58,14 @@
   --color-eo-body: var(--color-eo-ink-700);
   --color-eo-muted: var(--color-eo-ink-500);
   --color-eo-faint: var(--color-eo-ink-400);
-  --color-eo-on-color: #ffffff;
-  --color-eo-red-ink: var(--color-eo-red-600);
-  --color-eo-blue-ink: var(--color-eo-blue-600);
+  /* Dark, not white: white is unreadable on butter yellow and light green. */
+  --color-eo-on-color: var(--color-eo-ink-900);
+  --color-eo-red-ink: var(--color-eo-red-700);
+  --color-eo-blue-ink: var(--color-eo-blue-700);
   --color-eo-live-ink: #0b6b41;
   --color-eo-waiting-ink: #8a5510;
-  --color-eo-link: var(--color-eo-blue-500);
-  --color-eo-link-hover: var(--color-eo-blue-600);
+  --color-eo-link: var(--color-eo-blue-700);
+  --color-eo-link-hover: var(--color-eo-blue-800);
 
   /* ---- Borders. --border-strong rides on --color-eo-strong: same ink, and the
          --color-* namespace is shared across bg, text and border alike. ---- */
@@ -157,7 +159,7 @@
   --shadow-eo-edge-ink: 0 2px 0 var(--color-eo-strong);
   --shadow-eo-edge-ink-soft: 0 2px 0 var(--eo-edge-inverse);
   --shadow-eo-edge-red: 0 2px 0 var(--color-eo-red-600);
-  --shadow-eo-edge-blue: 0 2px 0 var(--color-eo-blue-700);
+  --shadow-eo-edge-blue: 0 2px 0 var(--color-eo-blue-600);
   --shadow-eo-edge-hairline: 0 2px 0 var(--color-eo-hairline);
   --shadow-eo-focus: 0 0 0 3px var(--eo-focus-ring);
 
@@ -281,7 +283,7 @@
   --eo-shadow-md: rgb(18 20 28 / 0.08);
   --eo-shadow-lg: rgb(18 20 28 / 0.18);
   --eo-edge-inverse: var(--color-eo-ink-700);
-  --eo-focus-ring: rgb(37 99 235 / 0.35);
+  --eo-focus-ring: rgb(108 191 63 / 0.35);
   --eo-blur-panel: saturate(140%) blur(12px);
 
   /* Split field: red half against blue half, the core brand background. */
@@ -326,9 +328,9 @@
   --color-eo-inverse: var(--color-eo-ink-50);
   --color-eo-on-inverse: var(--color-eo-ink-900);
   --color-eo-red-solid: var(--color-eo-red-400);
-  --color-eo-red-soft: rgb(255 77 61 / 0.14);
+  --color-eo-red-soft: rgb(246 209 85 / 0.14);
   --color-eo-blue-solid: var(--color-eo-blue-400);
-  --color-eo-blue-soft: rgb(74 123 240 / 0.16);
+  --color-eo-blue-soft: rgb(132 207 85 / 0.16);
   --color-eo-blue-solid-hover: var(--color-eo-blue-300);
   --color-eo-inverse-hover: var(--color-eo-ink-200);
   --color-eo-live-soft: rgb(23 178 106 / 0.16);
@@ -361,7 +363,7 @@
   --eo-shadow-md: rgb(0 0 0 / 0.45);
   --eo-shadow-lg: rgb(0 0 0 / 0.6);
   --eo-edge-inverse: var(--color-eo-ink-300);
-  --eo-focus-ring: rgb(123 160 250 / 0.4);
+  --eo-focus-ring: rgb(132 207 85 / 0.4);
 
   --eo-scrim: rgb(0 0 0 / 0.65);
 

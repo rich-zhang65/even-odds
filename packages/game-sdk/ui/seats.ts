@@ -19,7 +19,7 @@ export type SeatTheme = {
    stay pale on an ink page. */
 export const SEATS: Record<PlayerId, SeatTheme> = {
   p0: {
-    name: 'Red',
+    name: 'Lemon',
     soft: 'bg-eo-red-soft',
     solid: 'bg-eo-red-solid',
     pick: 'bg-eo-red-solid/20 hover:bg-eo-red-solid/35',
@@ -31,7 +31,7 @@ export const SEATS: Record<PlayerId, SeatTheme> = {
     button: 'red',
   },
   p1: {
-    name: 'Blue',
+    name: 'Lime',
     soft: 'bg-eo-blue-soft',
     solid: 'bg-eo-blue-solid',
     pick: 'bg-eo-blue-solid/20 hover:bg-eo-blue-solid/35',

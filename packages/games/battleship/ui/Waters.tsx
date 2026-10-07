@@ -54,7 +54,7 @@ export const Waters = ({
             turn.seat.solid,
           )}
         >
-          <span className="size-2 animate-eo-pulse rounded-full bg-white" />
+          <span className="size-2 animate-eo-pulse rounded-full bg-eo-on-color" />
           {turn.label}
         </span>
       )}

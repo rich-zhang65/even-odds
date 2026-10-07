@@ -336,7 +336,7 @@ export const AirHockeyBoard = ({
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <span
             className={cx(
-              'animate-eo-pop rounded-eo-pill border-[3px] border-eo-strong px-6 py-2 font-eo-display text-2xl font-bold tracking-eo-tight whitespace-nowrap text-white shadow-eo-edge-ink',
+              'animate-eo-pop rounded-eo-pill border-[3px] border-eo-strong px-6 py-2 font-eo-display text-2xl font-bold tracking-eo-tight whitespace-nowrap text-eo-on-color shadow-eo-edge-ink',
               SEATS[scorer].solid,
             )}
             key={scores.p0 + scores.p1}

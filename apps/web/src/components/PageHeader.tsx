@@ -22,7 +22,7 @@ export const PageHeader = () => (
       <Link
         className="shrink-0 select-none"
         href="/"
-        aria-label="Even Odds home"
+        aria-label="Lemon Lime home"
       >
         <Wordmark />
       </Link>

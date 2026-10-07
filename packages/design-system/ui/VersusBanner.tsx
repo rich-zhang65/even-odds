@@ -2,8 +2,8 @@ import { cx } from './cx';
 import { Flex } from './Flex';
 
 export const VersusBanner = ({
-  redName = 'Red',
-  blueName = 'Blue',
+  redName = 'Lemon',
+  blueName = 'Lime',
   label,
   className,
 }: {

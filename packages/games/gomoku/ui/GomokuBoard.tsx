@@ -172,7 +172,7 @@ export const GomokuBoard = ({
                       )}
                     >
                       {latest && result === null && (
-                        <span className="size-[30%] rounded-full bg-white" />
+                        <span className="size-[30%] rounded-full bg-eo-on-color" />
                       )}
                     </span>
                   ) : (

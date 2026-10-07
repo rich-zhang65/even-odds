@@ -127,7 +127,7 @@ export const Lobby = ({ recent }: { recent: string[] }) => {
   return (
     <main className="flex min-h-full flex-col">
       <PageContainer>
-        <h1 className="sr-only">Even Odds</h1>
+        <h1 className="sr-only">Lemon Lime</h1>
 
         {/* One row however wide the page: the first row is declared, and every
             row after it collapses to nothing and is clipped, so a narrower screen shows as many of the

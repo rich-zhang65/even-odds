@@ -97,7 +97,7 @@ describe('GomokuBoard', () => {
     const html = render(snapshotOf(stones, 'p1', { winner: 'p0' }), 'p0');
 
     expect(html.match(/part of the winning line/g)).toHaveLength(5);
-    expect(html).toContain('aria-label="D8, Red, part of the winning line"');
-    expect(html).toContain('aria-label="D15, Blue"');
+    expect(html).toContain('aria-label="D8, Lemon, part of the winning line"');
+    expect(html).toContain('aria-label="D15, Lime"');
   });
 });

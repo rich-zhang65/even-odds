@@ -7,6 +7,7 @@ export const Wordmark = ({ className }: { className?: string }) => (
       className,
     )}
   >
-    even<span className="text-eo-blue-solid dark:text-eo-red-solid">.</span>odds
+    lemon<span className="text-eo-blue-solid dark:text-eo-red-solid">.</span>
+    lime
   </span>
 );

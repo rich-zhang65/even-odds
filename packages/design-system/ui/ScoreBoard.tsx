@@ -43,8 +43,8 @@ const Side = ({
 );
 
 export const ScoreBoard = ({
-  redName = 'Red',
-  blueName = 'Blue',
+  redName = 'Lemon',
+  blueName = 'Lime',
   redScore = 0,
   blueScore = 0,
   rounds = 0,

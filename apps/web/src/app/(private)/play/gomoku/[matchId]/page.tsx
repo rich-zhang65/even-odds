@@ -67,7 +67,7 @@ const MatchPage = ({ params }: PageProps<'/play/gomoku/[matchId]'>) => {
               {copied ? 'Copied to clipboard' : 'Copy match link'}
             </Button>
             <p className="mt-4 font-eo-body text-eo-caption text-eo-muted">
-              Seats · Red {seats.p0 ? 'ready' : '—'} · Blue{' '}
+              Seats · Lemon {seats.p0 ? 'ready' : '—'} · Lime{' '}
               {seats.p1 ? 'ready' : '—'}
             </p>
           </Card>
