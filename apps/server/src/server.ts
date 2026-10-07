@@ -26,13 +26,18 @@ export const attachSocketServer = (
 ): SocketServer => {
   const io: SocketServer = new Server(http, { cors: { origin: '*' } });
 
-  /* Nobody reaches a match without an account. The browser sends the login
-     cookie with the handshake on its own -- ports do not count towards a
-     cookie's site, so localhost:3000's reaches :4000 -- and a socket that
-     cannot be identified never connects at all. */
+  /* Nobody reaches a match without an account. The client brings a ticket from
+     the web app in the handshake's auth -- deployed, the two are on unrelated
+     sites, so the sign-in cookie never arrives here -- and a socket that cannot
+     be identified never connects at all. */
   io.use((socket, next) => {
+    const offered: unknown = socket.handshake.auth;
+    const ticket =
+      typeof offered === 'object' && offered !== null && 'ticket' in offered
+        ? offered.ticket
+        : undefined;
     opts
-      .identify(socket.handshake.headers.cookie)
+      .identify(ticket)
       .then((player) => {
         if (player === null) {
           next(new Error('unauthorized'));
