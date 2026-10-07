@@ -7,8 +7,7 @@ import { SEATS } from '@even-odds/game-sdk/ui';
 import { Grid, cellName } from './Grid';
 import type { CellLook } from './Grid';
 import { useFleet } from './useFleet';
-import { cellsOf, isSunk, shipAt } from '../src/logic';
-import { FLEET } from '../src/types';
+import { isSunk, shipAt } from '../src/logic';
 import type {
   BattleshipAction,
   BattleshipState,
@@ -77,16 +76,6 @@ export const BattleshipBoard = ({
   // Before the fleet is sent, your own waters show the local arrangement.
   const ownShips = sent ? mine : { ships: fleet.ships, incoming: [] };
 
-  const holdingShip =
-    fleet.holding === null
-      ? null
-      : (FLEET.find((entry) => entry.id === fleet.holding) ?? null);
-
-  const preview =
-    arranging && holdingShip !== null && aim !== null
-      ? cellsOf({ id: holdingShip.id, at: aim, facing: fleet.facing })
-      : NO_CELLS;
-
   const waitingOn = deploying
     ? sent
       ? `Waiting for ${theirSeat.name} to deploy`
@@ -123,17 +112,15 @@ export const BattleshipBoard = ({
           label="Your waters"
           look={(cell) => lookOf(ownShips, cell)}
           shipTint={mySeat.solid}
-          preview={preview}
-          previewBad={aim !== null && fleet.trouble(aim)}
+          hitTint="bg-eo-lose"
+          preview={arranging ? fleet.preview : NO_CELLS}
+          previewBad={fleet.previewBad}
           reach={
-            arranging
-              ? (cell) =>
-                  fleet.holding !== null ||
-                  shipAt(fleet.ships, cell) !== undefined
-              : null
+            arranging ? (cell) => shipAt(fleet.ships, cell) !== undefined : null
           }
-          onCell={fleet.put}
-          onAim={setAim}
+          dropTarget={arranging}
+          onCell={fleet.turn}
+          onGrab={arranging ? fleet.grabAt : undefined}
         />
       </div>
 
@@ -163,6 +150,7 @@ export const BattleshipBoard = ({
           label={`${theirSeat.name}'s waters`}
           look={(cell) => lookOf(theirs, cell)}
           shipTint={theirSeat.solid}
+          hitTint={theirSeat.solid}
           preview={NO_CELLS}
           reach={
             myMove && !deploying
@@ -170,6 +158,7 @@ export const BattleshipBoard = ({
               : null
           }
           onCell={(cell) => onAction({ type: 'FIRE', at: cell })}
+          onAim={setAim}
         />
 
         {!deploying && (
@@ -186,31 +175,27 @@ export const BattleshipBoard = ({
       {arranging && (
         <Card className="w-full" tone="outlined">
           <Flex wrap="wrap" align="center" gap="8px" className="mb-4">
-            {FLEET.map((entry) => {
-              const down = fleet.ships.some((ship) => ship.id === entry.id);
-              return (
-                <button
-                  className={cx(
-                    'rounded-eo-pill border-2 px-3 py-1 font-eo-body text-eo-label transition-colors duration-(--eo-duration-fast)',
-                    fleet.holding === entry.id
-                      ? cx(mySeat.border, mySeat.ink)
-                      : 'border-eo-hairline text-eo-muted',
-                    down && 'line-through',
-                  )}
-                  key={entry.id}
-                  type="button"
-                  onClick={() => fleet.take(entry.id)}
-                >
-                  {entry.name} · {entry.length}
-                </button>
-              );
-            })}
+            {fleet.ashore.map((entry) => (
+              <span
+                className={cx(
+                  'cursor-grab touch-none rounded-eo-pill border-2 px-3 py-1 font-eo-body text-eo-label select-none',
+                  mySeat.border,
+                  mySeat.ink,
+                )}
+                key={entry.id}
+                onPointerDown={(event) => fleet.launch(entry.id, event)}
+              >
+                {entry.name} · {entry.length}
+              </span>
+            ))}
+            <span className="font-eo-body text-eo-caption text-eo-muted">
+              {fleet.ashore.length > 0
+                ? 'Drag each ship into your waters. Click one to turn it.'
+                : 'Drag a ship to move it. Click one to turn it.'}
+            </span>
           </Flex>
 
           <Flex wrap="wrap" align="center" gap="8px">
-            <Button size="sm" variant="outline" onClick={fleet.rotate}>
-              {fleet.facing === 'across' ? 'Across' : 'Down'}
-            </Button>
             <Button size="sm" variant="outline" onClick={fleet.scatter}>
               Scatter
             </Button>
