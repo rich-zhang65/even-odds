@@ -3,20 +3,24 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@even-odds/air-hockey": "*",
+    "@even-odds/battleship": "*",
     "@even-odds/db": "*",
     "@even-odds/game-sdk": "*",
+    "@even-odds/gomoku": "*",
     "@even-odds/pong": "*",
     "@even-odds/yazy": "*",
     "nanoid": "^5.1.16",
     "socket.io": "^4.8.3",
+    "tsx": "^4.23.12",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
-    "socket.io-client": "^4.8.3",
-    "tsx": "^4.23.12"
+    "socket.io-client": "^4.8.3"
   }
 }

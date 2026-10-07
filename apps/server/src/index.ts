@@ -9,8 +9,11 @@ if (existsSync('../../.env')) process.loadEnvFile('../../.env');
 
 const PORT = Number(process.env.PORT ?? 4000);
 const db = createDb(process.env.DATABASE_URL ?? '');
-// Read at startup, so a production server missing it fails at once, not later.
+// Read at startup, so a production server missing either fails at once.
 const SECRET = ticketSecret();
+const ORIGIN = process.env.ALLOWED_ORIGIN || undefined;
+if (ORIGIN === undefined && process.env.NODE_ENV === 'production')
+  throw new Error('ALLOWED_ORIGIN must be set in production.');
 
 const http = createServer((_req, res) => {
   res.writeHead(200, { 'content-type': 'text/plain' });
@@ -18,6 +21,7 @@ const http = createServer((_req, res) => {
 });
 
 attachSocketServer(http, {
+  origin: ORIGIN,
   identify: async (ticket) => readTicket(SECRET, ticket, Date.now()),
   record: (finished) => {
     recordMatch(db, finished).catch((error: unknown) => {

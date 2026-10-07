@@ -24,7 +24,17 @@ export const attachSocketServer = (
   http: HttpServer,
   opts: ServerOptions,
 ): SocketServer => {
-  const io: SocketServer = new Server(http, { cors: { origin: '*' } });
+  /* Checked on the handshake itself: the client only uses WebSockets, which
+     cross-origin rules do not cover, so the address is compared by hand. */
+  const io: SocketServer = new Server(http, {
+    cors: { origin: opts.origin ?? '*' },
+    allowRequest: (request, answer) => {
+      answer(
+        null,
+        opts.origin === undefined || request.headers.origin === opts.origin,
+      );
+    },
+  });
 
   /* Nobody reaches a match without an account. The client brings a ticket from
      the web app in the handshake's auth -- deployed, the two are on unrelated
