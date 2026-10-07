@@ -76,13 +76,9 @@ export const BattleshipBoard = ({
   // Before the fleet is sent, your own waters show the local arrangement.
   const ownShips = sent ? mine : { ships: fleet.ships, incoming: [] };
 
-  const waitingOn = deploying
-    ? sent
-      ? `Waiting for ${theirSeat.name} to deploy`
-      : myMove
-        ? null
-        : `${SEATS[onTurn].name} is deploying`
-    : null;
+  // Both players deploy at once, so the only wait is on the other fleet.
+  const waitingOn =
+    deploying && sent ? `Waiting for ${theirSeat.name} to deploy` : null;
 
   return (
     <Flex wrap="wrap" align="start" gap="24px">
@@ -205,24 +201,34 @@ export const BattleshipBoard = ({
             <Button
               size="sm"
               variant={mySeat.button}
-              disabled={fleet.problem !== null || !myMove}
+              disabled={fleet.problem !== null || !live}
               onClick={() => onAction({ type: 'DEPLOY', ships: fleet.ships })}
             >
               Ready
             </Button>
             <span className="font-eo-body text-eo-caption text-eo-muted">
-              {fleet.problem ??
-                (myMove
-                  ? 'Fleet ready'
-                  : `Arrange away — ${SEATS[onTurn].name} deploys first`)}
+              {fleet.problem ?? 'Fleet ready'}
             </span>
           </Flex>
         </Card>
       )}
 
       {waitingOn !== null && !arranging && (
-        <Card className="w-full text-center font-eo-body text-eo-body-s text-eo-muted">
-          {waitingOn}
+        <Card className="w-full font-eo-body text-eo-body-s text-eo-muted">
+          <Flex wrap="wrap" align="center" justify="center" gap="12px">
+            {waitingOn}
+            {/* Until the other fleet is down, yours can come back to be
+                rearranged, laid out as you sent it. */}
+            {sent && live && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onAction({ type: 'RECALL' })}
+              >
+                Cancel
+              </Button>
+            )}
+          </Flex>
         </Card>
       )}
     </Flex>

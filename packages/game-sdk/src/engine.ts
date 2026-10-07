@@ -40,7 +40,8 @@ export const createEngine = <S, A extends GameAction>(
     dispatch(action, by) {
       const terminal = def.isTerminal(state);
       if (terminal) return { ok: false, error: 'match is over' };
-      if (def.currentPlayer(state) !== by)
+      const onTurn = def.currentPlayer(state) === by;
+      if (!onTurn && !(def.offTurn?.(state, action, by) ?? false))
         return { ok: false, error: 'not your turn' };
       if (!def.isLegal(state, action, by, ctx))
         return { ok: false, error: 'illegal action' };

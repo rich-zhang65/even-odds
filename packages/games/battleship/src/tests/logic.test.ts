@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createRandom } from '@even-odds/game-sdk';
+import { createEngine, createRandom } from '@even-odds/game-sdk';
 import type { EngineContext, PlayerId } from '@even-odds/game-sdk';
 import { Battleship, cellsOf, fleetProblem, isSunk } from '../logic';
 import { BOARD, FLEET } from '../types';
@@ -47,13 +47,21 @@ const shotsAt = (cells: Cell[], state: BattleshipState, by: PlayerId) =>
   cells.reduce((running, at) => fire(running, by, at), state);
 
 describe('Battleship — deploying', () => {
-  it('asks p0 for a fleet first, then p1', () => {
-    const fresh = Battleship.setup(context());
-    expect(Battleship.currentPlayer(fresh)).toBe('p0');
+  /* Through the engine, which is what checks turns: deploying is open to both
+     players at once, so neither waits on the other. */
+  it('lets either player deploy first', () => {
+    const engine = createEngine(Battleship, { matchId: 'm1', seed: 1 });
 
-    const half = deploy(fresh, 'p0', LINE_UP);
-    expect(Battleship.currentPlayer(half)).toBe('p1');
-    expect(half.phase).toBe('deploying');
+    expect(engine.dispatch({ type: 'DEPLOY', ships: LINE_UP }, 'p1').ok).toBe(
+      true,
+    );
+    expect(engine.state.phase).toBe('deploying');
+
+    expect(
+      engine.dispatch({ type: 'DEPLOY', ships: OTHER_LINE_UP }, 'p0').ok,
+    ).toBe(true);
+    expect(engine.state.phase).toBe('firing');
+    expect(Battleship.currentPlayer(engine.state)).toBe('p0');
   });
 
   it('starts firing once both fleets are down', () => {
@@ -79,6 +87,30 @@ describe('Battleship — deploying', () => {
     const order = { type: 'DEPLOY', ships: LINE_UP } as const;
 
     expect(Battleship.isLegal(engaged(), order, 'p0', context())).toBe(false);
+  });
+
+  it('lets the first to deploy take their fleet back', () => {
+    const engine = createEngine(Battleship, { matchId: 'm1', seed: 1 });
+    engine.dispatch({ type: 'DEPLOY', ships: LINE_UP }, 'p0');
+
+    expect(engine.dispatch({ type: 'RECALL' }, 'p0').ok).toBe(true);
+    expect(engine.state.boards.p0.ships).toEqual([]);
+    expect(engine.state.phase).toBe('deploying');
+    expect(Battleship.currentPlayer(engine.state)).toBe('p0');
+  });
+
+  it('refuses a recall with no fleet down, or once firing has started', () => {
+    const recall = { type: 'RECALL' } as const;
+    const fresh = Battleship.setup(context());
+
+    expect(Battleship.isLegal(fresh, recall, 'p0', context())).toBe(false);
+    expect(Battleship.isLegal(engaged(), recall, 'p0', context())).toBe(false);
+  });
+
+  it('keeps firing to turns', () => {
+    const shot = { type: 'FIRE', at: { x: 9, y: 9 } } as const;
+
+    expect(Battleship.offTurn?.(engaged(), shot, 'p0')).toBe(false);
   });
 });
 
